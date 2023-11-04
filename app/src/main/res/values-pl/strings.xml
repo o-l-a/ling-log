@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My Input Log</string>
+    <string name="none" />
+
+    <!--    content descriptions    -->
+    <string name="back_button_content_description">Powrót</string>
+
+    <!--    screen titles    -->
+    <string name="home_screen_title">Główna</string>
+    <string name="video_list_screen_title">Filmy</string>
+    <string name="video_screen_title">Film</string>
+    <string name="course_screen_title">Kurs</string>
+    <string name="profile_screen_title">Profil</string>
+
+    <!--    bottom nav descriptions    -->
+    <string name="home_bottom_nav_description">Główna</string>
+    <string name="videos_bottom_nav_description">Filmy</string>
+    <string name="profile_bottom_nav_description">Profil</string>
+
+    <!--    common labels    -->
+    <string name="search_text">Szukaj…</string>
+    <string name="clear_text">Wyczyść</string>
+    <string name="cancel_text">Anuluj</string>
+    <string name="save_text">Zapisz</string>
+    <string name="log_out">Wyloguj się</string>
+    <string name="delete_account">Usuń konto</string>
+    <string name="more_text">Więcej</string>
+    <string name="delete_text">Usuń</string>
+    <string name="edit_text">Edytuj</string>
+    <string name="copy_text">Kopiuj</string>
+    <string name="share_text">Udostępnij</string>
+    <string name="ok_text">OK</string>
+
+    <!--    routine screen field labels    -->
+    <string name="date_placeholder">dd/mm/yyyy</string>
+
+    <!--    login catchphrases    -->
+    <string name="sign_in">Zaloguj się</string>
+    <string name="sign_up">Załóż konto</string>
+    <string name="sign_in_bottom_text">Nie masz jeszcze konta? </string>
+    <string name="sign_up_bottom_text">Masz już konto? </string>
+    <string name="required">wymagane pole</string>
+    <string name="username">Nazwa użytkownika</string>
+    <string name="password">Hasło</string>
+    <string name="email">E-mail</string>
+    <string name="username_hint">Nazwa użytkownika nie może być pusta.</string>
+    <string name="password_hint">Hasło powinno zawierać co najmniej 8\u00A0znaków, w\u00A0tym co najmniej 1\u00A0małą literę, 1\u00A0wielką literę i\u00A01\u00A0cyfrę.</string>
+    <string name="email_invalid">Nieprawidłowy adres e-mail.</string>
+    <string name="email_taken">Ten adres e-mail jest już zajęty.</string>
+    <string name="password_invalid">Nieprawidłowy adres e-mail lub hasło.</string>
+
+    <!--    account deletion -->
+    <string name="delete_account_dialog_title">Usuwanie konta</string>
+    <string name="delete_account_phrase">Czy na pewno chcesz usunąć konto? Wszystkie Twoje dane zostaną utracone.</string>
+    <string name="confirm_delete_account">Usuń konto</string>
+    <string name="dismiss_delete">Anuluj</string>
+
+    <!--    error messages    -->
+    <string name="retry_text">Spróbuj ponownie</string>
+    <string name="network_error">Błąd połączenia z siecią.</string>
+    <string name="something_went_wrong">Coś poszło nie tak. Spróbuj ponownie później.</string>
+    <string name="empty_collection_headline">Trochę tu pusto.</string>
+    <string name="empty_collection_body">Spróbuj dodać kilka pozycji i wróć później.</string>
+
+    <!--    product deletion -->
+    <string name="delete_product_dialog_title">Usuwanie \"%s\"</string>
+    <string name="delete_product_phrase">Czy na pewno chcesz usunąć produkt \"%s\"? Ta operacja jest nieodwracalna.</string>
+    <string name="confirm_delete_product">Usuń</string>
+
+    <!--    course    -->
+    <string name="new_course_button">Nowy język</string>
+    <string name="course_name_label">Język</string>
+    <string name="course_goal_label">Cel (w godzinach)</string>
+    <string name="course_other_source_hours_label">Godziny poza platformą</string>
+</resources>

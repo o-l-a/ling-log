@@ -1,3 +1,76 @@
 <resources>
     <string name="app_name">My Input Log</string>
+    <string name="none" />
+
+    <!--    content descriptions    -->
+    <string name="back_button_content_description">Back</string>
+
+    <!--    screen titles    -->
+    <string name="home_screen_title">Home</string>
+    <string name="video_list_screen_title">Videos</string>
+    <string name="video_screen_title">Video</string>
+    <string name="course_screen_title">Course</string>
+    <string name="profile_screen_title">Settings</string>
+
+    <!--    bottom nav descriptions    -->
+    <string name="home_bottom_nav_description">Home</string>
+    <string name="videos_bottom_nav_description">Videos</string>
+    <string name="profile_bottom_nav_description">Profile</string>
+
+    <!--    common labels    -->
+    <string name="search_text">Search…</string>
+    <string name="clear_text">Clear</string>
+    <string name="cancel_text">Cancel</string>
+    <string name="save_text">Save</string>
+    <string name="log_out">Log out</string>
+    <string name="delete_account">Delete account</string>
+    <string name="more_text">More</string>
+    <string name="delete_text">Delete</string>
+    <string name="edit_text">Edit</string>
+    <string name="copy_text">Copy</string>
+    <string name="share_text">Share</string>
+    <string name="ok_text">OK</string>
+
+    <!--    routine screen field labels    -->
+    <string name="date_placeholder">dd/mm/yyyy</string>
+
+    <!--    login catchphrases    -->
+    <string name="sign_in">Log in</string>
+    <string name="sign_up">Sign up</string>
+    <string name="sign_in_bottom_text">Don\'t have an account yet? </string>
+    <string name="sign_up_bottom_text">Already have an account? </string>
+    <string name="required">field required</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="email">E-mail</string>
+    <string name="username_hint">Username cannot be blank.</string>
+    <string name="password_hint">Password should contain at least 8\u00A0characters, including at least 1\u00A0lowercase character, at least 1\u00A0uppercase character and at least 1\u00A0digit.</string>
+    <string name="email_invalid">This is not a valid e-mail.</string>
+    <string name="email_taken">This e-mail is already taken.</string>
+    <string name="password_invalid">Wrong e-mail or password.</string>
+
+    <!--    account deletion -->
+    <string name="delete_account_dialog_title">Deleting account</string>
+    <string name="delete_account_phrase">Are you sure you want to delete your account? Your data will be lost forever.</string>
+    <string name="confirm_delete_account">Delete account</string>
+    <string name="dismiss_delete">Cancel</string>
+
+    <!--    error messages    -->
+    <string name="retry_text">Retry</string>
+    <string name="network_error">Network connection failed.</string>
+    <string name="something_went_wrong">Something went wrong. Try again later.</string>
+    <string name="empty_collection_headline">Nothing to see here.</string>
+    <string name="empty_collection_body">Try adding some items and come back later.</string>
+
+    <!--    product deletion -->
+    <string name="delete_product_dialog_title">Deleting \"%s\"</string>
+    <string name="delete_product_phrase">Are you sure you want to delete product \"%s\"? This action cannot be undone.</string>
+    <string name="confirm_delete_product">Delete</string>
+
+    <!--    course    -->
+    <string name="new_course_button">New language</string>
+    <string name="course_name_label">Language</string>
+    <string name="course_goal_label">Goal (in hours)</string>
+    <string name="course_other_source_hours_label">Hours outside platform</string>
+
 </resources>

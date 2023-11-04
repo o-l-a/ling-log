@@ -3,9 +3,14 @@ buildscript {
         compose_ui_version = '1.4.1'
         material3_version = '1.1.2'
         lifecycle_version = '2.6.1'
+        kotlin_version = '1.8.20'
     }
     dependencies {
         classpath 'com.google.gms:google-services:4.4.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+    repositories {
+        mavenCentral()
     }
 }// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
