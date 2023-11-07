@@ -1,5 +1,7 @@
 package com.example.myinputlog.ui.screens.profile
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,11 +47,12 @@ fun ProfileScreen(
     navigateToUserCourse: (String) -> Unit,
     navigateWithPopUp: () -> Unit
 ) {
-    val settingsUiState = profileViewModel.settingsUiState.collectAsStateWithLifecycle()
+    val profileUiState = profileViewModel.profileUiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
     val snackbarGeneralErrorMessage = stringResource(R.string.something_went_wrong)
+    val snackbarRecentLogErrorMessage = stringResource(R.string.recent_login_text)
 
     Scaffold(
         bottomBar = {
@@ -67,16 +70,17 @@ fun ProfileScreen(
                 navigateWithPopUp()
             },
             onAddCourseClicked = navigateToUserCourseEntry,
+            onCourseClicked = navigateToUserCourse,
             onConfirm = {
-                profileViewModel.deleteAccount(navigateWithPopUp) { isSuccess ->
-                    if (!isSuccess) {
+                profileViewModel.deleteAccount(navigateWithPopUp) { returnCode ->
+                    if (returnCode != 0) {
                         coroutineScope.launch {
-                            snackbarHostState.showSnackbar(snackbarGeneralErrorMessage)
+                            snackbarHostState.showSnackbar(if (returnCode == 2) snackbarGeneralErrorMessage else snackbarRecentLogErrorMessage)
                         }
                     }
                 }
             },
-            profileUiState = settingsUiState,
+            profileUiState = profileUiState,
             courses = profileViewModel.courses.collectAsStateWithLifecycle(initialValue = listOf()).value,
             toggleDialogVisibility = { visible ->
                 profileViewModel.toggleDialogVisibility(visible)
@@ -90,12 +94,12 @@ fun ProfileBody(
     modifier: Modifier = Modifier,
     onSignOutClicked: () -> Unit,
     onAddCourseClicked: () -> Unit,
+    onCourseClicked: (String) -> Unit,
     onConfirm: () -> Unit,
     profileUiState: State<ProfileUiState>,
     courses: List<UserCourse>,
     toggleDialogVisibility: (Boolean) -> Unit
 ) {
-
     if (profileUiState.value.isDialogVisible) {
         ConfirmDeleteAccountDialog(
             onConfirm = onConfirm,
@@ -103,27 +107,46 @@ fun ProfileBody(
         )
     }
     LazyColumn(
-        modifier = modifier
+        modifier = modifier.padding(MaterialTheme.spacing.medium),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
     ) {
         item {
-            OutlinedButton(onClick = { onSignOutClicked() }) {
-                Text(
-                    text = stringResource(R.string.log_out)
-                )
-            }
+            Text(
+                text = profileUiState.value.username,
+                style = MaterialTheme.typography.headlineSmall
+            )
         }
-        items(courses) {course ->
-            CourseContainer(course = course)
+        items(courses) { course ->
+            CourseContainer(
+                course = course,
+                onCourseClicked = onCourseClicked
+            )
         }
         item {
-            OutlinedButton(onClick = { onAddCourseClicked() }) {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { onAddCourseClicked() }
+            ) {
                 Text(
                     text = stringResource(R.string.new_course_button)
                 )
             }
         }
         item {
-            OutlinedButton(onClick = { toggleDialogVisibility(true) }) {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { onSignOutClicked() }
+            ) {
+                Text(
+                    text = stringResource(R.string.log_out)
+                )
+            }
+        }
+        item {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { toggleDialogVisibility(true) }
+            ) {
                 Text(
                     text = stringResource(R.string.delete_account)
                 )
@@ -135,14 +158,17 @@ fun ProfileBody(
 @Composable
 private fun CourseContainer(
     modifier: Modifier = Modifier,
-    course: UserCourse
+    course: UserCourse,
+    onCourseClicked: (String) -> Unit
 ) {
     ElevatedCard(
         modifier
             .fillMaxWidth()
-            .padding(MaterialTheme.spacing.medium)
+            .clickable { onCourseClicked(course.id) }
     ) {
-        Column() {
+        Column(
+            modifier.padding(MaterialTheme.spacing.small)
+        ) {
             Text(course.name)
             Text(stringResource(R.string.course_goal_label) + ": " + course.goalInHours.toString())
             Text(stringResource(R.string.course_other_source_hours_label) + ": " + course.otherSourceHours.toString())

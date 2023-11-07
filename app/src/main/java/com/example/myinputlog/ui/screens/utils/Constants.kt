@@ -1,9 +1,7 @@
-package com.example.hairtracker.ui.screens.utils
+package com.example.myinputlog.ui.screens.utils
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color

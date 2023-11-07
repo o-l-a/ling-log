@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,7 +40,6 @@ object CourseDestination : NavigationDestination {
 fun CourseScreen(
     modifier: Modifier = Modifier,
     courseViewModel: CourseViewModel,
-    navigateBack: () -> Unit,
     onNavigateUp: () -> Unit
 ) {
     val courseUiState = courseViewModel.courseUiState.collectAsStateWithLifecycle()
@@ -51,13 +52,18 @@ fun CourseScreen(
                 title = "",
                 canNavigateBack = true,
                 navigateUp = onNavigateUp,
+                hasDeleteAction = courseUiState.value.id.isNotBlank(),
+                onDelete = { courseViewModel.toggleDialogVisibility(true) },
                 scrollBehavior = scrollBehavior
             )
         },
         bottomBar = {
             MyInputLogBottomSaveBar(
                 onCancelClicked = onNavigateUp,
-                onSaveClicked = courseViewModel::persistCourse,
+                onSaveClicked = {
+                    courseViewModel.persistCourse()
+                    onNavigateUp()
+                },
                 isFormValid = courseUiState.value.isFormValid
             )
         }
@@ -71,6 +77,18 @@ fun CourseScreen(
                 onCourseValueChange = courseViewModel::updateUiState
             )
         }
+    }
+    if (courseUiState.value.isDialogVisible) {
+        ConfirmDeleteCourseDialog(
+            courseName = courseUiState.value.name,
+            onConfirm = {
+                courseViewModel.deleteCourse()
+                onNavigateUp()
+            },
+            onDismiss = {
+                courseViewModel.toggleDialogVisibility(false)
+            }
+        )
     }
 }
 
@@ -153,4 +171,33 @@ fun CourseEditBody(
             )
         )
     }
+}
+
+@Composable
+private fun ConfirmDeleteCourseDialog(
+    modifier: Modifier = Modifier,
+    courseName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.delete_course_dialog_title, courseName)) },
+        text = { Text(stringResource(R.string.delete_course_phrase, courseName)) },
+        modifier = modifier,
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text(text = stringResource(R.string.dismiss_delete))
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+            ) {
+                Text(text = stringResource(R.string.confirm_delete_course))
+            }
+        }
+    )
 }

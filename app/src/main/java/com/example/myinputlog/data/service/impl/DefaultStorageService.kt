@@ -71,7 +71,7 @@ class DefaultStorageService @Inject constructor(
     }
 
     companion object {
-        private const val USER_COLLECTION = "users"
+        const val USER_COLLECTION = "users"
         private const val USER_COURSE_COLLECTION = "userCourses"
         private const val USER_COURSE_SAVE_TRACE = "saveUserCourse"
         private const val USER_COURSE_UPDATE_TRACE = "updateUserCourse"

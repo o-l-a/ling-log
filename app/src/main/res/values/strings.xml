@@ -54,6 +54,7 @@
     <string name="delete_account_phrase">Are you sure you want to delete your account? Your data will be lost forever.</string>
     <string name="confirm_delete_account">Delete account</string>
     <string name="dismiss_delete">Cancel</string>
+    <string name="recent_login_text">Sensitive operation. Recent login required.</string>
 
     <!--    error messages    -->
     <string name="retry_text">Retry</string>
@@ -62,10 +63,10 @@
     <string name="empty_collection_headline">Nothing to see here.</string>
     <string name="empty_collection_body">Try adding some items and come back later.</string>
 
-    <!--    product deletion -->
-    <string name="delete_product_dialog_title">Deleting \"%s\"</string>
-    <string name="delete_product_phrase">Are you sure you want to delete product \"%s\"? This action cannot be undone.</string>
-    <string name="confirm_delete_product">Delete</string>
+    <!--    course deletion -->
+    <string name="delete_course_dialog_title">Deleting \"%s\"</string>
+    <string name="delete_course_phrase">Are you sure you want to delete course \"%s\"? This action cannot be undone.</string>
+    <string name="confirm_delete_course">Delete</string>
 
     <!--    course    -->
     <string name="new_course_button">New language</string>

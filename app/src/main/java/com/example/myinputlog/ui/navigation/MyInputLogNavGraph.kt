@@ -185,11 +185,6 @@ fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
             val courseViewModel = hiltViewModel<CourseViewModel>()
             CourseScreen(
                 courseViewModel = courseViewModel,
-                navigateBack = {
-                    navController.navigateWithPopUp(
-                        LoginDestination.route, HomeDestination.route
-                    )
-                },
                 onNavigateUp = { navController.navigateUp() }
             )
         }

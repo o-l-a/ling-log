@@ -5,6 +5,7 @@ import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.data.service.AccountService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 const val TAG = "AccountService"
 
 class DefaultAccountService @Inject constructor(
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    val firestore: FirebaseFirestore
 ) : AccountService {
     override val currentUserId: String
         get() = auth.currentUser?.uid.orEmpty()
@@ -24,12 +26,9 @@ class DefaultAccountService @Inject constructor(
         get() = callbackFlow {
             val listener =
                 FirebaseAuth.AuthStateListener { auth ->
-                    this.trySend(auth.currentUser?.let {
-                        it.displayName?.let { it1 ->
-                            UserData(
-                                it.uid,
-                                it1
-                            )
+                    this.trySend(auth.currentUser?.let { user ->
+                        user.displayName?.let { username ->
+                            UserData(user.uid, username)
                         }
                     } ?: UserData())
                 }
@@ -52,38 +51,44 @@ class DefaultAccountService @Inject constructor(
     }
 
     override suspend fun createAccount(email: String, password: String, username: String) {
-        val deferred = CompletableDeferred<Unit>()
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d(TAG, "createUserWithEmail:success")
-                    val user = auth.currentUser
-                    val profileUpdates = userProfileChangeRequest {
-                        displayName = username
-                    }
-                    user?.updateProfile(profileUpdates)?.addOnCompleteListener { task1 ->
-                        if (task1.isSuccessful) {
-                            Log.d(TAG, "updateProfile:success")
-                        } else {
-                            Log.d(TAG, "createUser:abort")
-                            user.delete()
-                            deferred.completeExceptionally(
-                                task.exception ?: Exception("Unknown exception")
-                            )
-                        }
-                    }
-                    deferred.complete(Unit)
-                } else {
-                    Log.w(TAG, "createUserWithEmail:failure", task.exception)
-                    deferred.completeExceptionally(task.exception ?: Exception("Unknown exception"))
+        try {
+            val userCredential = auth.createUserWithEmailAndPassword(email, password).await()
+            val user = userCredential.user
+
+            if (user != null) {
+                Log.d(TAG, "createUserWithEmail:success")
+                val profileUpdates = userProfileChangeRequest {
+                    displayName = username
                 }
+                user.updateProfile(profileUpdates).await()
+                Log.d(TAG, "updateProfile:success ${user.displayName}")
+
+                val firestoreTask = firestore.collection(DefaultStorageService.USER_COLLECTION).document(user.uid).set({})
+                firestoreTask.await()
+                Log.d(TAG, "createCollection:success")
+            } else {
+                Log.e(TAG, "createAccount: User is null")
             }
-        deferred.await()
+        } catch (e: Exception) {
+            Log.e(TAG, "createAccount:failure", e)
+            throw e
+        }
     }
 
     override suspend fun deleteAccount() {
-        auth.currentUser!!.delete().await()
+        val uid = auth.currentUser?.uid
+
+        if (uid != null) {
+            try {
+                firestore.collection(DefaultStorageService.USER_COLLECTION).document(uid).delete().await()
+                auth.currentUser?.delete()?.await()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error deleting account and document: ${e.message}")
+                throw e
+            }
+        }
     }
+
 
     override suspend fun signOut() {
         auth.signOut()

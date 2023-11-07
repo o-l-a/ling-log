@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -34,6 +36,10 @@ fun MyInputLogTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
     canNavigateBack: Boolean,
+    hasEditAction: Boolean = false,
+    hasDeleteAction: Boolean = false,
+    onDelete: () -> Unit = {},
+    onEdit: () -> Unit = {},
     navigateUp: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
@@ -56,6 +62,18 @@ fun MyInputLogTopAppBar(
                 }
             },
             scrollBehavior = scrollBehavior,
+            actions = {
+                if (hasEditAction) {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.edit_text))
+                    }
+                }
+                if (hasDeleteAction) {
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete_text))
+                    }
+                }
+            }
         )
     } else {
         TopAppBar(

@@ -55,6 +55,7 @@
     <string name="delete_account_phrase">Czy na pewno chcesz usunąć konto? Wszystkie Twoje dane zostaną utracone.</string>
     <string name="confirm_delete_account">Usuń konto</string>
     <string name="dismiss_delete">Anuluj</string>
+    <string name="recent_login_text">Operacja na wrażliwych danych. Wymagane ponowne logowanie.</string>
 
     <!--    error messages    -->
     <string name="retry_text">Spróbuj ponownie</string>
@@ -63,10 +64,10 @@
     <string name="empty_collection_headline">Trochę tu pusto.</string>
     <string name="empty_collection_body">Spróbuj dodać kilka pozycji i wróć później.</string>
 
-    <!--    product deletion -->
-    <string name="delete_product_dialog_title">Usuwanie \"%s\"</string>
-    <string name="delete_product_phrase">Czy na pewno chcesz usunąć produkt \"%s\"? Ta operacja jest nieodwracalna.</string>
-    <string name="confirm_delete_product">Usuń</string>
+    <!--    course deletion -->
+    <string name="delete_course_dialog_title">Usuwanie \"%s\"</string>
+    <string name="delete_course_phrase">Czy na pewno chcesz usunąć kurs \"%s\"? Ta operacja jest nieodwracalna.</string>
+    <string name="confirm_delete_course">Usuń</string>
 
     <!--    course    -->
     <string name="new_course_button">Nowy język</string>

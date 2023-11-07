@@ -27,10 +27,9 @@ class CourseViewModel @Inject constructor(
             viewModelScope.launch {
                 val course = storageService.getUserCourse(courseId)
                 if (course != null) {
-                    // TODO
-//                    updateUiState(product.toProductUiState())
+                    updateUiState(course.toCourseUiState(isLoading = false))
                 } else {
-                    // TODO("spadł z rowerka")
+                    // TODO("this should never happen")
                 }
             }
         } else {
@@ -66,7 +65,7 @@ class CourseViewModel @Inject constructor(
         }
     }
 
-    fun deleteCourse(courseId: String) {
+    fun deleteCourse() {
         toggleDialogVisibility(false)
         viewModelScope.launch {
             storageService.deleteUserCourse(courseId)
