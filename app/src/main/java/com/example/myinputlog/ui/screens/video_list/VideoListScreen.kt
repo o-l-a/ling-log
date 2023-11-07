@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +16,9 @@ import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
+import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.theme.spacing
 
 object VideoListDestination : NavigationDestination {
     override val route: String = "videos"
@@ -30,18 +34,20 @@ fun VideoListScreen(
     navigateToYouTubeVideo: (String) -> Unit
 ) {
     val videoListUiState = videoListViewModel.videoListUiState.collectAsStateWithLifecycle()
-    val userCourses = videoListUiState.value.userCourses.collectAsStateWithLifecycle(emptyList())
+    val userCourses = videoListViewModel.userCourses.collectAsStateWithLifecycle(emptyList())
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                modifier = Modifier.navigationBarsPadding(),
-                onClick = navigateToYouTubeVideoEntry
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                )
+            if (userCourses.value.isNotEmpty()) {
+                FloatingActionButton(
+                    modifier = Modifier.navigationBarsPadding(),
+                    onClick = navigateToYouTubeVideoEntry
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                    )
+                }
             }
         },
         bottomBar = {
@@ -51,9 +57,18 @@ fun VideoListScreen(
             )
         }
     ) { innerPadding ->
-        Text(
-            text = "VIDEOS",
-            modifier = modifier.padding(innerPadding)
-        )
+        if (userCourses.value.isEmpty() && !videoListUiState.value.isLoading) {
+            EmptyCollectionBox(
+                modifier = Modifier.padding(MaterialTheme.spacing.medium),
+                bodyMessage = R.string.empty_course_collection_body
+            )
+        } else if (videoListUiState.value.isLoading) {
+            LoadingBox()
+        } else {
+            Text(
+                text = "VIDEOS",
+                modifier = modifier.padding(innerPadding)
+            )
+        }
     }
 }

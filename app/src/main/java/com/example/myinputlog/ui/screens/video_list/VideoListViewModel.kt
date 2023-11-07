@@ -19,7 +19,6 @@ class VideoListViewModel @Inject constructor(
     init {
         _videoListUiState.update {
             it.copy(
-                userCourses = userCourses,
                 isLoading = false
             )
         }

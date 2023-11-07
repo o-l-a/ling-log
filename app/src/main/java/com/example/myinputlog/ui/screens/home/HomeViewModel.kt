@@ -19,7 +19,6 @@ class HomeViewModel @Inject constructor(
     init {
         _homeUiState.update {
             it.copy(
-                userCourses = userCourses,
                 isLoading = false
             )
         }

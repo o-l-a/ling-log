@@ -1,18 +1,25 @@
 package com.example.myinputlog.ui.screens.utils.composable
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import com.example.myinputlog.R
+import com.example.myinputlog.ui.theme.spacing
 
 @Composable
-fun EmptyCollectionBox(modifier: Modifier = Modifier) {
+fun EmptyCollectionBox(
+    modifier: Modifier = Modifier,
+    @StringRes bodyMessage: Int = R.string.empty_course_collection_body
+) {
     Column(
         modifier = modifier
             .fillMaxSize(),
@@ -20,12 +27,15 @@ fun EmptyCollectionBox(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
+            modifier = Modifier.padding(bottom = MaterialTheme.spacing.small),
             text = stringResource(R.string.empty_collection_headline),
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
         )
         Text(
-            text = stringResource(R.string.empty_collection_body),
-            style = MaterialTheme.typography.bodyMedium
+            text = stringResource(bodyMessage),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
         )
     }
 }
