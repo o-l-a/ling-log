@@ -8,9 +8,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import java.text.SimpleDateFormat
 
-const val CONTENT_PADDING_BOTTOM = 12
-const val REGULAR_APP_PADDING = 16
-
 val IME_ACTION_NEXT = KeyboardOptions.Default.copy(
     imeAction = ImeAction.Next
 )
@@ -23,7 +20,7 @@ val IME_ACTION_DONE = KeyboardOptions.Default.copy(
 val dateFormatter = SimpleDateFormat("dd/MM/yyyy")
 
 @Composable
-fun hairTrackerTextFieldColors() = OutlinedTextFieldDefaults.colors(
+fun myInputLogTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = Color.Transparent,
     unfocusedContainerColor = Color.Transparent,
     disabledContainerColor = Color.Transparent,

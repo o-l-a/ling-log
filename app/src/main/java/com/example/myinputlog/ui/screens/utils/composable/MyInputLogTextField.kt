@@ -9,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import com.example.myinputlog.ui.screens.utils.hairTrackerTextFieldColors
+import com.example.myinputlog.ui.screens.utils.myInputLogTextFieldColors
 
 @Composable
 fun MyInputLogTextField(
@@ -35,7 +35,7 @@ fun MyInputLogTextField(
         readOnly = !isEditable,
         leadingIcon = leadingIcon,
         onValueChange = { onValueChange(it) },
-        colors = hairTrackerTextFieldColors(),
+        colors = myInputLogTextFieldColors(),
         textStyle = if (isEmphasized) MaterialTheme.typography.titleLarge else LocalTextStyle.current,
         keyboardOptions = KeyboardOptions.Default.copy(
             capitalization = if (isCapitalized) KeyboardCapitalization.Words else KeyboardCapitalization.Sentences

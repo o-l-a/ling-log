@@ -16,8 +16,10 @@ import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
+import com.example.myinputlog.ui.screens.home.toUserCourse
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownField
 import com.example.myinputlog.ui.theme.spacing
 
 object VideoListDestination : NavigationDestination {
@@ -34,11 +36,20 @@ fun VideoListScreen(
     navigateToYouTubeVideo: (String) -> Unit
 ) {
     val videoListUiState = videoListViewModel.videoListUiState.collectAsStateWithLifecycle()
-    val userCourses = videoListViewModel.userCourses.collectAsStateWithLifecycle(emptyList())
+    val userCourses = videoListUiState.value.userCourses.collectAsStateWithLifecycle(emptyList())
 
     Scaffold(
+        topBar = {
+            if (userCourses.value != null) {
+                MyInputLogDropdownField(
+                    value = videoListUiState.value.toUserCourse(),
+                    onValueChange = videoListViewModel::changeCurrentCourseId,
+                    options = userCourses.value!!
+                )
+            }
+        },
         floatingActionButton = {
-            if (userCourses.value.isNotEmpty()) {
+            if (userCourses.value != null && userCourses.value!!.isNotEmpty()) {
                 FloatingActionButton(
                     modifier = Modifier.navigationBarsPadding(),
                     onClick = navigateToYouTubeVideoEntry
@@ -57,13 +68,13 @@ fun VideoListScreen(
             )
         }
     ) { innerPadding ->
-        if (userCourses.value.isEmpty() && !videoListUiState.value.isLoading) {
+        if (userCourses.value == null) {
+            LoadingBox()
+        } else if (userCourses.value!!.isEmpty()) {
             EmptyCollectionBox(
                 modifier = Modifier.padding(MaterialTheme.spacing.medium),
                 bodyMessage = R.string.empty_course_collection_body
             )
-        } else if (videoListUiState.value.isLoading) {
-            LoadingBox()
         } else {
             Text(
                 text = "VIDEOS",
