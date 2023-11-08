@@ -64,15 +64,40 @@
     <string name="empty_course_collection_body">Head over to the "Profile" tab and add your first course.</string>
     <string name="empty_video_collection_body">Your videos will appear here after you add them.</string>
 
-    <!--    course deletion -->
-    <string name="delete_course_dialog_title">Deleting \"%s\"</string>
+    <!--    deleting dialog   -->
+    <string name="delete_dialog_title">Deleting \"%s\"</string>
     <string name="delete_course_phrase">Are you sure you want to delete course \"%s\"? This action cannot be undone.</string>
-    <string name="confirm_delete_course">Delete</string>
+    <string name="delete_video_phrase">Are you sure you want to delete video \"%s\"? This action cannot be undone.</string>
+    <string name="confirm_delete">Delete</string>
 
     <!--    course    -->
     <string name="new_course_button">New language</string>
     <string name="course_name_label">Language</string>
     <string name="course_goal_label">Goal (in hours)</string>
     <string name="course_other_source_hours_label">Hours outside platform</string>
+
+    <!--    video edit    -->
+    <string name="video_watched_on_label">Watched on</string>
+    <string name="video_country_label">Speaker\'s nationality</string>
+    <string name="video_title_label">Title</string>
+    <string name="video_channel_label">Channel</string>
+    <string name="video_duration_label">Duration</string>
+    <string name="video_link_label">Link</string>
+
+    <!-- Spanish-speaking countries -->
+    <string name="country_spain">Spain</string>
+    <string name="country_mexico">Mexico</string>
+    <string name="country_argentina">Argentina</string>
+    <string name="country_colombia">Colombia</string>
+    <string name="country_chile">Chile</string>
+    <string name="country_venezuela">Venezuela</string>
+    <string name="country_peru">Peru</string>
+    <string name="country_ecuador">Ecuador</string>
+    <string name="country_cuba">Cuba</string>
+    <string name="country_dominican_republic">Dominican Republic</string>
+    <string name="country_puerto_rico">Puerto Rico</string>
+    <string name="country_uruguay">Uruguay</string>
+    <string name="country_paraguay">Paraguay</string>
+    <string name="country_bolivia">Bolivia</string>
 
 </resources>

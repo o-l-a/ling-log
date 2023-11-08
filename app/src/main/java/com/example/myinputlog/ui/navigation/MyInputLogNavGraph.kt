@@ -16,8 +16,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.example.myinputlog.ui.screens.login.LoginViewModel
-import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.course.CourseDestination
 import com.example.myinputlog.ui.screens.course.CourseScreen
@@ -30,11 +28,13 @@ import com.example.myinputlog.ui.screens.landing.LandingScreen
 import com.example.myinputlog.ui.screens.landing.LandingViewModel
 import com.example.myinputlog.ui.screens.login.LoginDestination
 import com.example.myinputlog.ui.screens.login.LoginScreen
+import com.example.myinputlog.ui.screens.login.LoginViewModel
 import com.example.myinputlog.ui.screens.profile.ProfileDestination
 import com.example.myinputlog.ui.screens.profile.ProfileScreen
 import com.example.myinputlog.ui.screens.profile.ProfileViewModel
 import com.example.myinputlog.ui.screens.sign_up.SignUpDestination
 import com.example.myinputlog.ui.screens.sign_up.SignUpScreen
+import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
 import com.example.myinputlog.ui.screens.video.VideoDestination
 import com.example.myinputlog.ui.screens.video.VideoScreen
 import com.example.myinputlog.ui.screens.video.VideoViewModel
@@ -54,8 +54,11 @@ sealed class Screen(
     val icon: ImageVector
 ) {
     object Home : Screen(HOME_ROUTE, R.string.home_bottom_nav_description, Icons.Filled.Home)
-    object Videos : Screen(VIDEOS_ROUTE, R.string.videos_bottom_nav_description, Icons.Filled.SmartDisplay)
-    object Profile : Screen(PROFILE_ROUTE, R.string.profile_bottom_nav_description, Icons.Filled.Person)
+    object Videos :
+        Screen(VIDEOS_ROUTE, R.string.videos_bottom_nav_description, Icons.Filled.SmartDisplay)
+
+    object Profile :
+        Screen(PROFILE_ROUTE, R.string.profile_bottom_nav_description, Icons.Filled.Person)
 }
 
 val navigationItems = listOf(
@@ -106,9 +109,11 @@ fun NavGraphBuilder.myInputLogHomeGraph(navController: NavHostController) {
                 onBottomNavClicked = { route ->
                     navController.navigate(route)
                 },
-                navigateToYouTubeVideoEntry = { navController.navigate("${VideoDestination.route}/$DEFAULT_ID") },
-                navigateToYouTubeVideo = { videoId ->
-                    navController.navigate("${VideoDestination.route}/$videoId")
+                navigateToYouTubeVideoEntry = { courseId ->
+                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
+                },
+                navigateToYouTubeVideo = { courseId, videoId ->
+                    navController.navigate("${VideoDestination.route}/$courseId/$videoId")
                 }
             )
         }
@@ -129,17 +134,20 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
                 onBottomNavClicked = { route ->
                     navController.navigateWithPopUp(route, VideoListDestination.route)
                 },
-                navigateToYouTubeVideoEntry = { navController.navigate("${VideoDestination.route}/$DEFAULT_ID") },
-                navigateToYouTubeVideo = { videoId ->
-                    navController.navigate("${VideoDestination.route}/$videoId")
+                navigateToYouTubeVideoEntry = { courseId ->
+                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
+                },
+                navigateToYouTubeVideo = { courseId, videoId ->
+                    navController.navigate("${VideoDestination.route}/$courseId/$videoId")
                 }
             )
         }
         composable(
             route = VideoDestination.routeWithArgs,
-            arguments = listOf(navArgument(VideoDestination.videoIdArg) {
-                type = NavType.StringType
-            })
+            arguments = listOf(
+                navArgument(VideoDestination.videoIdArg) { type = NavType.StringType },
+                navArgument(VideoDestination.courseIdArg) { type = NavType.StringType }
+            )
         ) {
             val videoViewModel = hiltViewModel<VideoViewModel>()
             VideoScreen(

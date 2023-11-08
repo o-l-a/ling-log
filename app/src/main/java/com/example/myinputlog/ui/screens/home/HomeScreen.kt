@@ -37,8 +37,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel,
     onBottomNavClicked: (String) -> Unit,
-    navigateToYouTubeVideoEntry: () -> Unit,
-    navigateToYouTubeVideo: (String) -> Unit
+    navigateToYouTubeVideoEntry: (String) -> Unit,
+    navigateToYouTubeVideo: (String, String) -> Unit
 ) {
     val homeUiState = homeViewModel.homeUiState.collectAsStateWithLifecycle()
     val userCourses = homeUiState.value.userCourses.collectAsStateWithLifecycle(emptyList())
@@ -57,7 +57,7 @@ fun HomeScreen(
             if (userCourses.value != null && userCourses.value!!.isNotEmpty()) {
                 FloatingActionButton(
                     modifier = Modifier.navigationBarsPadding(),
-                    onClick = navigateToYouTubeVideoEntry
+                    onClick = { navigateToYouTubeVideoEntry(homeUiState.value.id) }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -94,7 +94,7 @@ fun HomeScreen(
 fun HomeBody(
     modifier: Modifier = Modifier,
     homeUiState: HomeUiState,
-    navigateToYouTubeVideo: (String) -> Unit,
+    navigateToYouTubeVideo: (String, String) -> Unit,
 ) {
     LazyColumn(modifier = modifier) {
         item {

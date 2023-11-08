@@ -32,6 +32,7 @@ class VideoListViewModel @Inject constructor(
             _videoListUiState.update {
                 currentCourse.toVideoListUiState().copy(
                     userCourses = userCourses,
+                    videos = storageService.videos(currentCourse.id),
                     isLoading = false
                 )
             }
@@ -52,7 +53,8 @@ class VideoListViewModel @Inject constructor(
             } ?: UserCourse()
             _videoListUiState.update {
                 currentCourse.toVideoListUiState().copy(
-                    userCourses = userCourses
+                    userCourses = userCourses,
+                    videos = storageService.videos(currentCourse.id),
                 )
             }
         }

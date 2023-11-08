@@ -8,7 +8,6 @@ import com.example.myinputlog.data.service.impl.DefaultStorageService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -16,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val storageService: DefaultStorageService,
+    storageService: DefaultStorageService,
     private val preferenceStorageService: DefaultPreferenceStorageService
 ) : ViewModel() {
     private val _homeUiState = MutableStateFlow(HomeUiState())
@@ -34,12 +33,6 @@ class HomeViewModel @Inject constructor(
                     isLoading = false
                 )
             }
-        }
-    }
-
-    fun updateUiState(updatedUiState: HomeUiState) {
-        _homeUiState.update {
-            updatedUiState.copy()
         }
     }
 

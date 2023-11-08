@@ -65,14 +65,45 @@
     <string name="empty_course_collection_body">Dodaj pierwszy kurs w zakładce "Profil".</string>
     <string name="empty_video_collection_body">Twoje filmy pojawią się tutaj, kiedy je dodasz.</string>
 
-    <!--    course deletion -->
-    <string name="delete_course_dialog_title">Usuwanie \"%s\"</string>
+    <!--    deleting dialog   -->
+    <string name="delete_dialog_title">Usuwanie \"%s\"</string>
     <string name="delete_course_phrase">Czy na pewno chcesz usunąć kurs \"%s\"? Ta operacja jest nieodwracalna.</string>
-    <string name="confirm_delete_course">Usuń</string>
+    <string name="delete_video_phrase">Czy na pewno chcesz usunąć film \"%s\"? Ta operacja jest nieodwracalna.</string>
+    <string name="confirm_delete">Usuń</string>
 
     <!--    course    -->
     <string name="new_course_button">Nowy język</string>
     <string name="course_name_label">Język</string>
     <string name="course_goal_label">Cel (w godzinach)</string>
     <string name="course_other_source_hours_label">Godziny poza platformą</string>
+
+    <!--    video edit    -->
+    <string name="video_watched_on_label">Obejrzane</string>
+    <string name="video_country_label">Język narratora</string>
+    <string name="video_title_label">Tytuł</string>
+    <string name="video_channel_label">Kanał</string>
+    <string name="video_duration_label">Długość</string>
+    <string name="video_link_label">Link</string>
+
+    <!-- Spanish-speaking countries -->
+    <string name="country_spain">Hiszpania</string>
+    <string name="country_mexico">Meksyk</string>
+    <string name="country_argentina">Argentyna</string>
+    <string name="country_colombia">Kolumbia</string>
+    <string name="country_chile">Chile</string>
+    <string name="country_venezuela">Wenezuela</string>
+    <string name="country_peru">Peru</string>
+    <string name="country_ecuador">Ekwador</string>
+    <string name="country_cuba">Kuba</string>
+    <string name="country_dominican_republic">Republika Dominikany</string>
+    <string name="country_puerto_rico">Portoryko</string>
+    <string name="country_uruguay">Urugwaj</string>
+    <string name="country_paraguay">Paragwaj</string>
+    <string name="country_bolivia">Boliwia</string>
+
 </resources>
+
+
+
+
+

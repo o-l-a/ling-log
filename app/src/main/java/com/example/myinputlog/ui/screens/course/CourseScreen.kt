@@ -182,7 +182,7 @@ private fun ConfirmDeleteCourseDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.delete_course_dialog_title, courseName)) },
+        title = { Text(stringResource(R.string.delete_dialog_title, courseName)) },
         text = { Text(stringResource(R.string.delete_course_phrase, courseName)) },
         modifier = modifier,
         dismissButton = {
@@ -196,7 +196,7 @@ private fun ConfirmDeleteCourseDialog(
             TextButton(
                 onClick = onConfirm,
             ) {
-                Text(text = stringResource(R.string.confirm_delete_course))
+                Text(text = stringResource(R.string.confirm_delete))
             }
         }
     )

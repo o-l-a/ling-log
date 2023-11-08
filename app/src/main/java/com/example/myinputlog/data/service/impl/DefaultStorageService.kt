@@ -30,8 +30,20 @@ class DefaultStorageService @Inject constructor(
                     .map { snapshot -> snapshot.toObjects() }
             }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun videos(courseId: String): Flow<List<YouTubeVideo>> {
+        return auth.currentUser.flatMapLatest { user ->
+            youTubeVideoCollectionForCurrentUserCourse(user.id, courseId).snapshots()
+                .map { snapshot -> snapshot.toObjects() }
+        }
+    }
+
+
     private fun currentUserCourseCollection(uid: String): CollectionReference =
         firestore.collection(USER_COLLECTION).document(uid).collection(USER_COURSE_COLLECTION)
+
+    private fun youTubeVideoCollectionForCurrentUserCourse(uid: String, courseId: String): CollectionReference =
+        currentUserCourseCollection(uid).document(courseId).collection(YOU_TUBE_VIDEO_COLLECTION)
 
     override suspend fun getUserCourse(userCourseId: String): UserCourse? =
         currentUserCourseCollection(auth.currentUserId).document(userCourseId).get().await().toObject()
@@ -50,23 +62,28 @@ class DefaultStorageService @Inject constructor(
         currentUserCourseCollection(auth.currentUserId).document(userCourseId).delete().await()
     }
 
-    override suspend fun getYouTubeVideo(youTubeVideoId: String): YouTubeVideo? {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getYouTubeVideo(userCourseId: String, youTubeVideoId: String): YouTubeVideo? =
+        youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).document(youTubeVideoId).get().await().toObject()
 
-    override suspend fun saveYouTubeVideo(youTubeVideo: YouTubeVideo) {
-        TODO("Not yet implemented")
-    }
+    override suspend fun saveYouTubeVideo(userCourseId: String, youTubeVideo: YouTubeVideo): Unit =
+        trace(YOU_TUBE_VIDEO_SAVE_TRACE) {
+            youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).add(youTubeVideo).await().id
+        }
 
-    override suspend fun updateYouTubeVideo(youTubeVideo: YouTubeVideo) {
-        TODO("Not yet implemented")
-    }
+    override suspend fun updateYouTubeVideo(userCourseId: String, youTubeVideo: YouTubeVideo): Unit =
+        trace(YOU_TUBE_VIDEO_UPDATE_TRACE) {
+            youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).document(youTubeVideo.id).set(youTubeVideo).await()
+        }
 
-    override suspend fun deleteYouTubeVideo(youTubeVideoId: String) {
-        TODO("Not yet implemented")
+    override suspend fun deleteYouTubeVideo(userCourseId: String, youTubeVideoId: String) {
+        youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).document(youTubeVideoId).delete().await()
     }
 
     override suspend fun deleteAllForUser(userId: String) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteAllVideosForCourse(userCourseId: String) {
         TODO("Not yet implemented")
     }
 
