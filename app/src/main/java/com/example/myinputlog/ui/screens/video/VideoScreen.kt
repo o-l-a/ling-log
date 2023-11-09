@@ -84,7 +84,8 @@ fun VideoScreen(
             VideoEditBody(
                 modifier = Modifier.padding(innerPadding),
                 videoUiState = videoUiState.value,
-                onCourseValueChange = videoViewModel::updateUiState
+                onCourseValueChange = videoViewModel::updateUiState,
+                onLinkValueChange = videoViewModel::loadVideoData
             )
         }
     }
@@ -126,6 +127,7 @@ fun VideoEditBody(
     modifier: Modifier = Modifier,
     videoUiState: VideoUiState,
     onCourseValueChange: (VideoUiState) -> Unit,
+    onLinkValueChange: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -143,26 +145,20 @@ fun VideoEditBody(
                 )
                 .fillMaxWidth(),
             label = { Text(stringResource(R.string.video_link_label)) },
-            value = videoUiState.link,
+            value = videoUiState.videoUrl,
             onValueChange = { link: String ->
                 onCourseValueChange(
                     videoUiState.copy(
-                        link = link
+                        videoUrl = link
                     )
                 )
+                onLinkValueChange()
             },
             singleLine = true
         )
-        Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-            repeat(3) { index ->
-                InputChip(
-                    selected = false,
-                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.extraSmall),
-                    onClick = { /* do something*/ },
-                    label = { Text("Chip $index") }
-                )
-            }
-        }
+        Text("${stringResource(R.string.video_title_label)}: ${videoUiState.title}")
+        Text("${stringResource(R.string.video_channel_label)}: ${videoUiState.channel}")
+        Text("${stringResource(R.string.video_duration_label)}: ${videoUiState.durationInSeconds}")
     }
 }
 

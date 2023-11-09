@@ -13,6 +13,7 @@ data class YouTubeVideo(
     val speakersNationality: Int = 0,
     val title: String = "",
     val channel: String = "",
-    val duration: Float = 0F,
-    val link: String = ""
+    val durationInSeconds: Long = 0L,
+    val videoUrl: String = "",
+    val thumbnailUrl: String = ""
 )

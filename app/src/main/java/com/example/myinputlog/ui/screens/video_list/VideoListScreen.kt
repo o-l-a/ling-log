@@ -135,7 +135,7 @@ fun VideoContainer(
         Column(
             modifier.padding(MaterialTheme.spacing.small)
         ) {
-            Text(video.link)
+            Text(video.videoUrl)
         }
     }
 }

@@ -1,18 +1,17 @@
 package com.example.myinputlog.ui.screens.video
 
 import com.example.myinputlog.data.model.YouTubeVideo
-import com.google.firebase.firestore.DocumentId
 import java.util.Date
 
 data class VideoUiState(
-    @DocumentId
     val id: String = "",
     val watchedOn: Date = Date(),
     val speakersNationality: Int = 0,
     val title: String = "",
     val channel: String = "",
-    val duration: String = "",
-    val link: String = "",
+    val durationInSeconds: String = "",
+    val videoUrl: String = "",
+    val thumbnailUrl: String = "",
 
     val selectedCourseId: String = "",
     val isLoading: Boolean = true,
@@ -35,8 +34,9 @@ fun YouTubeVideo.toVideoUiState(
     speakersNationality = speakersNationality,
     title = title,
     channel = channel,
-    duration = duration.toString(),
-    link = link,
+    durationInSeconds = durationInSeconds.toString(),
+    videoUrl = videoUrl,
+    thumbnailUrl = thumbnailUrl,
     selectedCourseId = selectedCourseId,
     isLoading = isLoading,
     isEdit = isEdit,
@@ -51,6 +51,7 @@ fun VideoUiState.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
     speakersNationality = speakersNationality,
     title = title,
     channel = channel,
-    duration = duration.toFloatOrNull() ?: 0F,
-    link = link
+    durationInSeconds = durationInSeconds.toLongOrNull() ?: 0L,
+    videoUrl = videoUrl,
+    thumbnailUrl = thumbnailUrl
 )

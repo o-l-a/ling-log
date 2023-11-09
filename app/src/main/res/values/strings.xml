@@ -82,7 +82,7 @@
     <string name="video_title_label">Title</string>
     <string name="video_channel_label">Channel</string>
     <string name="video_duration_label">Duration</string>
-    <string name="video_link_label">Link</string>
+    <string name="video_link_label">Video URL</string>
 
     <!-- Spanish-speaking countries -->
     <string name="country_spain">Spain</string>

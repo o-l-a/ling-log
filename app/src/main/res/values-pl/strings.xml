@@ -83,7 +83,7 @@
     <string name="video_title_label">Tytuł</string>
     <string name="video_channel_label">Kanał</string>
     <string name="video_duration_label">Długość</string>
-    <string name="video_link_label">Link</string>
+    <string name="video_link_label">URL filmu</string>
 
     <!-- Spanish-speaking countries -->
     <string name="country_spain">Hiszpania</string>
