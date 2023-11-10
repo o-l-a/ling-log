@@ -45,7 +45,6 @@ fun VideoData.toYouTubeVideo(): YouTubeVideo? {
     if (items.isNotEmpty()) {
         val item = items[0]
         return YouTubeVideo(
-            id = item.id,
             title = item.snippet.title,
             thumbnailUrl = item.snippet.thumbnails.default.url,
             channel = item.snippet.channelTitle,

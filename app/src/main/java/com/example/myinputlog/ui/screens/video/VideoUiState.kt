@@ -1,12 +1,13 @@
 package com.example.myinputlog.ui.screens.video
 
 import com.example.myinputlog.data.model.YouTubeVideo
+import com.example.myinputlog.ui.screens.utils.Country
 import java.util.Date
 
 data class VideoUiState(
     val id: String = "",
-    val watchedOn: Date = Date(),
-    val speakersNationality: Int = 0,
+    val watchedOn: Date? = null,
+    val speakersNationality: Country? = null,
     val title: String = "",
     val channel: String = "",
     val durationInSeconds: String = "",

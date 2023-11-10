@@ -69,12 +69,13 @@ class VideoViewModel @Inject constructor(
                     if (videoData != null) {
                         _videoUiState.update { videoUiState ->
                             videoData.toYouTubeVideo()?.toVideoUiState()?.copy(
+                                id = videoUiState.id,
                                 videoUrl = videoUiState.videoUrl,
                                 selectedCourseId = videoUiState.selectedCourseId,
                                 watchedOn = videoUiState.watchedOn,
                                 speakersNationality = videoUiState.speakersNationality,
                                 isLoading = false,
-                                isEdit = true
+                                isEdit = videoUiState.isEdit
                             ) ?: videoUiState.copy()
                         }
                         validateForm()
@@ -93,10 +94,18 @@ class VideoViewModel @Inject constructor(
         validateForm()
     }
 
-    fun toggleDialogVisibility(visible: Boolean) {
+    fun toggleDeleteDialogVisibility(visible: Boolean) {
         _videoUiState.update {
             it.copy(
                 isDeleteDialogVisible = visible
+            )
+        }
+    }
+
+    fun toggleDatePickerDialogVisibility(visible: Boolean) {
+        _videoUiState.update {
+            it.copy(
+                isDatePickerDialogVisible = visible
             )
         }
     }
@@ -110,7 +119,7 @@ class VideoViewModel @Inject constructor(
     }
 
     fun deleteVideo() {
-        toggleDialogVisibility(false)
+        toggleDeleteDialogVisibility(false)
         viewModelScope.launch {
             storageService.deleteYouTubeVideo(defaultCourseId, videoId)
         }

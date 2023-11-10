@@ -1,18 +1,30 @@
 package com.example.myinputlog.ui.screens.video
 
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -22,6 +34,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -31,7 +47,9 @@ import com.example.myinputlog.MyInputLogBottomSaveBar
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.NavigationDestination
+import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.dateFormatter
 import com.example.myinputlog.ui.theme.spacing
 import java.util.Date
 
@@ -63,7 +81,7 @@ fun VideoScreen(
                 canNavigateBack = true,
                 navigateUp = onNavigateUp,
                 hasDeleteAction = videoUiState.value.id.isNotBlank(),
-                onDelete = { videoViewModel.toggleDialogVisibility(true) },
+                onDelete = { videoViewModel.toggleDeleteDialogVisibility(true) },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -85,6 +103,28 @@ fun VideoScreen(
                 modifier = Modifier.padding(innerPadding),
                 videoUiState = videoUiState.value,
                 onCourseValueChange = videoViewModel::updateUiState,
+                onDateChipClicked = { videoViewModel.toggleDatePickerDialogVisibility(true) },
+                onDateClearClicked = {
+                    videoViewModel.updateUiState(
+                        videoUiState.value.copy(
+                            watchedOn = null
+                        )
+                    )
+                },
+                onLanguageValueChange = {
+                    videoViewModel.updateUiState(
+                        videoUiState.value.copy(
+                            speakersNationality = it
+                        )
+                    )
+                },
+                onLanguageClearClicked = {
+                    videoViewModel.updateUiState(
+                        videoUiState.value.copy(
+                            speakersNationality = null
+                        )
+                    )
+                },
                 onLinkValueChange = videoViewModel::loadVideoData
             )
         }
@@ -97,7 +137,7 @@ fun VideoScreen(
                 onNavigateUp()
             },
             onDismiss = {
-                videoViewModel.toggleDialogVisibility(false)
+                videoViewModel.toggleDeleteDialogVisibility(false)
             }
         )
     }
@@ -121,44 +161,91 @@ fun VideoScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun VideoEditBody(
     modifier: Modifier = Modifier,
     videoUiState: VideoUiState,
     onCourseValueChange: (VideoUiState) -> Unit,
+    onDateChipClicked: () -> Unit,
+    onDateClearClicked: () -> Unit,
+    onLanguageValueChange: (Country) -> Unit,
+    onLanguageClearClicked: () -> Unit,
     onLinkValueChange: () -> Unit
 ) {
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+        verticalArrangement = Arrangement.Top,
+        contentPadding = PaddingValues(MaterialTheme.spacing.medium)
     ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(
-                    start = MaterialTheme.spacing.medium,
-                    end = MaterialTheme.spacing.medium,
-                    top = MaterialTheme.spacing.small,
-                    bottom = MaterialTheme.spacing.small
-                )
-                .fillMaxWidth(),
-            label = { Text(stringResource(R.string.video_link_label)) },
-            value = videoUiState.videoUrl,
-            onValueChange = { link: String ->
-                onCourseValueChange(
-                    videoUiState.copy(
-                        videoUrl = link
+        item {
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(
+                        top = MaterialTheme.spacing.small,
+                        bottom = MaterialTheme.spacing.small
                     )
+                    .fillMaxWidth(),
+                label = { Text(stringResource(R.string.video_link_label)) },
+                value = videoUiState.videoUrl,
+                onValueChange = { link: String ->
+                    onCourseValueChange(
+                        videoUiState.copy(
+                            videoUrl = link
+                        )
+                    )
+                    onLinkValueChange()
+                },
+                singleLine = true
+            )
+        }
+        item {
+            FlowRow(
+                Modifier
+                    .fillMaxWidth(1f)
+                    .wrapContentHeight(align = Alignment.Top),
+                horizontalArrangement = Arrangement.Start,
+            ) {
+                InputChip(
+                    modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
+                    onClick = onDateChipClicked,
+                    label = {
+                        if (videoUiState.watchedOn != null) {
+                            Text(dateFormatter.format(videoUiState.watchedOn))
+                        } else {
+                            Text(stringResource(R.string.video_watched_on_label))
+                        }
+                    },
+                    selected = videoUiState.watchedOn != null,
+                    leadingIcon = { Icon(Icons.Filled.Event, contentDescription = null) },
+                    trailingIcon = {
+                        if (videoUiState.watchedOn != null) {
+                            Icon(
+                                modifier = Modifier.clickable(onClick = onDateClearClicked),
+                                imageVector = Icons.Filled.Clear,
+                                contentDescription = null
+                            )
+                        }
+                    }
                 )
-                onLinkValueChange()
-            },
-            singleLine = true
-        )
-        Text("${stringResource(R.string.video_title_label)}: ${videoUiState.title}")
-        Text("${stringResource(R.string.video_channel_label)}: ${videoUiState.channel}")
-        Text("${stringResource(R.string.video_duration_label)}: ${videoUiState.durationInSeconds}")
+                CountryChoiceDropdownField(
+                    onValueChange = onLanguageValueChange,
+                    onClearClicked = onLanguageClearClicked,
+                    videoUiState = videoUiState
+                )
+            }
+        }
+        item {
+            Text("${stringResource(R.string.video_title_label)}: ${videoUiState.title}")
+        }
+        item {
+            Text("${stringResource(R.string.video_channel_label)}: ${videoUiState.channel}")
+        }
+        item {
+            Text("${stringResource(R.string.video_duration_label)}: ${videoUiState.durationInSeconds}")
+        }
     }
 }
 
@@ -212,5 +299,68 @@ fun MyDatePickerDialog(
         }
     ) {
         DatePicker(state = datePickerState)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CountryChoiceDropdownField(
+    modifier: Modifier = Modifier,
+    videoUiState: VideoUiState,
+    onValueChange: (Country) -> Unit,
+    onClearClicked: () -> Unit,
+    options: List<Country> = Country.values().asList(),
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box(
+        modifier = modifier
+            .wrapContentSize(Alignment.TopStart)
+    ) {
+        InputChip(
+            modifier = Modifier
+                .padding(MaterialTheme.spacing.extraSmall),
+            onClick = { expanded = !expanded },
+            label = {
+                if (videoUiState.speakersNationality != null) {
+                    Text(stringResource(videoUiState.speakersNationality.countryNameResId))
+                } else {
+                    Text(stringResource(R.string.video_country_label))
+                }
+            },
+            selected = videoUiState.speakersNationality != null,
+            leadingIcon = {
+                if (videoUiState.speakersNationality != null) {
+                    Text(videoUiState.speakersNationality.flagEmoji)
+                } else {
+                    Icon(Icons.Filled.Language, contentDescription = null)
+                }
+            },
+            trailingIcon = {
+                if (videoUiState.speakersNationality != null) {
+                    Icon(
+                        modifier = Modifier.clickable(onClick = onClearClicked),
+                        imageVector = Icons.Filled.Clear,
+                        contentDescription = null
+                    )
+                }
+            }
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                expanded = false
+            }
+        ) {
+            options.forEach { selectionOption ->
+                DropdownMenuItem(
+                    text = { Text("${selectionOption.flagEmoji} ${stringResource(selectionOption.countryNameResId)}") },
+                    onClick = {
+                        onValueChange(selectionOption)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+            }
+        }
     }
 }

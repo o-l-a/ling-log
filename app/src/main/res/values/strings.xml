@@ -77,8 +77,9 @@
     <string name="course_other_source_hours_label">Hours outside platform</string>
 
     <!--    video edit    -->
-    <string name="video_watched_on_label">Watched on</string>
-    <string name="video_country_label">Speaker\'s nationality</string>
+    <string name="video_watched_on_label">Set watch date</string>
+    <string name="video_watched_on_chip_label">Watched: %s</string>
+    <string name="video_country_label">Language/accent</string>
     <string name="video_title_label">Title</string>
     <string name="video_channel_label">Channel</string>
     <string name="video_duration_label">Duration</string>
