@@ -1,7 +1,5 @@
 package com.example.myinputlog.data.model
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
 import java.time.Duration
 
@@ -46,7 +44,9 @@ fun VideoData.toYouTubeVideo(): YouTubeVideo? {
         val item = items[0]
         return YouTubeVideo(
             title = item.snippet.title,
-            thumbnailUrl = item.snippet.thumbnails.default.url,
+            thumbnailDefaultUrl = item.snippet.thumbnails.default.url,
+            thumbnailMediumUrl = item.snippet.thumbnails.medium.url,
+            thumbnailHighUrl = item.snippet.thumbnails.high.url,
             channel = item.snippet.channelTitle,
             durationInSeconds = Duration.parse(item.contentDetails.duration).seconds
         )

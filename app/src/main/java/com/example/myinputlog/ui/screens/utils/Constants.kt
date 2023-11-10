@@ -18,6 +18,9 @@ val IME_ACTION_DONE = KeyboardOptions.Default.copy(
     imeAction = ImeAction.Done
 )
 
+const val thumbnailHighHeight: Float = 360F
+const val thumbnailHighWidth: Float = 480F
+
 @SuppressLint("SimpleDateFormat")
 val dateFormatter = SimpleDateFormat("dd/MM/yyyy")
 

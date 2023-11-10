@@ -4,6 +4,7 @@
 
     <!--    content descriptions    -->
     <string name="back_button_content_description">Back</string>
+    <string name="video_thumbnail_content_description">Video Thumbnail</string>
 
     <!--    screen titles    -->
     <string name="home_screen_title">Home</string>

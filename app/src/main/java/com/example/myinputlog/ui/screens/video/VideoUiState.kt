@@ -12,7 +12,9 @@ data class VideoUiState(
     val channel: String = "",
     val durationInSeconds: String = "",
     val videoUrl: String = "",
-    val thumbnailUrl: String = "",
+    val thumbnailDefaultUrl: String = "",
+    val thumbnailMediumUrl: String = "",
+    val thumbnailHighUrl: String = "",
 
     val selectedCourseId: String = "",
     val isLoading: Boolean = true,
@@ -37,7 +39,9 @@ fun YouTubeVideo.toVideoUiState(
     channel = channel,
     durationInSeconds = durationInSeconds.toString(),
     videoUrl = videoUrl,
-    thumbnailUrl = thumbnailUrl,
+    thumbnailDefaultUrl = thumbnailDefaultUrl,
+    thumbnailMediumUrl = thumbnailMediumUrl,
+    thumbnailHighUrl = thumbnailHighUrl,
     selectedCourseId = selectedCourseId,
     isLoading = isLoading,
     isEdit = isEdit,
@@ -54,5 +58,7 @@ fun VideoUiState.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
     channel = channel,
     durationInSeconds = durationInSeconds.toLongOrNull() ?: 0L,
     videoUrl = videoUrl,
-    thumbnailUrl = thumbnailUrl
+    thumbnailDefaultUrl = thumbnailDefaultUrl,
+    thumbnailMediumUrl = thumbnailMediumUrl,
+    thumbnailHighUrl = thumbnailHighUrl,
 )

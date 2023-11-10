@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogBottomSaveBar
 import com.example.myinputlog.MyInputLogTopAppBar
@@ -49,6 +50,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.composable.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.dateFormatter
 import com.example.myinputlog.ui.theme.spacing
 import java.util.Date
@@ -238,7 +240,18 @@ fun VideoEditBody(
             }
         }
         item {
-            Text("${stringResource(R.string.video_title_label)}: ${videoUiState.title}")
+            VideoThumbnail(
+                videoUrl = videoUiState.thumbnailHighUrl,
+                duration = videoUiState.durationInSeconds.toLong()
+            )
+        }
+        item {
+            Text(
+                modifier = Modifier.padding(top = MaterialTheme.spacing.small),
+                text = videoUiState.title,
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Left
+            )
         }
         item {
             Text("${stringResource(R.string.video_channel_label)}: ${videoUiState.channel}")

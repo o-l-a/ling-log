@@ -16,5 +16,7 @@ data class YouTubeVideo(
     val channel: String = "",
     val durationInSeconds: Long = 0L,
     val videoUrl: String = "",
-    val thumbnailUrl: String = ""
+    val thumbnailDefaultUrl: String = "",
+    val thumbnailMediumUrl: String = "",
+    val thumbnailHighUrl: String = ""
 )
