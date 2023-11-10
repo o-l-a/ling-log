@@ -82,6 +82,7 @@
     <string name="video_watched_on_label">Ustaw datę obejrzenia</string>
     <string name="video_watched_on_chip_label">Obejrzane: %s</string>
     <string name="video_country_label">Język/akcent</string>
+    <string name="video_course_label">Kurs</string>
     <string name="video_title_label">Tytuł</string>
     <string name="video_channel_label">Kanał</string>
     <string name="video_duration_label">Długość</string>

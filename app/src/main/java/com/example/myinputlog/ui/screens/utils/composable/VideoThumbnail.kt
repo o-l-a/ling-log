@@ -1,5 +1,6 @@
 package com.example.myinputlog.ui.screens.utils.composable
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +36,9 @@ fun VideoThumbnail(
         modifier = modifier
             .aspectRatio(16F / 9F)
             .fillMaxWidth()
-            .clip(shape = RoundedCornerShape(MaterialTheme.spacing.medium)),
+            .clip(shape = RoundedCornerShape(MaterialTheme.spacing.medium))
+            .background(Color.Gray)
+        ,
         contentAlignment = Alignment.BottomEnd
     ) {
         AsyncImage(
@@ -47,7 +50,7 @@ fun VideoThumbnail(
                 .data(videoUrl)
                 .crossfade(true)
                 .build(),
-            error = painterResource(R.drawable.ic_broken_image),
+            error = painterResource(R.drawable.video_placeholder),
             placeholder = painterResource(R.drawable.loading_img),
             contentDescription = stringResource(R.string.video_thumbnail_content_description),
             contentScale = ContentScale.FillWidth

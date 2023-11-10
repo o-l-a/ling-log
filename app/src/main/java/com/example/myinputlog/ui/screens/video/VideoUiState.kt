@@ -1,7 +1,10 @@
 package com.example.myinputlog.ui.screens.video
 
+import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.ui.screens.utils.Country
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Date
 
 data class VideoUiState(
@@ -15,13 +18,16 @@ data class VideoUiState(
     val thumbnailDefaultUrl: String = "",
     val thumbnailMediumUrl: String = "",
     val thumbnailHighUrl: String = "",
+    val defaultAudioLanguage: String = "",
 
+    val userCourses: Flow<List<UserCourse>?> = MutableStateFlow(null),
     val selectedCourseId: String = "",
     val isLoading: Boolean = true,
     val isEdit: Boolean = false,
     val isFormValid: Boolean = false,
     val isDeleteDialogVisible: Boolean = false,
-    val isDatePickerDialogVisible: Boolean = false
+    val isDatePickerDialogVisible: Boolean = false,
+    val networkError: Boolean = false
 )
 
 fun YouTubeVideo.toVideoUiState(
@@ -30,7 +36,8 @@ fun YouTubeVideo.toVideoUiState(
     isEdit: Boolean = false,
     isFormValid: Boolean = false,
     isDeleteDialogVisible: Boolean = false,
-    isDatePickerDialogVisible: Boolean = false
+    isDatePickerDialogVisible: Boolean = false,
+    networkError: Boolean = false
 ): VideoUiState = VideoUiState(
     id = id,
     watchedOn = watchedOn,
@@ -42,12 +49,14 @@ fun YouTubeVideo.toVideoUiState(
     thumbnailDefaultUrl = thumbnailDefaultUrl,
     thumbnailMediumUrl = thumbnailMediumUrl,
     thumbnailHighUrl = thumbnailHighUrl,
+    defaultAudioLanguage = defaultAudioLanguage,
     selectedCourseId = selectedCourseId,
     isLoading = isLoading,
     isEdit = isEdit,
     isFormValid = isFormValid,
     isDeleteDialogVisible = isDeleteDialogVisible,
-    isDatePickerDialogVisible = isDatePickerDialogVisible
+    isDatePickerDialogVisible = isDatePickerDialogVisible,
+    networkError = networkError
 )
 
 fun VideoUiState.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
@@ -61,4 +70,5 @@ fun VideoUiState.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
     thumbnailDefaultUrl = thumbnailDefaultUrl,
     thumbnailMediumUrl = thumbnailMediumUrl,
     thumbnailHighUrl = thumbnailHighUrl,
+    defaultAudioLanguage = defaultAudioLanguage
 )

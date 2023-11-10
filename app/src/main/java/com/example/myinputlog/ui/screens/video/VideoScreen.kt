@@ -29,6 +29,8 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,12 +50,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogBottomSaveBar
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
+import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownField
 import com.example.myinputlog.ui.screens.utils.composable.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.dateFormatter
+import com.example.myinputlog.ui.screens.utils.getLanguageName
 import com.example.myinputlog.ui.theme.spacing
+import kotlinx.coroutines.launch
 import java.util.Date
 
 object VideoDestination : NavigationDestination {
@@ -74,6 +81,9 @@ fun VideoScreen(
     val videoUiState = videoViewModel.videoUiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val datePickerState = rememberDatePickerState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarErrorMessage = stringResource(R.string.network_error)
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -96,7 +106,8 @@ fun VideoScreen(
                 },
                 isFormValid = videoUiState.value.isFormValid
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         if (videoUiState.value.isLoading) {
             LoadingBox()
@@ -127,7 +138,15 @@ fun VideoScreen(
                         )
                     )
                 },
-                onLinkValueChange = videoViewModel::loadVideoData
+                onLinkValueChange = {
+                    videoViewModel.loadVideoData { returnCode ->
+                        if (returnCode != 0) {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(snackbarErrorMessage)
+                            }
+                        }
+                    }
+                }
             )
         }
     }
@@ -178,10 +197,29 @@ fun VideoEditBody(
     LazyColumn(
         modifier = modifier
             .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top,
         contentPadding = PaddingValues(MaterialTheme.spacing.medium)
     ) {
+        item {
+            val userCourses = videoUiState.userCourses.collectAsStateWithLifecycle(emptyList())
+            if (userCourses.value != null) {
+                MyInputLogDropdownField(
+                    value = userCourses.value!!.firstOrNull() { userCourse -> userCourse.id == videoUiState.selectedCourseId }
+                        ?: UserCourse(),
+                    onValueChange = { userCourse ->
+                        onCourseValueChange(
+                            videoUiState.copy(
+                                selectedCourseId = userCourse.id
+                            )
+                        )
+                    },
+                    options = userCourses.value!!,
+                    isInTopBar = false,
+                    isEditable = videoUiState.id.isBlank()
+                )
+            }
+        }
         item {
             OutlinedTextField(
                 modifier = Modifier
@@ -239,25 +277,27 @@ fun VideoEditBody(
                 )
             }
         }
-        item {
-            VideoThumbnail(
-                videoUrl = videoUiState.thumbnailHighUrl,
-                duration = videoUiState.durationInSeconds.toLong()
-            )
-        }
-        item {
-            Text(
-                modifier = Modifier.padding(top = MaterialTheme.spacing.small),
-                text = videoUiState.title,
-                style = MaterialTheme.typography.labelLarge,
-                textAlign = TextAlign.Left
-            )
-        }
-        item {
-            Text("${stringResource(R.string.video_channel_label)}: ${videoUiState.channel}")
-        }
-        item {
-            Text("${stringResource(R.string.video_duration_label)}: ${videoUiState.durationInSeconds}")
+        if (videoUiState.videoUrl.isNotBlank()) {
+            item {
+                VideoThumbnail(
+                    videoUrl = videoUiState.thumbnailHighUrl,
+                    duration = videoUiState.durationInSeconds.toLongOrNull() ?: 0L
+                )
+            }
+            item {
+                Text(
+                    modifier = Modifier.padding(top = MaterialTheme.spacing.small),
+                    text = videoUiState.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Left
+                )
+            }
+            item {
+                Text(
+                    text = "${videoUiState.channel} • ${getLanguageName(videoUiState.defaultAudioLanguage)}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
 }

@@ -34,7 +34,10 @@ class VideoViewModel @Inject constructor(
                 val video = storageService.getYouTubeVideo(defaultCourseId, videoId)
                 if (video != null) {
                     _videoUiState.update {
-                        video.toVideoUiState(isLoading = false).copy()
+                        video.toVideoUiState(isLoading = false).copy(
+                            selectedCourseId = defaultCourseId,
+                            userCourses = storageService.userCourses
+                        )
                     }
                 } else {
                     // TODO("this should never happen")
@@ -44,6 +47,7 @@ class VideoViewModel @Inject constructor(
             _videoUiState.update {
                 it.copy(
                     selectedCourseId = defaultCourseId,
+                    userCourses = storageService.userCourses,
                     isLoading = false,
                     isEdit = true
                 )
@@ -60,29 +64,38 @@ class VideoViewModel @Inject constructor(
         } else null
     }
 
-    fun loadVideoData() {
+    fun loadVideoData(callback: (Int) -> Unit) {
         val videoId = extractYouTubeVideoId(_videoUiState.value.videoUrl) ?: ""
         viewModelScope.launch {
-            videoDataRepository.getVideoData(videoId).let {
-                if (it.isSuccessful) {
-                    val videoData = it.body()
-                    if (videoData != null) {
-                        _videoUiState.update { videoUiState ->
-                            videoData.toYouTubeVideo()?.toVideoUiState()?.copy(
-                                id = videoUiState.id,
-                                videoUrl = videoUiState.videoUrl,
-                                selectedCourseId = videoUiState.selectedCourseId,
-                                watchedOn = videoUiState.watchedOn,
-                                speakersNationality = videoUiState.speakersNationality,
-                                isLoading = false,
-                                isEdit = videoUiState.isEdit
-                            ) ?: videoUiState.copy()
+            try {
+                videoDataRepository.getVideoData(videoId).let { it ->
+                    if (it.isSuccessful) {
+                        val videoData = it.body()
+                        if (videoData != null) {
+                            _videoUiState.update { videoUiState ->
+                                videoData.toYouTubeVideo()?.toVideoUiState()?.copy(
+                                    id = videoUiState.id,
+                                    videoUrl = videoUiState.videoUrl,
+                                    selectedCourseId = videoUiState.selectedCourseId,
+                                    userCourses = videoUiState.userCourses,
+                                    watchedOn = videoUiState.watchedOn,
+                                    speakersNationality = videoUiState.speakersNationality,
+                                    isLoading = false,
+                                    isEdit = videoUiState.isEdit,
+                                    networkError = false
+                                ) ?: videoUiState.copy()
+                            }
+                            validateForm()
+                            callback(0)
                         }
-                        validateForm()
+                    } else {
+                        updateUiState(videoUiState.value.copy(networkError = true))
+                        callback(1)
                     }
-                } else {
-
                 }
+            } catch (e: Exception) {
+                updateUiState(videoUiState.value.copy(networkError = true))
+                callback(1)
             }
         }
     }
@@ -113,7 +126,7 @@ class VideoViewModel @Inject constructor(
     private fun validateForm() {
         _videoUiState.update {
             it.copy(
-                isFormValid = it.videoUrl.isNotBlank()
+                isFormValid = it.videoUrl.isNotBlank() && !it.networkError
             )
         }
     }

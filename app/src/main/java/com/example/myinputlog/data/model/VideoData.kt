@@ -19,7 +19,8 @@ data class VideoItem(
 data class VideoSnippet(
     val title: String,
     val thumbnails: VideoThumbnails,
-    val channelTitle: String
+    val channelTitle: String,
+    val defaultAudioLanguage: String
 )
 
 @Serializable
@@ -47,6 +48,7 @@ fun VideoData.toYouTubeVideo(): YouTubeVideo? {
             thumbnailDefaultUrl = item.snippet.thumbnails.default.url,
             thumbnailMediumUrl = item.snippet.thumbnails.medium.url,
             thumbnailHighUrl = item.snippet.thumbnails.high.url,
+            defaultAudioLanguage = item.snippet.defaultAudioLanguage,
             channel = item.snippet.channelTitle,
             durationInSeconds = Duration.parse(item.contentDetails.duration).seconds
         )

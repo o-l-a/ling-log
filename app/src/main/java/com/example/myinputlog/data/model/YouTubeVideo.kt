@@ -18,5 +18,6 @@ data class YouTubeVideo(
     val videoUrl: String = "",
     val thumbnailDefaultUrl: String = "",
     val thumbnailMediumUrl: String = "",
-    val thumbnailHighUrl: String = ""
+    val thumbnailHighUrl: String = "",
+    val defaultAudioLanguage: String = ""
 )

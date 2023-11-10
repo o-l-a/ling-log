@@ -18,11 +18,32 @@ val IME_ACTION_DONE = KeyboardOptions.Default.copy(
     imeAction = ImeAction.Done
 )
 
-const val thumbnailHighHeight: Float = 360F
-const val thumbnailHighWidth: Float = 480F
-
 @SuppressLint("SimpleDateFormat")
 val dateFormatter = SimpleDateFormat("dd/MM/yyyy")
+
+val languageMap = mapOf(
+    "en" to "English",
+    "es" to "Spanish",
+    "es-419" to "Spanish (Latin America)",
+    "pl" to "Polish",
+    "fr" to "French",
+    "de" to "German",
+    "it" to "Italian",
+    "pt" to "Portuguese",
+    "ru" to "Russian",
+    "zh" to "Chinese",
+    "ja" to "Japanese",
+    "ko" to "Korean",
+    "hi" to "Hindi",
+    "ar" to "Arabic",
+    "vi" to "Vietnamese",
+    "nl" to "Dutch"
+)
+
+fun getLanguageName(languageCode: String): String {
+    return languageMap[languageCode] ?: "Unknown Language"
+}
+
 
 @Composable
 fun myInputLogTextFieldColors() = OutlinedTextFieldDefaults.colors(
