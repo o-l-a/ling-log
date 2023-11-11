@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    storageService: DefaultStorageService,
+    private val storageService: DefaultStorageService,
     private val preferenceStorageService: DefaultPreferenceStorageService
 ) : ViewModel() {
     private val _homeUiState = MutableStateFlow(HomeUiState())
@@ -24,14 +24,28 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            val currentCourseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
             val currentCourse = userCourses.firstOrNull()?.find {
-                it.id == (preferenceStorageService.currentCourseId.firstOrNull() ?: "")
+                it.id == currentCourseId
             } ?: UserCourse()
             _homeUiState.update {
                 currentCourse.toHomeUiState().copy(
                     userCourses = userCourses,
-                    isLoading = false
+                    isLoading = false,
                 )
+            }
+            try {
+                val courseStatistics = storageService.getCourseStatistics(currentCourseId)
+                _homeUiState.update {
+                    it.copy(
+                        courseStatistics = courseStatistics,
+                        networkError = false
+                    )
+                }
+            } catch (e: Exception) {
+                _homeUiState.update {
+                    it.copy(networkError = true)
+                }
             }
         }
     }
@@ -44,8 +58,21 @@ class HomeViewModel @Inject constructor(
             } ?: UserCourse()
             _homeUiState.update {
                 currentCourse.toHomeUiState().copy(
-                    userCourses = userCourses
+                    userCourses = userCourses,
                 )
+            }
+            try {
+                val courseStatistics = storageService.getCourseStatistics(currentCourse.id)
+                _homeUiState.update {
+                    it.copy(
+                        courseStatistics = courseStatistics,
+                        networkError = false
+                    )
+                }
+            } catch (e: Exception) {
+                _homeUiState.update {
+                    it.copy(networkError = true)
+                }
             }
         }
     }

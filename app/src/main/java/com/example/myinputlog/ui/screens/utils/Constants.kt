@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import com.example.myinputlog.R
 import java.text.SimpleDateFormat
+import java.util.concurrent.TimeUnit
 
 val IME_ACTION_NEXT = KeyboardOptions.Default.copy(
     imeAction = ImeAction.Next
@@ -44,6 +45,30 @@ fun getLanguageName(languageCode: String): String {
     return languageMap[languageCode] ?: "Unknown Language"
 }
 
+fun formatDuration(duration: Long): String {
+    val hours = TimeUnit.SECONDS.toHours(duration)
+    val minutes = TimeUnit.SECONDS.toMinutes(duration - TimeUnit.HOURS.toSeconds(hours))
+    val seconds = duration - TimeUnit.HOURS.toSeconds(hours) - TimeUnit.MINUTES.toSeconds(minutes)
+
+    return if (hours > 0) {
+        String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format("%02d:%02d", minutes, seconds)
+    }
+}
+
+fun formatDurationAsText(duration: Long): String {
+    val hours = TimeUnit.SECONDS.toHours(duration)
+    val minutes = TimeUnit.SECONDS.toMinutes(duration - TimeUnit.HOURS.toSeconds(hours))
+
+    return if (hours > 99) {
+        "${hours}h"
+    } else if (hours > 0) {
+        "${hours}h ${minutes}m"
+    } else {
+        "${minutes}m"
+    }
+}
 
 @Composable
 fun myInputLogTextFieldColors() = OutlinedTextFieldDefaults.colors(

@@ -2,22 +2,23 @@ package com.example.myinputlog.ui.screens.video_list
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
@@ -27,6 +28,7 @@ import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownField
+import com.example.myinputlog.ui.screens.utils.composable.VideoThumbnail
 import com.example.myinputlog.ui.theme.spacing
 
 object VideoListDestination : NavigationDestination {
@@ -107,8 +109,9 @@ fun VideoListBody(
     navigateToYouTubeVideo: (String, String) -> Unit,
 ) {
     LazyColumn(
-        modifier = modifier.padding(MaterialTheme.spacing.medium),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
+        contentPadding = PaddingValues(MaterialTheme.spacing.extraExtraSmall)
     ) {
         items(videos) { video ->
             VideoContainer(
@@ -127,15 +130,31 @@ fun VideoContainer(
     video: YouTubeVideo,
     onVideoClicked: (String) -> Unit
 ) {
-    ElevatedCard(
-        modifier
-            .fillMaxWidth()
-            .clickable { onVideoClicked(video.id) }
-    ) {
-        Column(
-            modifier.padding(MaterialTheme.spacing.small)
-        ) {
-            Text(video.videoUrl)
-        }
-    }
+    ListItem(
+        modifier = modifier.clickable { onVideoClicked(video.id) },
+        headlineContent = {
+            Text(
+                text = video.title,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        supportingContent = {
+            Text(
+                text = "${video.channel}${if (video.speakersNationality != null) " • " + video.speakersNationality.flagEmoji else ""}",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall
+            )
+        },
+        leadingContent = {
+            VideoThumbnail(
+                modifier = Modifier.width(MaterialTheme.spacing.doubleExtraLarge),
+                videoUrl = video.thumbnailMediumUrl,
+                duration = video.durationInSeconds,
+                isListItemLeading = true
+            )
+        },
+    )
 }

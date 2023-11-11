@@ -104,6 +104,13 @@
     <string name="country_paraguay">Paragwaj</string>
     <string name="country_bolivia">Boliwia</string>
 
+    <!--    stats labels    -->
+    <string name="stats_hours_watched">czasu</string>
+    <string name="stats_hours_watched_today">czasu dzisiaj</string>
+    <string name="stats_videos_watched">filmów</string>
+    <string name="yay">Juhu!</string>
+    <string name="stats_network_error">Statystyki są dostępne tylko w trybie online.</string>
+
 </resources>
 
 

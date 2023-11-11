@@ -1,10 +1,7 @@
 package com.example.myinputlog.ui.screens.course
 
 import com.example.myinputlog.data.model.UserCourse
-import com.example.myinputlog.data.model.YouTubeVideo
 import com.google.firebase.firestore.DocumentId
-import com.google.firebase.firestore.ServerTimestamp
-import java.util.Date
 
 data class CourseUiState(
     @DocumentId
@@ -30,7 +27,7 @@ fun UserCourse.toCourseUiState(
     name = name,
     goalInHours = goalInHours.toString(),
     otherSourceHours = otherSourceHours.toString(),
-    hoursWatched = hoursWatched.toString(),
+//    hoursWatched = hoursWatched.toString(),
     isLoading = isLoading,
     isEdit = isEdit,
     isFormValid = isFormValid,
@@ -40,7 +37,6 @@ fun UserCourse.toCourseUiState(
 fun CourseUiState.toUserCourse() : UserCourse = UserCourse(
     id = id,
     name = name,
-    goalInHours = goalInHours.toFloatOrNull() ?: 0.0F,
-    otherSourceHours = otherSourceHours.toFloatOrNull() ?: 0.0F,
-    hoursWatched = hoursWatched.toFloatOrNull() ?: 0.0F
+    goalInHours = goalInHours.toLongOrNull() ?: 0L,
+    otherSourceHours = otherSourceHours.toLongOrNull() ?: 0L,
 )

@@ -10,8 +10,7 @@ data class UserCourse (
     @ServerTimestamp
     val timestamp: Date = Date(),
     val name: String = "",
-    val goalInHours: Float = 0F,
-    val otherSourceHours: Float = 0F,
-    val hoursWatched: Float = 0F,
+    val goalInHours: Long = 0L,
+    val otherSourceHours: Long = 0L,
     val videos: List<YouTubeVideo> = listOf()
 )

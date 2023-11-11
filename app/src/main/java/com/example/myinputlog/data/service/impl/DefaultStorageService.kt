@@ -1,9 +1,12 @@
 package com.example.myinputlog.data.service.impl
 
+import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.StorageService
+import com.google.firebase.firestore.AggregateField
+import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
@@ -15,6 +18,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import java.util.Calendar
+import java.util.Date
 import javax.inject.Inject
 
 class DefaultStorageService @Inject constructor(
@@ -38,7 +43,6 @@ class DefaultStorageService @Inject constructor(
         }
     }
 
-
     private fun currentUserCourseCollection(uid: String): CollectionReference =
         firestore.collection(USER_COLLECTION).document(uid).collection(USER_COURSE_COLLECTION)
 
@@ -60,6 +64,30 @@ class DefaultStorageService @Inject constructor(
 
     override suspend fun deleteUserCourse(userCourseId: String) {
         currentUserCourseCollection(auth.currentUserId).document(userCourseId).delete().await()
+    }
+
+    override suspend fun getCourseStatistics(userCourseId: String): CourseStatistics {
+        val aggregateField = AggregateField.sum("durationInSeconds")
+        val collection = youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId)
+
+        val totalVideosTask = collection.count().get(AggregateSource.SERVER).await()
+        val totalTimeTask = collection.aggregate(aggregateField).get(AggregateSource.SERVER).await()
+        val todayTimeTask = collection
+            .whereGreaterThanOrEqualTo("watchedOn", getStartOfTodayTimestamp())
+            .whereLessThan("watchedOn", getStartOfTomorrowTimestamp())
+            .aggregate(aggregateField)
+            .get(AggregateSource.SERVER)
+            .await()
+
+        val totalVideos = totalVideosTask.count
+        val totalTime = totalTimeTask.getLong(aggregateField) ?: 0L
+        val todayTime = todayTimeTask.getLong(aggregateField) ?: 0L
+
+        return CourseStatistics(
+            timeWatched = totalTime,
+            timeWatchedToday = todayTime,
+            videoCount = totalVideos
+        )
     }
 
     override suspend fun getYouTubeVideo(userCourseId: String, youTubeVideoId: String): YouTubeVideo? =
@@ -87,7 +115,29 @@ class DefaultStorageService @Inject constructor(
         TODO("Not yet implemented")
     }
 
+    private fun getStartOfTodayTimestamp(): Date {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = System.currentTimeMillis()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return Date(calendar.timeInMillis)
+    }
+
+    private fun getStartOfTomorrowTimestamp(): Date {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = System.currentTimeMillis()
+        calendar.add(Calendar.DAY_OF_YEAR, 1)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return Date(calendar.timeInMillis)
+    }
+
     companion object {
+        private const val TAG = "StorageService"
         const val USER_COLLECTION = "users"
         private const val USER_COURSE_COLLECTION = "userCourses"
         private const val USER_COURSE_SAVE_TRACE = "saveUserCourse"

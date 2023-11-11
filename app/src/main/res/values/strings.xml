@@ -103,4 +103,10 @@
     <string name="country_paraguay">Paraguay</string>
     <string name="country_bolivia">Bolivia</string>
 
+    <!--    stats labels    -->
+    <string name="stats_hours_watched">time spent</string>
+    <string name="stats_hours_watched_today">time today</string>
+    <string name="stats_videos_watched">videos watched</string>
+    <string name="yay">Yay!</string>
+    <string name="stats_network_error">The statistics will appear when you go back online.</string>
 </resources>

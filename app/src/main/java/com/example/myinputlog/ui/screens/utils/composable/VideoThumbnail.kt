@@ -23,6 +23,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.myinputlog.R
+import com.example.myinputlog.ui.screens.utils.formatDuration
 import com.example.myinputlog.ui.theme.spacing
 import java.util.concurrent.TimeUnit
 
@@ -30,15 +31,22 @@ import java.util.concurrent.TimeUnit
 fun VideoThumbnail(
     modifier: Modifier = Modifier,
     videoUrl: String,
-    duration: Long
+    duration: Long,
+    isListItemLeading: Boolean = false
 ) {
     Box(
         modifier = modifier
             .aspectRatio(16F / 9F)
             .fillMaxWidth()
-            .clip(shape = RoundedCornerShape(MaterialTheme.spacing.medium))
-            .background(Color.Gray)
-        ,
+            .clip(
+                shape = RoundedCornerShape(
+                    if (isListItemLeading) {
+                        MaterialTheme.spacing.small
+                    } else
+                        MaterialTheme.spacing.medium
+                )
+            )
+            .background(Color.Gray),
         contentAlignment = Alignment.BottomEnd
     ) {
         AsyncImage(
@@ -55,17 +63,23 @@ fun VideoThumbnail(
             contentDescription = stringResource(R.string.video_thumbnail_content_description),
             contentScale = ContentScale.FillWidth
         )
-        VideoDurationContainer(duration = duration)
+        VideoDurationContainer(duration = duration, isListItemLeading = isListItemLeading)
     }
 }
 
 @Composable
 fun VideoDurationContainer(
     modifier: Modifier = Modifier,
-    duration: Long = 0L
+    duration: Long = 0L,
+    isListItemLeading: Boolean = false
 ) {
     Card(
-        modifier = modifier.padding(MaterialTheme.spacing.small),
+        modifier = modifier.padding(
+            if (isListItemLeading) {
+                MaterialTheme.spacing.extraSmall
+            } else
+                MaterialTheme.spacing.small
+        ),
         shape = RoundedCornerShape(MaterialTheme.spacing.extraSmall),
         colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f))
     ) {
@@ -76,12 +90,4 @@ fun VideoDurationContainer(
             style = MaterialTheme.typography.labelLarge
         )
     }
-}
-
-private fun formatDuration(duration: Long): String {
-    val hours = TimeUnit.SECONDS.toHours(duration)
-    val minutes = TimeUnit.SECONDS.toMinutes(duration - TimeUnit.HOURS.toSeconds(hours))
-    val seconds = duration - TimeUnit.HOURS.toSeconds(hours) - TimeUnit.MINUTES.toSeconds(minutes)
-
-    return String.format("%02d:%02d:%02d", hours, minutes, seconds)
 }
