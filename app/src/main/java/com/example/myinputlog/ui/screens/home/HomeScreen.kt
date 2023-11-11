@@ -114,18 +114,18 @@ fun HomeBody(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
         contentPadding = PaddingValues(MaterialTheme.spacing.extraSmall)
     ) {
-        item {
-            CourseProgressIndicator(
-                hoursWatched = hoursWatched,
-                otherSourceHours = homeUiState.otherSourceHours.toLong() * 3600,
-                goalInHours = homeUiState.goalInHours.toLong() * 3600
-            )
-        }
         if (homeUiState.networkError) {
             item {
                 EmptyCollectionBox(bodyMessage = R.string.stats_network_error)
             }
         } else {
+            item {
+                CourseProgressIndicator(
+                    hoursWatched = hoursWatched,
+                    otherSourceHours = homeUiState.otherSourceHours.toLong() * 3600,
+                    goalInHours = homeUiState.goalInHours.toLong()
+                )
+            }
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -171,42 +171,46 @@ fun CourseProgressIndicator(
     otherSourceHours: Long,
     goalInHours: Long
 ) {
-    val progress = (hoursWatched + otherSourceHours).toFloat() / goalInHours
-    Row(
+    val progress = (hoursWatched + otherSourceHours).toFloat() / (goalInHours * 3600)
+    ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
             .height(MaterialTheme.spacing.large)
             .padding(horizontal = MaterialTheme.spacing.small)
-            .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(bottom = MaterialTheme.spacing.extraSmall),
+        shape = RoundedCornerShape(MaterialTheme.spacing.medium)
     ) {
-        Column(
-            modifier = Modifier
-                .weight(progress)
-                .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
-                .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                modifier = Modifier.padding(start = MaterialTheme.spacing.medium),
-                text = formatDurationAsText(hoursWatched + otherSourceHours),
-                textAlign = TextAlign.Left
-            )
-        }
-        Column(
-            modifier = Modifier
-                .weight(1 - progress)
-                .fillMaxHeight(),
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                modifier = Modifier.padding(end = MaterialTheme.spacing.medium),
-                text = formatDurationAsText(goalInHours),
-                textAlign = TextAlign.Right
-            )
+        Row {
+            Column(
+                modifier = Modifier
+                    .weight(progress)
+                    .padding(MaterialTheme.spacing.default)
+                    .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    modifier = Modifier.padding(start = MaterialTheme.spacing.medium),
+                    text = formatDurationAsText(hoursWatched + otherSourceHours),
+                    textAlign = TextAlign.Left
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1 - progress)
+                    .padding(MaterialTheme.spacing.default)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    modifier = Modifier.padding(end = MaterialTheme.spacing.medium),
+                    text = "${goalInHours}h",
+                    textAlign = TextAlign.Right
+                )
+            }
         }
     }
 }

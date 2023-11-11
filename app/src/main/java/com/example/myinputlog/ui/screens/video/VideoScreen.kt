@@ -167,7 +167,7 @@ fun VideoScreen(
             onConfirm = {
                 videoViewModel.updateUiState(
                     videoUiState.value.copy(
-                        watchedOn = Date(datePickerState.selectedDateMillis!!),
+                        watchedOn = datePickerState.selectedDateMillis?.let { Date(it) },
                         isDatePickerDialogVisible = false
                     )
                 )
