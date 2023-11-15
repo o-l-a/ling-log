@@ -8,18 +8,14 @@ import com.example.myinputlog.data.service.StorageService
 import com.google.firebase.firestore.AggregateField
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObjects
 import com.google.firebase.perf.trace
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
@@ -46,13 +42,15 @@ class DefaultStorageService @Inject constructor(
 //        ) { source }
 //    }
 
-    override fun videosByWatchedOnQuery(courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long): Query {
+    override suspend fun videosByWatchedOnQuery(courseId: String, lastVideoId: String?, limitSize: Long): Query {
         var query = currentUserCourseCollection(auth.currentUserId)
             .document(courseId)
             .collection(YOU_TUBE_VIDEO_COLLECTION)
             .orderBy("watchedOn", Query.Direction.DESCENDING)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
 
-        if (lastVideo != null) {
+        if (lastVideoId != null) {
+            val lastVideo = youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, courseId).document(lastVideoId).get().await()
             query = query.startAfter(lastVideo)
         }
         return query.limit(limitSize)

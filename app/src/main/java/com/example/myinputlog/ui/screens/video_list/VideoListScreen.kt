@@ -122,7 +122,6 @@ fun VideoListBody(
             key = videos.itemKey()
         ) { index ->
             videos[index]?.let { video ->
-                Text(modifier = Modifier.padding(0.dp), text = index.toString())
                 VideoContainer(
                     video = video,
                     onVideoClicked = {
@@ -133,12 +132,11 @@ fun VideoListBody(
         }
         when (videos.loadState.append) {
             is LoadState.NotLoading -> Unit
-            LoadState.Loading -> {
+            is LoadState.Loading -> {
                 item {
                     LoadingBox()
                 }
             }
-
             is LoadState.Error -> {
                 item {
                     Text("Some error occurred")

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface StorageService {
     val userCourses: Flow<List<UserCourse>>
 //    fun videos(courseId: String): Pager<QuerySnapshot, YouTubeVideo>
-    fun videosByWatchedOnQuery(courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long): Query
+    suspend fun videosByWatchedOnQuery(courseId: String, lastVideoId: String?, limitSize: Long): Query
 
     suspend fun getUserCourse(userCourseId: String): UserCourse?
     suspend fun saveUserCourse(userCourse: UserCourse)

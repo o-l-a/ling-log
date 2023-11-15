@@ -40,7 +40,7 @@ object PagingModule {
     fun provideVideoPager(
         pagingConfig: PagingConfig,
         videoPagingSource: VideoPagingSource
-    ): Pager<QuerySnapshot, YouTubeVideo> {
+    ): Pager<String, YouTubeVideo> {
         return Pager(
             config = pagingConfig
         ) {

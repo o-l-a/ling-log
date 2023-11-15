@@ -6,42 +6,38 @@ import androidx.paging.PagingState
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
-import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.tasks.await
+import java.lang.reflect.InvocationTargetException
 import javax.inject.Inject
 
 class VideoPagingSource @Inject constructor(
     private val storageService: DefaultStorageService,
     private val preferenceStorageService: DefaultPreferenceStorageService
-) : PagingSource<QuerySnapshot, YouTubeVideo>() {
+) : PagingSource<String, YouTubeVideo>() {
     companion object {
         private const val TAG = "VideoPagingSource"
     }
 
-    override fun getRefreshKey(state: PagingState<QuerySnapshot, YouTubeVideo>): QuerySnapshot? {
-        return null
-    }
+    override fun getRefreshKey(state: PagingState<String, YouTubeVideo>): String = ""
 
-    override suspend fun load(params: LoadParams<QuerySnapshot>): LoadResult<QuerySnapshot, YouTubeVideo> {
+    override suspend fun load(params: LoadParams<String>): LoadResult<String, YouTubeVideo> {
         return try {
             val courseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
-            val currentPage = params.key ?: storageService
-                .videosByWatchedOnQuery(courseId, null, params.loadSize.toLong())
+            val lastVisibleVideoId = params.key
+            val currentPage = storageService
+                .videosByWatchedOnQuery(courseId, lastVisibleVideoId, params.loadSize.toLong())
                 .get()
                 .await()
-            val lastVisibleVideo = currentPage.documents.lastOrNull()
-            val nextPage = storageService
-                .videosByWatchedOnQuery(courseId, lastVisibleVideo, params.loadSize.toLong())
-                .get()
-                .await()
+                .toObjects(YouTubeVideo::class.java)
+            val nextKey = currentPage.lastOrNull()?.id
             LoadResult.Page(
-                data = currentPage.toObjects(YouTubeVideo::class.java),
+                data = currentPage,
                 prevKey = null,
-                nextKey = nextPage
+                nextKey = nextKey
             )
-        } catch (e: Exception) {
-            e.message?.let { Log.d(TAG, it) }
+        } catch (e: InvocationTargetException) {
+            e.targetException.message?.let { Log.d(TAG, it) }
             LoadResult.Error(e)
         }
     }

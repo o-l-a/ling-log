@@ -22,7 +22,7 @@ import javax.inject.Inject
 class VideoListViewModel @Inject constructor(
     storageService: DefaultStorageService,
     private val preferenceStorageService: DefaultPreferenceStorageService,
-    private val pager: Pager<QuerySnapshot, YouTubeVideo>
+    private val pager: Pager<String, YouTubeVideo>
 ) : ViewModel() {
     private val _videoListUiState = MutableStateFlow(VideoListUiState())
     val videoListUiState = _videoListUiState.asStateFlow()
