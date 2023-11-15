@@ -1,12 +1,15 @@
 package com.example.myinputlog.ui.screens.video_list
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.cachedIn
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
-import com.example.myinputlog.ui.screens.home.HomeUiState
-import com.example.myinputlog.ui.screens.home.toHomeUiState
+import com.google.firebase.firestore.QuerySnapshot
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,8 +20,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VideoListViewModel @Inject constructor(
-    private val storageService: DefaultStorageService,
-    private val preferenceStorageService: DefaultPreferenceStorageService
+    storageService: DefaultStorageService,
+    private val preferenceStorageService: DefaultPreferenceStorageService,
+    private val pager: Pager<QuerySnapshot, YouTubeVideo>
 ) : ViewModel() {
     private val _videoListUiState = MutableStateFlow(VideoListUiState())
     val videoListUiState = _videoListUiState.asStateFlow()
@@ -29,19 +33,17 @@ class VideoListViewModel @Inject constructor(
             val currentCourse = userCourses.firstOrNull()?.find {
                 it.id == (preferenceStorageService.currentCourseId.firstOrNull() ?: "")
             } ?: UserCourse()
-            _videoListUiState.update {
-                currentCourse.toVideoListUiState().copy(
-                    userCourses = userCourses,
-                    videos = storageService.videos(currentCourse.id),
-                    isLoading = false
-                )
+            try {
+                _videoListUiState.update {
+                    currentCourse.toVideoListUiState().copy(
+                        userCourses = userCourses,
+                        videos = pager.flow.cachedIn(viewModelScope),
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                e.message?.let { Log.d(TAG, it) }
             }
-        }
-    }
-
-    fun updateUiState(updatedUiState: VideoListUiState) {
-        _videoListUiState.update {
-            updatedUiState.copy()
         }
     }
 
@@ -51,12 +53,20 @@ class VideoListViewModel @Inject constructor(
             val currentCourse = userCourses.firstOrNull()?.find {
                 it.id == (preferenceStorageService.currentCourseId.firstOrNull() ?: "")
             } ?: UserCourse()
-            _videoListUiState.update {
-                currentCourse.toVideoListUiState().copy(
-                    userCourses = userCourses,
-                    videos = storageService.videos(currentCourse.id),
-                )
+            try {
+                _videoListUiState.update {
+                    currentCourse.toVideoListUiState().copy(
+                        userCourses = userCourses,
+                        videos = pager.flow.cachedIn(viewModelScope),
+                    )
+                }
+            } catch (e: Exception) {
+                e.message?.let { Log.d(TAG, it) }
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "VideoListViewModel"
     }
 }

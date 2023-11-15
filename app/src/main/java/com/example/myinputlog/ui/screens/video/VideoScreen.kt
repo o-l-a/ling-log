@@ -205,7 +205,7 @@ fun VideoEditBody(
             val userCourses = videoUiState.userCourses.collectAsStateWithLifecycle(emptyList())
             if (userCourses.value != null) {
                 MyInputLogDropdownField(
-                    value = userCourses.value!!.firstOrNull() { userCourse -> userCourse.id == videoUiState.selectedCourseId }
+                    value = userCourses.value!!.firstOrNull { userCourse -> userCourse.id == videoUiState.selectedCourseId }
                         ?: UserCourse(),
                     onValueChange = { userCourse ->
                         onCourseValueChange(

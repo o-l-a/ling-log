@@ -4,6 +4,7 @@ buildscript {
         material3_version = '1.1.2'
         lifecycle_version = '2.6.1'
         kotlin_version = '1.8.20'
+        paging_compose_version = '3.2.1'
     }
     dependencies {
         classpath 'com.google.gms:google-services:4.4.0'

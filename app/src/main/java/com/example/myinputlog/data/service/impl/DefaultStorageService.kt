@@ -8,13 +8,18 @@ import com.example.myinputlog.data.service.StorageService
 import com.google.firebase.firestore.AggregateField
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObjects
 import com.google.firebase.perf.trace
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
@@ -35,12 +40,22 @@ class DefaultStorageService @Inject constructor(
                     .map { snapshot -> snapshot.toObjects() }
             }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun videos(courseId: String): Flow<List<YouTubeVideo>> {
-        return auth.currentUser.flatMapLatest { user ->
-            youTubeVideoCollectionForCurrentUserCourse(user.id, courseId).snapshots()
-                .map { snapshot -> snapshot.toObjects() }
+//    override fun videos(courseId: String): Pager<QuerySnapshot, YouTubeVideo> {
+//        return Pager(
+//            config = config
+//        ) { source }
+//    }
+
+    override fun videosByWatchedOnQuery(courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long): Query {
+        var query = currentUserCourseCollection(auth.currentUserId)
+            .document(courseId)
+            .collection(YOU_TUBE_VIDEO_COLLECTION)
+            .orderBy("watchedOn", Query.Direction.DESCENDING)
+
+        if (lastVideo != null) {
+            query = query.startAfter(lastVideo)
         }
+        return query.limit(limitSize)
     }
 
     private fun currentUserCourseCollection(uid: String): CollectionReference =
@@ -137,7 +152,7 @@ class DefaultStorageService @Inject constructor(
     }
 
     companion object {
-        private const val TAG = "StorageService"
+        private const val TAG = "VideoStorageService"
         const val USER_COLLECTION = "users"
         private const val USER_COURSE_COLLECTION = "userCourses"
         private const val USER_COURSE_SAVE_TRACE = "saveUserCourse"
