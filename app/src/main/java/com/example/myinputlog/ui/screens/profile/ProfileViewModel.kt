@@ -5,11 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.R
 import com.example.myinputlog.data.service.impl.DefaultAccountService
+import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val accountService: DefaultAccountService,
-    private val storageService: DefaultStorageService
+    private val storageService: DefaultStorageService,
+    private val preferenceStorageService: DefaultPreferenceStorageService
 ) : ViewModel() {
 
     private val _profileUiState = MutableStateFlow(ProfileUiState())
@@ -26,9 +29,14 @@ class ProfileViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            val currentCourseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
             accountService.currentUser.collect { userData ->
                 _profileUiState.update {
-                    it.copy(username = userData.username, id = userData.id)
+                    it.copy(
+                        currentCourseId = currentCourseId,
+                        username = userData.username,
+                        id = userData.id
+                    )
                 }
                 Log.d("PROFILE", userData.username)
             }

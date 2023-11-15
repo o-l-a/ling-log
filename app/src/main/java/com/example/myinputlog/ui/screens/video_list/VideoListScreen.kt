@@ -74,23 +74,11 @@ fun VideoListScreen(
                 )
             }
         },
-        floatingActionButton = {
-            if (userCourses.value != null && userCourses.value!!.isNotEmpty()) {
-                FloatingActionButton(
-                    modifier = Modifier.navigationBarsPadding(),
-                    onClick = { navigateToYouTubeVideoEntry(videoListUiState.value.currentCourseId) }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                    )
-                }
-            }
-        },
         bottomBar = {
             MyInputLogBottomNavBar(
                 selectedScreen = Screen.Videos,
-                onBottomNavClicked = onBottomNavClicked
+                onBottomNavClicked = onBottomNavClicked,
+                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(videoListUiState.value.currentCourseId) }
             )
         }
     ) { innerPadding ->

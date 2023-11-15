@@ -17,6 +17,7 @@
     <string name="home_bottom_nav_description">Home</string>
     <string name="videos_bottom_nav_description">Videos</string>
     <string name="profile_bottom_nav_description">Profile</string>
+    <string name="suggested_bottom_nav_description">YouTube</string>
 
     <!--    common labels    -->
     <string name="search_text">Search…</string>

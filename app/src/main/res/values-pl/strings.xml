@@ -18,6 +18,7 @@
     <string name="home_bottom_nav_description">Główna</string>
     <string name="videos_bottom_nav_description">Filmy</string>
     <string name="profile_bottom_nav_description">Profil</string>
+    <string name="suggested_bottom_nav_description">YouTube</string>
 
     <!--    common labels    -->
     <string name="search_text">Szukaj…</string>

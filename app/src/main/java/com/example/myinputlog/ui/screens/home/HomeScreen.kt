@@ -65,23 +65,11 @@ fun HomeScreen(
                 )
             }
         },
-        floatingActionButton = {
-            if (userCourses.value != null && userCourses.value!!.isNotEmpty()) {
-                FloatingActionButton(
-                    modifier = Modifier.navigationBarsPadding(),
-                    onClick = { navigateToYouTubeVideoEntry(homeUiState.value.id) }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                    )
-                }
-            }
-        },
         bottomBar = {
             MyInputLogBottomNavBar(
                 selectedScreen = Screen.Home,
-                onBottomNavClicked = onBottomNavClicked
+                onBottomNavClicked = onBottomNavClicked,
+                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(homeUiState.value.id) }
             )
         }
     ) { innerPadding ->

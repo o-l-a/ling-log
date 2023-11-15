@@ -5,6 +5,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SmartDisplay
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -50,20 +52,21 @@ const val SIGN_IN_ROUTE = "sign_in_route"
 
 sealed class Screen(
     val route: String,
-    @StringRes val resourceId: Int,
+    @StringRes val resourceId: Int?,
     val icon: ImageVector
 ) {
     object Home : Screen(HOME_ROUTE, R.string.home_bottom_nav_description, Icons.Filled.Home)
-    object Videos :
-        Screen(VIDEOS_ROUTE, R.string.videos_bottom_nav_description, Icons.Filled.SmartDisplay)
-
-    object Profile :
-        Screen(PROFILE_ROUTE, R.string.profile_bottom_nav_description, Icons.Filled.Person)
+    object Videos : Screen(VIDEOS_ROUTE, R.string.videos_bottom_nav_description, Icons.Filled.VideoLibrary)
+    object AddVideo : Screen("", null, Icons.Outlined.AddCircleOutline)
+    object Recommendations : Screen("", R.string.suggested_bottom_nav_description, Icons.Filled.SmartDisplay)
+    object Profile : Screen(PROFILE_ROUTE, R.string.profile_bottom_nav_description, Icons.Filled.Person)
 }
 
 val navigationItems = listOf(
     Screen.Home,
     Screen.Videos,
+    Screen.AddVideo,
+    Screen.Recommendations,
     Screen.Profile,
 )
 
@@ -182,6 +185,9 @@ fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
                         LoginDestination.route, HomeDestination.route
                     )
                 },
+                navigateToYouTubeVideoEntry = { courseId ->
+                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
+                }
             )
         }
         composable(
