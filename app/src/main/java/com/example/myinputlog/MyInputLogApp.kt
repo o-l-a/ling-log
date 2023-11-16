@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -43,10 +43,11 @@ fun MyInputLogTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
     canNavigateBack: Boolean,
-    hasEditAction: Boolean = false,
+    hasSaveAction: Boolean = false,
     hasDeleteAction: Boolean = false,
+    isFormValid: Boolean = false,
     onDelete: () -> Unit = {},
-    onEdit: () -> Unit = {},
+    onSave: () -> Unit = {},
     navigateUp: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
@@ -70,19 +71,19 @@ fun MyInputLogTopAppBar(
             },
             scrollBehavior = scrollBehavior,
             actions = {
-                if (hasEditAction) {
-                    IconButton(onClick = onEdit) {
-                        Icon(
-                            Icons.Filled.Edit,
-                            contentDescription = stringResource(R.string.edit_text)
-                        )
-                    }
-                }
                 if (hasDeleteAction) {
                     IconButton(onClick = onDelete) {
                         Icon(
                             Icons.Filled.Delete,
                             contentDescription = stringResource(R.string.delete_text)
+                        )
+                    }
+                }
+                if (hasSaveAction) {
+                    IconButton(onClick = onSave, enabled = isFormValid) {
+                        Icon(
+                            Icons.Filled.Done,
+                            contentDescription = stringResource(R.string.save_text)
                         )
                     }
                 }
@@ -149,7 +150,8 @@ fun MyInputLogBottomNavBar(
                     label = {
                         Text(
                             modifier = Modifier.padding(MaterialTheme.spacing.default),
-                            text = stringResource(screen.resourceId!!)
+                            text = stringResource(screen.resourceId!!),
+                            style = MaterialTheme.typography.bodySmall
                         )
                     },
                     selected = selectedScreen.route == screen.route,

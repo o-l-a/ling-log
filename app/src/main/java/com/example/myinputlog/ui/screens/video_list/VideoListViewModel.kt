@@ -4,16 +4,19 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.insertSeparators
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
-import com.google.firebase.firestore.QuerySnapshot
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -37,7 +40,7 @@ class VideoListViewModel @Inject constructor(
                 _videoListUiState.update {
                     currentCourse.toVideoListUiState().copy(
                         userCourses = userCourses,
-                        videos = pager.flow.cachedIn(viewModelScope),
+                        videos = pager.flow.customMap(),
                         isLoading = false
                     )
                 }
@@ -57,7 +60,7 @@ class VideoListViewModel @Inject constructor(
                 _videoListUiState.update {
                     currentCourse.toVideoListUiState().copy(
                         userCourses = userCourses,
-                        videos = pager.flow.cachedIn(viewModelScope),
+                        videos = pager.flow.customMap(),
                     )
                 }
             } catch (e: Exception) {
@@ -68,5 +71,29 @@ class VideoListViewModel @Inject constructor(
 
     companion object {
         private const val TAG = "VideoListViewModel"
+    }
+}
+
+fun Flow<PagingData<YouTubeVideo>>.customMap(): Flow<PagingData<YouTubeVideo>> {
+    return this.map {
+        it.insertSeparators { before: YouTubeVideo?, after: YouTubeVideo? ->
+            when {
+                before == null && after != null -> {
+                    YouTubeVideo(watchedOn = after.watchedOn)
+                }
+
+                before == null || after == null -> {
+                    null
+                }
+
+                before.watchedOn != after.watchedOn -> {
+                    YouTubeVideo(watchedOn = after.watchedOn)
+                }
+
+                else -> {
+                    null
+                }
+            }
+        }
     }
 }

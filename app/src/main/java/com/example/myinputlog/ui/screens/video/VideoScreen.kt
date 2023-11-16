@@ -25,6 +25,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -42,12 +43,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.MyInputLogBottomSaveBar
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.data.model.UserCourse
@@ -83,6 +85,7 @@ fun VideoScreen(
     val datePickerState = rememberDatePickerState()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarErrorMessage = stringResource(R.string.network_error)
+    val snackbarWrongUrlMessage = stringResource(R.string.wrong_url_message)
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
@@ -93,18 +96,14 @@ fun VideoScreen(
                 canNavigateBack = true,
                 navigateUp = onNavigateUp,
                 hasDeleteAction = videoUiState.value.id.isNotBlank(),
+                hasSaveAction = true,
+                isFormValid = videoUiState.value.isFormValid,
                 onDelete = { videoViewModel.toggleDeleteDialogVisibility(true) },
-                scrollBehavior = scrollBehavior
-            )
-        },
-        bottomBar = {
-            MyInputLogBottomSaveBar(
-                onCancelClicked = onNavigateUp,
-                onSaveClicked = {
+                onSave = {
                     videoViewModel.persistVideo()
-                    onNavigateUp()
+                    navigateBack()
                 },
-                isFormValid = videoUiState.value.isFormValid
+                scrollBehavior = scrollBehavior
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -138,11 +137,21 @@ fun VideoScreen(
                         )
                     )
                 },
+                onUrlClearClicked = videoViewModel::deleteUrl,
                 onLinkValueChange = {
                     videoViewModel.loadVideoData { returnCode ->
-                        if (returnCode != 0) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(snackbarErrorMessage)
+                        when (returnCode) {
+                            0 -> Unit
+                            1 -> {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(snackbarWrongUrlMessage)
+                                }
+                            }
+
+                            else -> {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(snackbarErrorMessage)
+                                }
                             }
                         }
                     }
@@ -182,7 +191,9 @@ fun VideoScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+    ExperimentalComposeUiApi::class
+)
 @Composable
 fun VideoEditBody(
     modifier: Modifier = Modifier,
@@ -190,10 +201,13 @@ fun VideoEditBody(
     onCourseValueChange: (VideoUiState) -> Unit,
     onDateChipClicked: () -> Unit,
     onDateClearClicked: () -> Unit,
+    onUrlClearClicked: () -> Unit,
     onLanguageValueChange: (Country) -> Unit,
     onLanguageClearClicked: () -> Unit,
     onLinkValueChange: () -> Unit
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize(),
@@ -229,8 +243,18 @@ fun VideoEditBody(
                     )
                     .fillMaxWidth(),
                 label = { Text(stringResource(R.string.video_link_label)) },
+                trailingIcon = {
+                    if (videoUiState.videoUrl.isNotBlank()) {
+                        Icon(
+                            modifier = Modifier.clickable(onClick = onUrlClearClicked),
+                            imageVector = Icons.Filled.Clear,
+                            contentDescription = null
+                        )
+                    }
+                },
                 value = videoUiState.videoUrl,
                 onValueChange = { link: String ->
+                    keyboardController?.hide()
                     onCourseValueChange(
                         videoUiState.copy(
                             videoUrl = link
@@ -252,7 +276,7 @@ fun VideoEditBody(
                     modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
                     onClick = onDateChipClicked,
                     label = {
-                        if (videoUiState.watchedOn != null) {
+                        if (videoUiState.watchedOn != null && videoUiState.watchedOn != Date(0)) {
                             Text(dateFormatter.format(videoUiState.watchedOn))
                         } else {
                             Text(stringResource(R.string.video_watched_on_label))

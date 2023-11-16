@@ -62,6 +62,7 @@
     <!--    error messages    -->
     <string name="retry_text">Spróbuj ponownie</string>
     <string name="network_error">Błąd połączenia z siecią.</string>
+    <string name="wrong_url_message">Nie udało się pobrać danych.</string>
     <string name="something_went_wrong">Coś poszło nie tak. Spróbuj ponownie później.</string>
     <string name="empty_collection_headline">Trochę tu pusto.</string>
     <string name="empty_course_collection_body">Dodaj pierwszy kurs w zakładce "Profil".</string>

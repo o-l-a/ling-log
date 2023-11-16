@@ -1,5 +1,6 @@
 package com.example.myinputlog.ui.screens.video
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +28,10 @@ class VideoViewModel @Inject constructor(
     private val videoId: String = checkNotNull(savedStateHandle[VideoDestination.videoIdArg])
     private val defaultCourseId: String =
         checkNotNull(savedStateHandle[VideoDestination.courseIdArg])
+
+    companion object {
+        private const val TAG = "VideoViewModel"
+    }
 
     init {
         if (videoId != DEFAULT_ID.toString()) {
@@ -68,10 +73,11 @@ class VideoViewModel @Inject constructor(
         val videoId = extractYouTubeVideoId(_videoUiState.value.videoUrl) ?: ""
         viewModelScope.launch {
             try {
-                videoDataRepository.getVideoData(videoId).let { it ->
+                videoDataRepository.getVideoData(videoId).let {
                     if (it.isSuccessful) {
                         val videoData = it.body()
-                        if (videoData != null) {
+                        if (videoData != null && videoData.items.isNotEmpty()) {
+                            Log.d(TAG, videoData.toString())
                             _videoUiState.update { videoUiState ->
                                 videoData.toYouTubeVideo()?.toVideoUiState()?.copy(
                                     id = videoUiState.id,
@@ -87,15 +93,19 @@ class VideoViewModel @Inject constructor(
                             }
                             validateForm()
                             callback(0)
+                        } else {
+                            updateUiState(videoUiState.value.copy(networkError = true))
+                            deleteUrl()
+                            callback(1)
                         }
                     } else {
                         updateUiState(videoUiState.value.copy(networkError = true))
-                        callback(1)
+                        callback(2)
                     }
                 }
             } catch (e: Exception) {
                 updateUiState(videoUiState.value.copy(networkError = true))
-                callback(1)
+                callback(2)
             }
         }
     }
@@ -105,6 +115,21 @@ class VideoViewModel @Inject constructor(
             updatedUiState.copy()
         }
         validateForm()
+    }
+
+    fun deleteUrl() {
+        updateUiState(
+            videoUiState.value.copy(
+                title = "",
+                channel = "",
+                durationInSeconds = "",
+                videoUrl = "",
+                thumbnailDefaultUrl = "",
+                thumbnailMediumUrl = "",
+                thumbnailHighUrl = "",
+                defaultAudioLanguage = "",
+            )
+        )
     }
 
     fun toggleDeleteDialogVisibility(visible: Boolean) {
