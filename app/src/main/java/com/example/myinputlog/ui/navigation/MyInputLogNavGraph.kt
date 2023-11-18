@@ -34,6 +34,9 @@ import com.example.myinputlog.ui.screens.login.LoginViewModel
 import com.example.myinputlog.ui.screens.profile.ProfileDestination
 import com.example.myinputlog.ui.screens.profile.ProfileScreen
 import com.example.myinputlog.ui.screens.profile.ProfileViewModel
+import com.example.myinputlog.ui.screens.recently_watched.RecentlyWatchedDestination
+import com.example.myinputlog.ui.screens.recently_watched.RecentlyWatchedScreen
+import com.example.myinputlog.ui.screens.recently_watched.RecentlyWatchedViewModel
 import com.example.myinputlog.ui.screens.sign_up.SignUpDestination
 import com.example.myinputlog.ui.screens.sign_up.SignUpScreen
 import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
@@ -46,6 +49,7 @@ import com.example.myinputlog.ui.screens.video_list.VideoListViewModel
 
 const val DEFAULT_ID = -1
 const val HOME_ROUTE = "home_route"
+const val RECENTLY_WATCHED_ROUTE = "recently_watched_route"
 const val VIDEOS_ROUTE = "videos_route"
 const val PROFILE_ROUTE = "profile_route"
 const val SIGN_IN_ROUTE = "sign_in_route"
@@ -58,7 +62,7 @@ sealed class Screen(
     object Home : Screen(HOME_ROUTE, R.string.home_bottom_nav_description, Icons.Filled.Home)
     object Videos : Screen(VIDEOS_ROUTE, R.string.videos_bottom_nav_description, Icons.Filled.VideoLibrary)
     object AddVideo : Screen("", null, Icons.Outlined.AddCircleOutline)
-    object Recommendations : Screen("", R.string.suggested_bottom_nav_description, Icons.Filled.SmartDisplay)
+    object RecentlyWatched : Screen(RECENTLY_WATCHED_ROUTE, R.string.suggested_bottom_nav_description, Icons.Filled.SmartDisplay)
     object Profile : Screen(PROFILE_ROUTE, R.string.profile_bottom_nav_description, Icons.Filled.Person)
 }
 
@@ -66,7 +70,7 @@ val navigationItems = listOf(
     Screen.Home,
     Screen.Videos,
     Screen.AddVideo,
-    Screen.Recommendations,
+    Screen.RecentlyWatched,
     Screen.Profile,
 )
 
@@ -94,6 +98,7 @@ fun MyInputLogNavHost(
         myInputLogHomeGraph(navController)
         myInputLogSignInGraph(navController)
         myInputLogVideosGraph(navController)
+        myInputLogRecentlyWatchedGraph(navController)
         myInputLogProfileGraph(navController)
     }
 }
@@ -157,6 +162,28 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
                 videoViewModel = videoViewModel,
                 navigateBack = { navController.popBackStack() },
                 onNavigateUp = { navController.navigateUp() }
+            )
+        }
+    }
+}
+
+fun NavGraphBuilder.myInputLogRecentlyWatchedGraph(navController: NavHostController) {
+    navigation(
+        startDestination = RecentlyWatchedDestination.route,
+        route = RECENTLY_WATCHED_ROUTE
+    ) {
+        composable(
+            route = RecentlyWatchedDestination.route
+        ) {
+            val recentlyWatchedViewModel = hiltViewModel<RecentlyWatchedViewModel>()
+            RecentlyWatchedScreen(
+                recentlyWatchedViewModel = recentlyWatchedViewModel,
+                onBottomNavClicked = { route ->
+                    navController.navigate(route)
+                },
+                navigateToYouTubeVideoEntry = { courseId ->
+                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
+                }
             )
         }
     }

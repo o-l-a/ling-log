@@ -13,6 +13,7 @@
     <string name="video_screen_title">Film</string>
     <string name="course_screen_title">Kurs</string>
     <string name="profile_screen_title">Profil</string>
+    <string name="recently_watched_screen_title">Ostatnio obejrzane</string>
 
     <!--    bottom nav descriptions    -->
     <string name="home_bottom_nav_description">Główna</string>

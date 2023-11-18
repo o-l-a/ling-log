@@ -12,6 +12,7 @@
     <string name="video_screen_title">Video</string>
     <string name="course_screen_title">Course</string>
     <string name="profile_screen_title">Settings</string>
+    <string name="recently_watched_screen_title">Recently watched</string>
 
     <!--    bottom nav descriptions    -->
     <string name="home_bottom_nav_description">Home</string>
