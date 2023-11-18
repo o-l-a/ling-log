@@ -94,17 +94,22 @@ class VideoViewModel @Inject constructor(
                             validateForm()
                             callback(0)
                         } else {
+                            // network ok, data error
                             updateUiState(videoUiState.value.copy(networkError = true))
-                            deleteUrl()
+                            deleteUrlData()
                             callback(1)
                         }
                     } else {
+                        // actual network error
                         updateUiState(videoUiState.value.copy(networkError = true))
+                        deleteUrlData()
                         callback(2)
                     }
                 }
             } catch (e: Exception) {
+                // some other error
                 updateUiState(videoUiState.value.copy(networkError = true))
+                deleteUrlData()
                 callback(2)
             }
         }
@@ -117,7 +122,21 @@ class VideoViewModel @Inject constructor(
         validateForm()
     }
 
-    fun deleteUrl() {
+    private fun deleteUrlData() {
+        updateUiState(
+            videoUiState.value.copy(
+                title = "",
+                channel = "",
+                durationInSeconds = "",
+                thumbnailDefaultUrl = "",
+                thumbnailMediumUrl = "",
+                thumbnailHighUrl = "",
+                defaultAudioLanguage = "",
+            )
+        )
+    }
+
+    fun deleteUrlAndUrlData() {
         updateUiState(
             videoUiState.value.copy(
                 title = "",

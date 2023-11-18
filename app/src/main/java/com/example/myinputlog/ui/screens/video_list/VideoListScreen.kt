@@ -102,6 +102,9 @@ fun VideoListBody(
     videos: LazyPagingItems<YouTubeVideo>,
     navigateToYouTubeVideo: (String, String) -> Unit,
 ) {
+    if (videos.loadState.refresh is LoadState.Loading) {
+        LoadingBox()
+    }
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
@@ -128,12 +131,15 @@ fun VideoListBody(
                         LoadingBox()
                     }
                 }
+
                 is LoadState.Error -> {
                     item {
                         Text("Some error occurred")
                     }
                 }
             }
+        } else if (videos.loadState.refresh is LoadState.Loading) {
+            Unit
         } else {
             item {
                 EmptyCollectionBox(

@@ -76,4 +76,16 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    fun confetti() {
+        _homeUiState.update {
+            it.copy(isParty = true)
+        }
+    }
+
+    fun confettiStop() {
+        _homeUiState.update {
+            it.copy(isParty = false)
+        }
+    }
 }
