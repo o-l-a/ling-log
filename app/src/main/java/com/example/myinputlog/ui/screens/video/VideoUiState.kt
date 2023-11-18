@@ -61,7 +61,7 @@ fun YouTubeVideo.toVideoUiState(
 
 fun VideoUiState.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
     id = id,
-    watchedOn = watchedOn,
+    watchedOn = watchedOn ?: Date(0),
     speakersNationality = speakersNationality,
     title = title,
     channel = channel,

@@ -16,7 +16,8 @@ data class HomeUiState(
 
     val userCourses: Flow<List<UserCourse>?> = MutableStateFlow(null),
     val isLoading: Boolean = true,
-    val networkError: Boolean = false
+    val networkError: Boolean = false,
+    val isParty: Boolean = false
 )
 
 fun UserCourse.toHomeUiState(

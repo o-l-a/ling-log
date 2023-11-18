@@ -46,6 +46,7 @@ fun ProfileScreen(
     onBottomNavClicked: (String) -> Unit,
     navigateToUserCourseEntry: () -> Unit,
     navigateToUserCourse: (String) -> Unit,
+    navigateToYouTubeVideoEntry: (String) -> Unit,
     navigateWithPopUp: () -> Unit
 ) {
     val profileUiState = profileViewModel.profileUiState.collectAsStateWithLifecycle()
@@ -59,7 +60,8 @@ fun ProfileScreen(
         bottomBar = {
             MyInputLogBottomNavBar(
                 selectedScreen = Screen.Profile,
-                onBottomNavClicked = onBottomNavClicked
+                onBottomNavClicked = onBottomNavClicked,
+                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(profileUiState.value.currentCourseId) }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }

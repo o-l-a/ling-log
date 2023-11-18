@@ -10,7 +10,7 @@ data class YouTubeVideo(
     val id: String = "",
     @ServerTimestamp
     val timestamp: Date = Date(),
-    val watchedOn: Date? = null,
+    val watchedOn: Date = Date(0),
     val speakersNationality: Country? = null,
     val title: String = "",
     val channel: String = "",

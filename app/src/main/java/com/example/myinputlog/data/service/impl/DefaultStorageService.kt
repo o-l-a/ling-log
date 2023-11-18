@@ -9,6 +9,7 @@ import com.google.firebase.firestore.AggregateField
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObjects
@@ -35,12 +36,24 @@ class DefaultStorageService @Inject constructor(
                     .map { snapshot -> snapshot.toObjects() }
             }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun videos(courseId: String): Flow<List<YouTubeVideo>> {
-        return auth.currentUser.flatMapLatest { user ->
-            youTubeVideoCollectionForCurrentUserCourse(user.id, courseId).snapshots()
-                .map { snapshot -> snapshot.toObjects() }
+//    override fun videos(courseId: String): Pager<QuerySnapshot, YouTubeVideo> {
+//        return Pager(
+//            config = config
+//        ) { source }
+//    }
+
+    override suspend fun videosByWatchedOnQuery(courseId: String, lastVideoId: String?, limitSize: Long): Query {
+        var query = currentUserCourseCollection(auth.currentUserId)
+            .document(courseId)
+            .collection(YOU_TUBE_VIDEO_COLLECTION)
+            .orderBy("watchedOn", Query.Direction.DESCENDING)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+
+        if (lastVideoId != null) {
+            val lastVideo = youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, courseId).document(lastVideoId).get().await()
+            query = query.startAfter(lastVideo)
         }
+        return query.limit(limitSize)
     }
 
     private fun currentUserCourseCollection(uid: String): CollectionReference =
@@ -137,7 +150,7 @@ class DefaultStorageService @Inject constructor(
     }
 
     companion object {
-        private const val TAG = "StorageService"
+        private const val TAG = "VideoStorageService"
         const val USER_COLLECTION = "users"
         private const val USER_COURSE_COLLECTION = "userCourses"
         private const val USER_COURSE_SAVE_TRACE = "saveUserCourse"

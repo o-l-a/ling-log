@@ -11,6 +11,9 @@ import com.example.myinputlog.R
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 
+const val PAGE_SIZE = 20
+const val MAX_PAGE_SIZE = 1024
+
 val IME_ACTION_NEXT = KeyboardOptions.Default.copy(
     imeAction = ImeAction.Next
 )

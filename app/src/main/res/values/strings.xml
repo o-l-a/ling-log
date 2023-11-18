@@ -17,6 +17,7 @@
     <string name="home_bottom_nav_description">Home</string>
     <string name="videos_bottom_nav_description">Videos</string>
     <string name="profile_bottom_nav_description">Profile</string>
+    <string name="suggested_bottom_nav_description">YouTube</string>
 
     <!--    common labels    -->
     <string name="search_text">Search…</string>
@@ -60,6 +61,7 @@
     <!--    error messages    -->
     <string name="retry_text">Retry</string>
     <string name="network_error">Network connection failed.</string>
+    <string name="wrong_url_message">Data could not be retrieved.</string>
     <string name="something_went_wrong">Something went wrong. Try again later.</string>
     <string name="empty_collection_headline">Nothing to see here.</string>
     <string name="empty_course_collection_body">Head over to the "Profile" tab and add your first course.</string>
