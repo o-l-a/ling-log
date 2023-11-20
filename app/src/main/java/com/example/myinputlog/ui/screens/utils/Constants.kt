@@ -7,6 +7,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
+import com.example.myinputlog.BuildConfig
 import com.example.myinputlog.R
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
@@ -100,4 +101,47 @@ enum class Country(@StringRes val countryNameResId: Int, val flagEmoji: String) 
     URUGUAY(R.string.country_uruguay, "🇺🇾"),
     PARAGUAY(R.string.country_paraguay, "🇵🇾"),
     BOLIVIA(R.string.country_bolivia, "🇧🇴"),
+}
+
+class AuthConstants {
+    companion object {
+        const val SHARED_PREFERENCES_NAME = "AUTH_STATE_PREFERENCE"
+        const val AUTH_STATE = "AUTH_STATE"
+
+        const val SCOPE_PROFILE = "profile"
+        const val SCOPE_EMAIL = "email"
+        const val SCOPE_OPENID = "openid"
+        const val SCOPE_YOUTUBE = "https://www.googleapis.com/auth/youtube"
+        const val SCOPE_GDATA_YOUTUBE = "https://www.gdata.youtube.com"
+        const val SCOPE_GDATA_YOUTUBE_SLASH = "https://gdata.youtube.com/"
+        const val SCOPE_GDATA_YOUTUBE_NO_SSL = "http://gdata.youtube.com"
+        const val SCOPE_GDATA_YOUTUBE_SLASH_NO_SSL = "http://gdata.youtube.com/"
+        const val SCOPE_GDATA_YOUTUBE_FEEDS = "https://gdata.youtube.com/feeds/"
+        const val SCOPE_GDATA_YOUTUBE_VIDEO_API = "http://gdata.youtube.com/feeds/api/videos/"
+        const val SCOPE_GDATA_YOUTUBE_USER_PLAYLISTS = "http://gdata.youtube.com/feeds/api/users/default/playlists"
+        const val SCOPE_GDATA_YOUTUBE_OTHER = "http://gdata.youtube.com/youtube"
+        const val SCOPE_GDATA_YOUTUBE_USER_FAVORITES = "https://gdata.youtube.com/feeds/api/users/default/favorites/"
+        const val SCOPE_GDATA_YOUTUBE_API = "https://gdata.youtube.com/feeds/api"
+        const val SCOPE_GDATA_YOUTUBE_CAPTIONS = "https://gdata.youtube.com/captions"
+        const val SCOPE_GDATA_YOUTUBE_FEED = "https://gdata.youtube.com/feed"
+        const val SCOPE_YOUTUBE_PARTNER = "https://www.googleapis.com/auth/youtubepartner"
+        const val SCOPE_YOUTUBE_PARTNER_CHANNEL_AUDIT = "https://www.googleapis.com/auth/youtubepartner-channel-audit"
+        const val SCOPE_YOUTUBE_READONLY = "https://www.googleapis.com/auth/youtube.readonly"
+        const val SCOPE_YOUTUBE_FORCE_SSL = "https://www.googleapis.com/auth/youtube.force-ssl"
+
+
+        const val DATA_PICTURE = "picture"
+        const val DATA_FIRST_NAME = "given_name"
+        const val DATA_LAST_NAME = "family_name"
+        const val DATA_EMAIL = "email"
+
+        const val CLIENT_ID = BuildConfig.CLIENT_ID
+        const val CODE_VERIFIER_CHALLENGE_METHOD = "S256"
+        const val MESSAGE_DIGEST_ALGORITHM = "SHA-256"
+
+        const val URL_AUTHORIZATION = "https://accounts.google.com/o/oauth2/v2/auth"
+        const val URL_TOKEN_EXCHANGE = "https://www.googleapis.com/oauth2/v4/token"
+        const val URL_AUTH_REDIRECT = "com.example.myinputlog:/oauth2redirect"
+        const val URL_LOGOUT = "https://oauth2.googleapis.com/revoke"
+    }
 }

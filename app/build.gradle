@@ -22,6 +22,8 @@ android {
         vectorDrawables {
             useSupportLibrary true
         }
+
+        manifestPlaceholders.appAuthRedirectScheme = "com.example.myinputlog"
     }
 
     buildTypes {
@@ -32,6 +34,7 @@ android {
     }
     buildTypes.each {
         it.buildConfigField 'String', 'API_KEY', API_KEY
+        it.buildConfigField 'String', 'CLIENT_ID', CLIENT_ID
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -110,4 +113,8 @@ dependencies {
 
     // Confetti
     implementation 'nl.dionsegijn:konfetti-compose:2.0.3'
+
+    // OAuth
+    implementation 'com.auth0.android:jwtdecode:2.0.0'
+    implementation 'net.openid:appauth:0.9.1'
 }
