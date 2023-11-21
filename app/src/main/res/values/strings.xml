@@ -112,4 +112,7 @@
     <string name="stats_videos_watched">videos watched</string>
     <string name="yay">Yay!</string>
     <string name="stats_network_error">The statistics will appear when you go back online.</string>
+
+    <!--    playlists    -->
+    <string name="likes_playlist_title">Liked videos</string>
 </resources>

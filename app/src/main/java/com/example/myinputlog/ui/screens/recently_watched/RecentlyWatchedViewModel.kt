@@ -11,7 +11,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.auth0.android.jwt.JWT
 import com.example.myinputlog.data.model.UserCourse
-import com.example.myinputlog.data.service.ApiService
+import com.example.myinputlog.data.repository.impl.DefaultVideoDataRepository
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
 import com.example.myinputlog.ui.screens.utils.AuthConstants
@@ -38,7 +38,6 @@ import org.json.JSONException
 import java.io.IOException
 import java.security.MessageDigest
 import java.security.SecureRandom
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,17 +47,22 @@ class RecentlyWatchedViewModel @Inject constructor(
     private val preferenceStorageService: DefaultPreferenceStorageService,
     private val authorizationServiceConfiguration: AuthorizationServiceConfiguration,
     private val authorizationService: AuthorizationService,
-    private val apiService: ApiService
+    private val videoDataRepository: DefaultVideoDataRepository
 ) : AndroidViewModel(application) {
     private val _recentlyWatchedUiState = MutableStateFlow(RecentlyWatchedUiState())
     val recentlyWatchedUiState = _recentlyWatchedUiState.asStateFlow()
     private val userCourses = storageService.userCourses
 
-    private var authState: AuthState = AuthState()
-    private var jwt: JWT? = null
+    private val _authState = MutableStateFlow(AuthState())
+    private val authState = _authState.asStateFlow()
+
+    private val _jwt: MutableStateFlow<JWT?> = MutableStateFlow(null)
+    private val jwt = _jwt.asStateFlow()
 
     init {
         restoreState()
+        loadPlaylists()
+        loadChannelData()
         viewModelScope.launch {
             val currentCourse = userCourses.firstOrNull()?.find {
                 it.id == (preferenceStorageService.currentCourseId.firstOrNull() ?: "")
@@ -77,11 +81,12 @@ class RecentlyWatchedViewModel @Inject constructor(
     }
 
     private fun updateChannel() {
-        if (jwt != null) {
-            val email = Date((jwt?.getClaim("exp")?.asLong()?.times(1000)) ?: 0).toString()
-            val givenName = jwt?.getClaim(AuthConstants.DATA_FIRST_NAME)?.asString() ?: "no name"
-            val familyName = Date(jwt?.getClaim("iat")?.asLong()?.times(1000) ?: 0).toString()
-            val pictureUrl = jwt?.getClaim(AuthConstants.DATA_PICTURE)?.asString() ?: "no picture"
+        val currentJwt = jwt.value
+        if (currentJwt != null) {
+            val email = currentJwt.getClaim(AuthConstants.DATA_EMAIL).asString() ?: ""
+            val givenName = currentJwt.getClaim(AuthConstants.DATA_FIRST_NAME).asString() ?: ""
+            val familyName = currentJwt.getClaim(AuthConstants.DATA_LAST_NAME).asString() ?: ""
+            val pictureUrl = currentJwt.getClaim(AuthConstants.DATA_PICTURE).asString() ?: ""
             _recentlyWatchedUiState.update {
                 it.copy(
                     channelEmail = email,
@@ -99,9 +104,9 @@ class RecentlyWatchedViewModel @Inject constructor(
             .getString(AuthConstants.AUTH_STATE, null)
         if (jsonString != null && !TextUtils.isEmpty(jsonString)) {
             try {
-                authState = AuthState.jsonDeserialize(jsonString)
-                if (!TextUtils.isEmpty(authState.idToken)) {
-                    jwt = JWT(authState.idToken!!)
+                _authState.update { AuthState.jsonDeserialize(jsonString) }
+                if (!TextUtils.isEmpty(authState.value.idToken)) {
+                    _jwt.update { JWT(authState.value.idToken!!) }
                 }
             } catch (jsonException: JSONException) {
                 Log.d(TAG, jsonException.message.toString())
@@ -116,7 +121,7 @@ class RecentlyWatchedViewModel @Inject constructor(
             Context.MODE_PRIVATE
         )
             .edit()
-            .putString(AuthConstants.AUTH_STATE, authState.jsonSerializeString())
+            .putString(AuthConstants.AUTH_STATE, authState.value.jsonSerializeString())
             .apply()
         updateChannel()
     }
@@ -176,19 +181,18 @@ class RecentlyWatchedViewModel @Inject constructor(
         val authorizationResponse: AuthorizationResponse? = AuthorizationResponse.fromIntent(intent)
         val error = AuthorizationException.fromIntent(intent)
 
-        authState = AuthState(authorizationResponse, error)
+        _authState.update { AuthState(authorizationResponse, error) }
         if (authorizationResponse != null) {
             val tokenExchangeRequest = authorizationResponse.createTokenExchangeRequest()
             authorizationService.performTokenRequest(tokenExchangeRequest) { response, exception ->
                 if (exception != null) {
-                    authState = AuthState()
+                    _authState.update { AuthState() }
                     Log.d(TAG, exception.message.toString())
                 } else {
                     Log.d(TAG, response.toString())
                     if (response != null) {
-                        authState.update(response, exception)
-                        jwt = JWT(response.idToken!!)
-
+                        authState.value.update(response, null)
+                        _jwt.update { JWT(response.idToken!!) }
                     }
                 }
                 persistState()
@@ -204,7 +208,7 @@ class RecentlyWatchedViewModel @Inject constructor(
             Log.d(TAG, "Begin sign out")
             val client = OkHttpClient()
             val formBody = FormBody.Builder()
-                .add("token", authState.idToken ?: "")
+                .add("token", authState.value.idToken ?: "")
                 .build()
 
             val request = Request.Builder()
@@ -221,8 +225,8 @@ class RecentlyWatchedViewModel @Inject constructor(
                     override fun onResponse(call: Call, response: Response) {
                         Log.d(TAG, "Response: $response")
                         if (response.isSuccessful) {
-                            authState = AuthState()
-                            jwt = null
+                            _authState.update { AuthState() }
+                            _jwt.update { null }
                             updateChannel()
                         }
                     }
@@ -234,14 +238,56 @@ class RecentlyWatchedViewModel @Inject constructor(
     }
 
     fun getVideos() {
-        authState.performActionWithFreshTokens(
+        authState.value.performActionWithFreshTokens(
+            authorizationService
+        ) { _, _, _ ->
+            viewModelScope.launch {
+            }
+        }
+    }
+
+    private fun loadPlaylists() {
+        authState.value.performActionWithFreshTokens(
             authorizationService
         ) { _, _, _ ->
             viewModelScope.launch {
                 try {
-                    val response =
-                        apiService.getMyChannelInfo(token = "Bearer ${authState.accessToken!!}")
-                    Log.d(TAG, response.toString())
+                    videoDataRepository.getPlaylistsData(token = "Bearer ${authState.value.accessToken!!}")
+                        .let {
+                            if (it.isSuccessful) {
+                                val playlistsData = it.body()
+                                _recentlyWatchedUiState.update { recentlyWatchedUiState ->
+                                    recentlyWatchedUiState.copy(playlistsData = playlistsData)
+                                }
+                            } else {
+                                Log.d(TAG, it.message())
+                            }
+                        }
+                } catch (e: Exception) {
+                    Log.d(TAG, e.message.toString())
+                }
+            }
+        }
+    }
+
+    private fun loadChannelData() {
+        authState.value.performActionWithFreshTokens(
+            authorizationService
+        ) { _, _, _ ->
+            viewModelScope.launch {
+                try {
+                    videoDataRepository.getChannelData(token = "Bearer ${authState.value.accessToken!!}")
+                        .let {
+                            if (it.isSuccessful) {
+                                val channelData = it.body()
+                                Log.d(TAG, channelData.toString())
+                                _recentlyWatchedUiState.update { recentlyWatchedUiState ->
+                                    recentlyWatchedUiState.copy(channelData = channelData)
+                                }
+                            } else {
+                                Log.d(TAG, it.message())
+                            }
+                        }
                 } catch (e: Exception) {
                     Log.d(TAG, e.message.toString())
                 }

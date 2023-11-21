@@ -114,6 +114,8 @@
     <string name="yay">Juhu!</string>
     <string name="stats_network_error">Statystyki są dostępne tylko w trybie online.</string>
 
+    <!--    playlists    -->
+    <string name="likes_playlist_title">Polubione filmy</string>
 </resources>
 
 
