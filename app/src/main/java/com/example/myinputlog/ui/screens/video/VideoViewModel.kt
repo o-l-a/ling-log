@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myinputlog.data.model.toYouTubeVideo
+import com.example.myinputlog.data.remote.toYouTubeVideo
 import com.example.myinputlog.data.repository.impl.DefaultVideoDataRepository
 import com.example.myinputlog.data.service.impl.DefaultStorageService
 import com.example.myinputlog.ui.navigation.DEFAULT_ID

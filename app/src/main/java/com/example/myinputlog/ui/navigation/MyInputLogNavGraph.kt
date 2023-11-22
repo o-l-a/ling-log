@@ -34,9 +34,9 @@ import com.example.myinputlog.ui.screens.login.LoginViewModel
 import com.example.myinputlog.ui.screens.profile.ProfileDestination
 import com.example.myinputlog.ui.screens.profile.ProfileScreen
 import com.example.myinputlog.ui.screens.profile.ProfileViewModel
-import com.example.myinputlog.ui.screens.recently_watched.RecentlyWatchedDestination
-import com.example.myinputlog.ui.screens.recently_watched.RecentlyWatchedScreen
-import com.example.myinputlog.ui.screens.recently_watched.RecentlyWatchedViewModel
+import com.example.myinputlog.ui.screens.playlists.PlaylistsDestination
+import com.example.myinputlog.ui.screens.playlists.PlaylistsScreen
+import com.example.myinputlog.ui.screens.playlists.PlaylistsViewModel
 import com.example.myinputlog.ui.screens.sign_up.SignUpDestination
 import com.example.myinputlog.ui.screens.sign_up.SignUpScreen
 import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
@@ -169,15 +169,15 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
 
 fun NavGraphBuilder.myInputLogRecentlyWatchedGraph(navController: NavHostController) {
     navigation(
-        startDestination = RecentlyWatchedDestination.route,
+        startDestination = PlaylistsDestination.route,
         route = RECENTLY_WATCHED_ROUTE
     ) {
         composable(
-            route = RecentlyWatchedDestination.route
+            route = PlaylistsDestination.route
         ) {
-            val recentlyWatchedViewModel = hiltViewModel<RecentlyWatchedViewModel>()
-            RecentlyWatchedScreen(
-                recentlyWatchedViewModel = recentlyWatchedViewModel,
+            val playlistsViewModel = hiltViewModel<PlaylistsViewModel>()
+            PlaylistsScreen(
+                playlistsViewModel = playlistsViewModel,
                 onBottomNavClicked = { route ->
                     navController.navigate(route)
                 },

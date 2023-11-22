@@ -1,9 +1,11 @@
 package com.example.myinputlog.data.service
 
 import com.example.myinputlog.BuildConfig
-import com.example.myinputlog.data.model.ChannelData
-import com.example.myinputlog.data.model.PlaylistsData
-import com.example.myinputlog.data.model.VideoData
+import com.example.myinputlog.data.remote.ChannelData
+import com.example.myinputlog.data.remote.PlaylistItemsData
+import com.example.myinputlog.data.remote.PlaylistsData
+import com.example.myinputlog.data.remote.VideoData
+import com.example.myinputlog.ui.screens.utils.PAGE_SIZE
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -35,4 +37,15 @@ interface ApiService {
         @Query("mine") mine: String = "true",
         @Query("fields") fields: String = "items(id,snippet(title))"
     ): Response<PlaylistsData>
+
+    @GET("playlistItems")
+    suspend fun getPlaylistItemsIds(
+        @Header("Authorization") token: String,
+        @Query("playlistId") playlistId: String,
+        @Query("maxResults") maxResults: Int = PAGE_SIZE,
+        @Query("pageToken") pageToken: String? = null,
+        @Query("part") part: String = "contentDetails",
+        @Query("mine") mine: String = "true",
+        @Query("fields") fields: String = "nextPageToken,items(contentDetails(videoId))"
+    ): Response<PlaylistItemsData>
 }

@@ -1,4 +1,4 @@
-package com.example.myinputlog.data.model
+package com.example.myinputlog.data.remote
 
 import kotlinx.serialization.Serializable
 

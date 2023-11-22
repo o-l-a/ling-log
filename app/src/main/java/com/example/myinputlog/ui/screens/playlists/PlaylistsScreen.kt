@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.recently_watched
+package com.example.myinputlog.ui.screens.playlists
 
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -24,41 +24,48 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
-import com.example.myinputlog.data.model.PlaylistItem
-import com.example.myinputlog.data.model.PlaylistSnippet
+import com.example.myinputlog.data.remote.PlaylistItem
+import com.example.myinputlog.data.remote.PlaylistSnippet
 import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.ChannelProfilePicture
+import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.video_list.VideoContainer
 import com.example.myinputlog.ui.theme.spacing
 
-object RecentlyWatchedDestination : NavigationDestination {
+object PlaylistsDestination : NavigationDestination {
     override val route: String = "recent"
     override val titleRes: Int = R.string.recently_watched_screen_title
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecentlyWatchedScreen(
+fun PlaylistsScreen(
     modifier: Modifier = Modifier,
-    recentlyWatchedViewModel: RecentlyWatchedViewModel,
+    playlistsViewModel: PlaylistsViewModel,
     onBottomNavClicked: (String) -> Unit,
     navigateToYouTubeVideoEntry: (String) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val recentlyWatchedUiState =
-        recentlyWatchedViewModel.recentlyWatchedUiState.collectAsStateWithLifecycle()
+    val playlistsUiState = playlistsViewModel.playlistsUiState.collectAsStateWithLifecycle()
 
     val authorizationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         run {
             if (result.resultCode == Activity.RESULT_OK) {
-                recentlyWatchedViewModel.handleAuthorizationResponse(result.data!!)
+                playlistsViewModel.handleAuthorizationResponse(result.data!!)
             }
         }
     }
+
+    val videos = playlistsUiState.value.videos.collectAsLazyPagingItems()
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -66,7 +73,7 @@ fun RecentlyWatchedScreen(
             MyInputLogBottomNavBar(
                 selectedScreen = Screen.RecentlyWatched,
                 onBottomNavClicked = onBottomNavClicked,
-                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(recentlyWatchedUiState.value.currentCourseId) }
+                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(playlistsUiState.value.currentCourseId) }
             )
         }
     ) { innerPadding ->
@@ -76,38 +83,92 @@ fun RecentlyWatchedScreen(
             verticalArrangement = Arrangement.Center
         ) {
             item {
+                Text(playlistsUiState.value.channelFamilyName)
+            }
+            item {
                 ChannelProfilePicture(
-                    pictureUrl = recentlyWatchedUiState.value.channelPictureUrl,
+                    pictureUrl = playlistsUiState.value.channelPictureUrl,
                     modifier = Modifier.size(MaterialTheme.spacing.extraLarge)
                 )
             }
             item {
-                Button(onClick = { authorizationLauncher.launch(recentlyWatchedViewModel.attemptAuthorization()) }) {
+                Button(onClick = { authorizationLauncher.launch(playlistsViewModel.attemptAuthorization()) }) {
                     Text(text = "Log in")
                 }
             }
             item {
-                Button(onClick = { recentlyWatchedViewModel.signOutWithoutRedirect() }) {
+                Button(onClick = { playlistsViewModel.signOutWithoutRedirect() }) {
                     Text(text = "Log out")
                 }
             }
             item {
+                Button(onClick = { playlistsViewModel.loadVideos() }) {
+                    Text(text = "Do a flip")
+                }
+            }
+            item {
                 LazyRow(modifier = Modifier.fillMaxWidth()) {
-                    recentlyWatchedUiState.value.channelData?.let {
+                    playlistsUiState.value.channelData?.let {
                         item {
+                            val id = it.items[0].contentDetails.relatedPlaylists.likes
                             PlaylistCard(
                                 playlistItem = PlaylistItem(
-                                    id = it.items[0].contentDetails.relatedPlaylists.likes,
+                                    id = id,
                                     snippet = PlaylistSnippet(stringResource(R.string.likes_playlist_title))
-                                )
+                                ),
+                                selected = playlistsUiState.value.currentPlaylistId == id
                             )
                         }
                     }
-                    recentlyWatchedUiState.value.playlistsData?.let {
+                    playlistsUiState.value.playlistsData?.let {
                         items(it.items) { playlistItem ->
-                            PlaylistCard(playlistItem = playlistItem)
+                            PlaylistCard(
+                                playlistItem = playlistItem,
+                                selected = playlistsUiState.value.currentPlaylistId == playlistItem.id
+                            )
                         }
                     }
+                }
+            }
+            item {
+                Text(videos.itemCount.toString())
+            }
+            if (videos.itemCount > 0) {
+                items(
+                    count = videos.itemCount,
+                    key = videos.itemKey()
+                ) { index ->
+                    videos[index]?.let { video ->
+                        Text(index.toString())
+                        VideoContainer(
+                            video = video,
+                            onVideoClicked = {
+                            }
+                        )
+                    }
+                }
+                when (videos.loadState.append) {
+                    is LoadState.NotLoading -> Unit
+                    is LoadState.Loading -> {
+                        item {
+                            LoadingBox()
+                        }
+                    }
+
+                    is LoadState.Error -> {
+                        item {
+                            Text("Some error occurred")
+                        }
+                    }
+                }
+            } else if (videos.loadState.refresh is LoadState.Loading) {
+                Unit
+            } else {
+                item {
+                    EmptyCollectionBox(
+                        modifier = modifier.padding(MaterialTheme.spacing.medium),
+                        bodyMessage = R.string.empty_video_collection_body
+                    )
                 }
             }
         }
@@ -117,13 +178,17 @@ fun RecentlyWatchedScreen(
 @Composable
 fun PlaylistCard(
     modifier: Modifier = Modifier,
-    playlistItem: PlaylistItem
+    playlistItem: PlaylistItem,
+    selected: Boolean = false
 ) {
     Card(modifier = modifier.padding(MaterialTheme.spacing.small)) {
         Column(modifier = Modifier.padding(MaterialTheme.spacing.small)) {
             Text(
                 text = playlistItem.snippet.title
             )
+            if (selected) {
+                Text("TO JA!!!")
+            }
         }
     }
 }

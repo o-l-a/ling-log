@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.recently_watched
+package com.example.myinputlog.ui.screens.playlists
 
 import android.app.Application
 import android.content.Context
@@ -9,8 +9,12 @@ import android.util.Base64
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
 import com.auth0.android.jwt.JWT
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.paging.PlaylistItemsPagingSource
 import com.example.myinputlog.data.repository.impl.DefaultVideoDataRepository
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
@@ -18,6 +22,7 @@ import com.example.myinputlog.ui.screens.utils.AuthConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -41,16 +46,17 @@ import java.security.SecureRandom
 import javax.inject.Inject
 
 @HiltViewModel
-class RecentlyWatchedViewModel @Inject constructor(
+class PlaylistsViewModel @Inject constructor(
     application: Application,
     storageService: DefaultStorageService,
     private val preferenceStorageService: DefaultPreferenceStorageService,
     private val authorizationServiceConfiguration: AuthorizationServiceConfiguration,
     private val authorizationService: AuthorizationService,
-    private val videoDataRepository: DefaultVideoDataRepository
+    private val videoDataRepository: DefaultVideoDataRepository,
+    private val pagingConfig: PagingConfig
 ) : AndroidViewModel(application) {
-    private val _recentlyWatchedUiState = MutableStateFlow(RecentlyWatchedUiState())
-    val recentlyWatchedUiState = _recentlyWatchedUiState.asStateFlow()
+    private val _playlistsUiState = MutableStateFlow(PlaylistsUiState())
+    val playlistsUiState = _playlistsUiState.asStateFlow()
     private val userCourses = storageService.userCourses
 
     private val _authState = MutableStateFlow(AuthState())
@@ -61,6 +67,7 @@ class RecentlyWatchedViewModel @Inject constructor(
 
     init {
         restoreState()
+        loadVideos()
         loadPlaylists()
         loadChannelData()
         viewModelScope.launch {
@@ -68,8 +75,8 @@ class RecentlyWatchedViewModel @Inject constructor(
                 it.id == (preferenceStorageService.currentCourseId.firstOrNull() ?: "")
             } ?: UserCourse()
             try {
-                _recentlyWatchedUiState.update {
-                    currentCourse.toRecentlyWatchedUiState().copy(
+                _playlistsUiState.update {
+                    currentCourse.toPlaylistsUiState().copy(
                         isLoading = false
                     )
                 }
@@ -87,7 +94,7 @@ class RecentlyWatchedViewModel @Inject constructor(
             val givenName = currentJwt.getClaim(AuthConstants.DATA_FIRST_NAME).asString() ?: ""
             val familyName = currentJwt.getClaim(AuthConstants.DATA_LAST_NAME).asString() ?: ""
             val pictureUrl = currentJwt.getClaim(AuthConstants.DATA_PICTURE).asString() ?: ""
-            _recentlyWatchedUiState.update {
+            _playlistsUiState.update {
                 it.copy(
                     channelEmail = email,
                     channelPictureUrl = pictureUrl,
@@ -237,11 +244,24 @@ class RecentlyWatchedViewModel @Inject constructor(
         }
     }
 
-    fun getVideos() {
+    fun loadVideos() {
         authState.value.performActionWithFreshTokens(
             authorizationService
         ) { _, _, _ ->
+            val playlistItemsPagingSource = PlaylistItemsPagingSource(
+                token = "Bearer ${authState.value.accessToken!!}",
+                playlistId = "LL",
+                videoDataRepository = videoDataRepository
+            )
+            val pager = Pager(pagingConfig) {
+                playlistItemsPagingSource
+            }
+            Log.d(TAG, "elo")
             viewModelScope.launch {
+                Log.d(TAG, pager.flow.count().toString())
+            }
+            _playlistsUiState.update {
+                it.copy(videos = pager.flow.cachedIn(viewModelScope), channelFamilyName = "XDDD")
             }
         }
     }
@@ -256,7 +276,7 @@ class RecentlyWatchedViewModel @Inject constructor(
                         .let {
                             if (it.isSuccessful) {
                                 val playlistsData = it.body()
-                                _recentlyWatchedUiState.update { recentlyWatchedUiState ->
+                                _playlistsUiState.update { recentlyWatchedUiState ->
                                     recentlyWatchedUiState.copy(playlistsData = playlistsData)
                                 }
                             } else {
@@ -281,8 +301,12 @@ class RecentlyWatchedViewModel @Inject constructor(
                             if (it.isSuccessful) {
                                 val channelData = it.body()
                                 Log.d(TAG, channelData.toString())
-                                _recentlyWatchedUiState.update { recentlyWatchedUiState ->
-                                    recentlyWatchedUiState.copy(channelData = channelData)
+                                _playlistsUiState.update { recentlyWatchedUiState ->
+                                    recentlyWatchedUiState.copy(
+                                        channelData = channelData,
+                                        currentPlaylistId = channelData?.items?.get(0)?.contentDetails?.relatedPlaylists?.likes
+                                            ?: ""
+                                    )
                                 }
                             } else {
                                 Log.d(TAG, it.message())
@@ -296,6 +320,6 @@ class RecentlyWatchedViewModel @Inject constructor(
     }
 
     companion object {
-        private const val TAG = "RecentlyWatchedViewModel"
+        private const val TAG = "PlaylistsViewModel"
     }
 }
