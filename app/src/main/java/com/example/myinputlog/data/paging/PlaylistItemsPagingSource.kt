@@ -29,17 +29,19 @@ class PlaylistItemsPagingSource(
                 maxResults = params.loadSize,
                 pageToken = currentPageToken
             ).let { response ->
-                if (response.isSuccessful && response.body() != null) {
-                    val currentPage = response.body()!!.items.map { playlistItem ->
+                val responseBody = response.body()
+                if (response.isSuccessful && responseBody != null) {
+                    val currentPage = responseBody.items.mapNotNull { playlistItem ->
                         videoDataRepository.getVideoData(playlistItem.contentDetails.videoId).let {
-                            if (it.isSuccessful && it.body() != null) {
-                                it.body()!!.toYouTubeVideo()!!
+                            val videoResponseBody = it.body()
+                            if (it.isSuccessful && videoResponseBody != null) {
+                                videoResponseBody.toYouTubeVideo()
                             } else {
-                                YouTubeVideo()
+                                null
                             }
                         }
                     }
-                    val nextKey = response.body()!!.nextPageToken
+                    val nextKey = responseBody.nextPageToken
                     Log.d(TAG, "Next page: $nextKey")
                     Log.d(TAG, "Item count: ${currentPage.size}")
                     LoadResult.Page(
@@ -47,8 +49,10 @@ class PlaylistItemsPagingSource(
                         prevKey = null,
                         nextKey = nextKey
                     )
+                } else {
+                    Log.d(TAG, "network error")
+                    LoadResult.Error(NetworkErrorException(response.message().toString()))
                 }
-                LoadResult.Error(NetworkErrorException(response.message().toString()))
             }
         } catch (e: InvocationTargetException) {
             e.targetException.message?.let { Log.d(TAG, it) }

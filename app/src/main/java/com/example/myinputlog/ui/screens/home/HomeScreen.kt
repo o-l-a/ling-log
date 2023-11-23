@@ -209,7 +209,7 @@ fun CourseProgressIndicator(
         Row {
             Column(
                 modifier = Modifier
-                    .weight(progress)
+                    .weight(if (progress > 0) progress else 0.1F)
                     .padding(MaterialTheme.spacing.default)
                     .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
                     .fillMaxHeight()
@@ -225,7 +225,7 @@ fun CourseProgressIndicator(
             }
             Column(
                 modifier = Modifier
-                    .weight(1 - progress)
+                    .weight(if (progress > 0) 1 - progress else 0.99F)
                     .padding(MaterialTheme.spacing.default)
                     .fillMaxHeight(),
                 horizontalAlignment = Alignment.End,

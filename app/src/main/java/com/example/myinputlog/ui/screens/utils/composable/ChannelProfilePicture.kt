@@ -37,7 +37,7 @@ fun ChannelProfilePicture(
                 .data(pictureUrl)
                 .crossfade(true)
                 .build(),
-            error = painterResource(R.drawable.video_placeholder),
+            error = painterResource(R.drawable.baseline_person_24),
             placeholder = painterResource(R.drawable.loading_img),
             contentDescription = stringResource(R.string.video_thumbnail_content_description),
             contentScale = ContentScale.FillWidth

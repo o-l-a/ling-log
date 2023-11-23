@@ -2,11 +2,17 @@ package com.example.myinputlog.ui.screens.video_list
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -80,10 +86,14 @@ fun VideoListScreen(
         if (userCourses.value == null) {
             LoadingBox()
         } else if (userCourses.value!!.isEmpty()) {
-            EmptyCollectionBox(
-                modifier = modifier.padding(MaterialTheme.spacing.medium),
-                bodyMessage = R.string.empty_course_collection_body
-            )
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)) {
+                EmptyCollectionBox(
+                    modifier = modifier.padding(MaterialTheme.spacing.medium),
+                    bodyMessage = R.string.empty_course_collection_body
+                )
+            }
         } else {
             VideoListBody(
                 modifier = modifier.padding(innerPadding),
@@ -118,6 +128,7 @@ fun VideoListBody(
                 videos[index]?.let { video ->
                     VideoContainer(
                         video = video,
+                        isSeparator = video.id.isBlank(),
                         onVideoClicked = {
                             navigateToYouTubeVideo(videoListUiState.currentCourseId, video.id)
                         }
@@ -139,7 +150,6 @@ fun VideoListBody(
                 }
             }
         } else if (videos.loadState.refresh is LoadState.Loading) {
-            Unit
         } else {
             item {
                 EmptyCollectionBox(
@@ -158,11 +168,17 @@ fun VideoListBody(
 fun VideoContainer(
     modifier: Modifier = Modifier,
     video: YouTubeVideo,
-    onVideoClicked: (String) -> Unit
+    isSeparator: Boolean = false,
+    onVideoClicked: (String) -> Unit,
+    isPlaylistItem: Boolean = false
 ) {
-    if (video.id.isNotBlank()) {
+    if (!isSeparator) {
         ListItem(
-            modifier = modifier.clickable { onVideoClicked(video.id) },
+            modifier = modifier.clickable {
+                if (!isPlaylistItem) {
+                    onVideoClicked(video.id)
+                }
+            },
             headlineContent = {
                 Text(
                     text = video.title,
@@ -187,6 +203,17 @@ fun VideoContainer(
                     isListItemLeading = true
                 )
             },
+            trailingContent = {
+                if (isPlaylistItem) {
+                    IconButton(onClick = { onVideoClicked(video.videoUrl) }) {
+                        Icon(
+                            modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
+                            imageVector = Icons.Filled.LibraryAdd,
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
         )
     } else {
         Text(

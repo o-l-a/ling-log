@@ -14,6 +14,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.auth0.android.jwt.JWT
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.paging.PlaylistItemsPagingSource
 import com.example.myinputlog.data.repository.impl.DefaultVideoDataRepository
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
@@ -22,7 +23,7 @@ import com.example.myinputlog.ui.screens.utils.AuthConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -65,11 +66,14 @@ class PlaylistsViewModel @Inject constructor(
     private val _jwt: MutableStateFlow<JWT?> = MutableStateFlow(null)
     private val jwt = _jwt.asStateFlow()
 
+    private var pagingSource: PlaylistItemsPagingSource? = null
+    private var pager: Pager<String, YouTubeVideo>? = null
+
     init {
-        restoreState()
-        loadVideos()
-        loadPlaylists()
-        loadChannelData()
+        initUiState()
+    }
+
+    private fun initUiState() {
         viewModelScope.launch {
             val currentCourse = userCourses.firstOrNull()?.find {
                 it.id == (preferenceStorageService.currentCourseId.firstOrNull() ?: "")
@@ -77,10 +81,16 @@ class PlaylistsViewModel @Inject constructor(
             try {
                 _playlistsUiState.update {
                     currentCourse.toPlaylistsUiState().copy(
-                        isLoading = false
+                        isLoading = false,
+                        videos = emptyFlow(),
+                        playlistsData = null
                     )
                 }
-                updateChannel()
+                restoreState()
+                if (jwt.value != null) {
+                    loadPlaylists()
+                    loadVideos()
+                }
             } catch (e: Exception) {
                 e.message?.let { Log.d(TAG, it) }
             }
@@ -223,7 +233,10 @@ class PlaylistsViewModel @Inject constructor(
                 .post(formBody)
                 .build()
             try {
-                Log.d(TAG, "Begin call client")
+                _authState.update { AuthState() }
+                _jwt.update { null }
+                persistState()
+                initUiState()
                 client.newCall(request).enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                         Log.d(TAG, e.message.toString())
@@ -231,11 +244,6 @@ class PlaylistsViewModel @Inject constructor(
 
                     override fun onResponse(call: Call, response: Response) {
                         Log.d(TAG, "Response: $response")
-                        if (response.isSuccessful) {
-                            _authState.update { AuthState() }
-                            _jwt.update { null }
-                            updateChannel()
-                        }
                     }
                 })
             } catch (e: IOException) {
@@ -244,24 +252,22 @@ class PlaylistsViewModel @Inject constructor(
         }
     }
 
-    fun loadVideos() {
+    private fun loadVideos() {
         authState.value.performActionWithFreshTokens(
             authorizationService
         ) { _, _, _ ->
-            val playlistItemsPagingSource = PlaylistItemsPagingSource(
+            pagingSource = PlaylistItemsPagingSource(
                 token = "Bearer ${authState.value.accessToken!!}",
-                playlistId = "LL",
+                playlistId = playlistsUiState.value.currentPlaylistId,
                 videoDataRepository = videoDataRepository
             )
-            val pager = Pager(pagingConfig) {
-                playlistItemsPagingSource
+            pager = Pager(pagingConfig) {
+                pagingSource!!
             }
-            Log.d(TAG, "elo")
-            viewModelScope.launch {
-                Log.d(TAG, pager.flow.count().toString())
-            }
+
+            Log.d(TAG, "load videos")
             _playlistsUiState.update {
-                it.copy(videos = pager.flow.cachedIn(viewModelScope), channelFamilyName = "XDDD")
+                it.copy(videos = pager!!.flow.cachedIn(viewModelScope))
             }
         }
     }
@@ -290,36 +296,15 @@ class PlaylistsViewModel @Inject constructor(
         }
     }
 
-    private fun loadChannelData() {
-        authState.value.performActionWithFreshTokens(
-            authorizationService
-        ) { _, _, _ ->
-            viewModelScope.launch {
-                try {
-                    videoDataRepository.getChannelData(token = "Bearer ${authState.value.accessToken!!}")
-                        .let {
-                            if (it.isSuccessful) {
-                                val channelData = it.body()
-                                Log.d(TAG, channelData.toString())
-                                _playlistsUiState.update { recentlyWatchedUiState ->
-                                    recentlyWatchedUiState.copy(
-                                        channelData = channelData,
-                                        currentPlaylistId = channelData?.items?.get(0)?.contentDetails?.relatedPlaylists?.likes
-                                            ?: ""
-                                    )
-                                }
-                            } else {
-                                Log.d(TAG, it.message())
-                            }
-                        }
-                } catch (e: Exception) {
-                    Log.d(TAG, e.message.toString())
-                }
-            }
+    fun changePlaylist(playlistId: String) {
+        _playlistsUiState.update {
+            it.copy(currentPlaylistId = playlistId)
         }
+        loadVideos()
     }
 
     companion object {
         private const val TAG = "PlaylistsViewModel"
+        const val LIKED_PLAYLIST_ID = "LL"
     }
 }

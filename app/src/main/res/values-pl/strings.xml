@@ -19,7 +19,7 @@
     <string name="home_bottom_nav_description">Główna</string>
     <string name="videos_bottom_nav_description">Filmy</string>
     <string name="profile_bottom_nav_description">Profil</string>
-    <string name="suggested_bottom_nav_description">YouTube</string>
+    <string name="suggested_bottom_nav_description">Playlisty</string>
 
     <!--    common labels    -->
     <string name="search_text">Szukaj…</string>
@@ -117,6 +117,10 @@
 
     <!--    playlists    -->
     <string name="likes_playlist_title">Polubione filmy</string>
+    <string name="switch_yt_account">Zmień konto YouTube</string>
+    <string name="logout_yt_account">Wyloguj się z YouTube</string>
+    <string name="grant_access_yt_account_message">Przyznaj dostęp do swojego konta YouTube, żeby wyświetlić swoje playlisty.</string>
+    <string name="choose_account_label">Wybierz konto</string>
 </resources>
 
 

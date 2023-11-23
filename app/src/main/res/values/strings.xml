@@ -18,7 +18,7 @@
     <string name="home_bottom_nav_description">Home</string>
     <string name="videos_bottom_nav_description">Videos</string>
     <string name="profile_bottom_nav_description">Profile</string>
-    <string name="suggested_bottom_nav_description">YouTube</string>
+    <string name="suggested_bottom_nav_description">Playlists</string>
 
     <!--    common labels    -->
     <string name="search_text">Search…</string>
@@ -116,4 +116,8 @@
 
     <!--    playlists    -->
     <string name="likes_playlist_title">Liked videos</string>
+    <string name="switch_yt_account">Switch YouTube account</string>
+    <string name="logout_yt_account">Log out from YouTube</string>
+    <string name="grant_access_yt_account_message">Grant access to your YouTube account to see your playlists.</string>
+    <string name="choose_account_label">Choose account</string>
 </resources>
