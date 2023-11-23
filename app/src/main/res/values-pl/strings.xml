@@ -68,6 +68,7 @@
     <string name="empty_collection_headline">Trochę tu pusto.</string>
     <string name="empty_course_collection_body">Dodaj pierwszy kurs w zakładce "Profil".</string>
     <string name="empty_video_collection_body">Twoje filmy pojawią się tutaj, kiedy je dodasz.</string>
+    <string name="empty_playlist">Wygląda na to, że ta playlista jest pusta.</string>
 
     <!--    deleting dialog   -->
     <string name="delete_dialog_title">Usuwanie \"%s\"</string>

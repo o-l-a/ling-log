@@ -39,11 +39,13 @@ class PlaylistItemsPagingSource(
                             }
                         }
                     }
-                    Log.d(TAG, currentPage.size.toString())
+                    val nextKey = response.body()!!.nextPageToken
+                    Log.d(TAG, "Next page: $nextKey")
+                    Log.d(TAG, "Item count: ${currentPage.size}")
                     LoadResult.Page(
                         data = currentPage,
                         prevKey = null,
-                        nextKey = response.body()!!.nextPageToken
+                        nextKey = nextKey
                     )
                 }
                 LoadResult.Error(NetworkErrorException(response.message().toString()))

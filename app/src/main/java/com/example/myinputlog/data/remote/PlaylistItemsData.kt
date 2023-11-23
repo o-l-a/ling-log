@@ -14,6 +14,6 @@ data class PlaylistItemItem(
 
 @Serializable
 data class PlaylistItemsData(
-    val nextPageToken: String,
+    val nextPageToken: String? = null,
     val items: List<PlaylistItemItem>
 )

@@ -67,6 +67,7 @@
     <string name="empty_collection_headline">Nothing to see here.</string>
     <string name="empty_course_collection_body">Head over to the "Profile" tab and add your first course.</string>
     <string name="empty_video_collection_body">Your videos will appear here after you add them.</string>
+    <string name="empty_playlist">This playlist seems to be empty.</string>
 
     <!--    deleting dialog   -->
     <string name="delete_dialog_title">Deleting \"%s\"</string>

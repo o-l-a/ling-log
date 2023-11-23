@@ -13,7 +13,7 @@ data class PlaylistsUiState(
     val videos: Flow<PagingData<YouTubeVideo>> = emptyFlow(),
     val playlistsData: PlaylistsData? = null,
     val channelData: ChannelData? = null,
-    val currentPlaylistId: String = "",
+    val currentPlaylistId: String = PlaylistsViewModel.LIKED_PLAYLIST_ID,
     val isLoading: Boolean = true,
     val channelPictureUrl: String = "",
     val channelGivenName: String = "",

@@ -52,9 +52,6 @@ fun PlaylistsScreen(
     onBottomNavClicked: (String) -> Unit,
     navigateToYouTubeVideoEntry: (String) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val playlistsUiState = playlistsViewModel.playlistsUiState.collectAsStateWithLifecycle()
-
     val authorizationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -65,6 +62,8 @@ fun PlaylistsScreen(
         }
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val playlistsUiState = playlistsViewModel.playlistsUiState.collectAsStateWithLifecycle()
     val videos = playlistsUiState.value.videos.collectAsLazyPagingItems()
 
     Scaffold(
@@ -110,7 +109,7 @@ fun PlaylistsScreen(
                 LazyRow(modifier = Modifier.fillMaxWidth()) {
                     playlistsUiState.value.channelData?.let {
                         item {
-                            val id = it.items[0].contentDetails.relatedPlaylists.likes
+                            val id = PlaylistsViewModel.LIKED_PLAYLIST_ID
                             PlaylistCard(
                                 playlistItem = PlaylistItem(
                                     id = id,
@@ -162,12 +161,14 @@ fun PlaylistsScreen(
                     }
                 }
             } else if (videos.loadState.refresh is LoadState.Loading) {
-                Unit
+                item {
+                    Text("refreshing")
+                }
             } else {
                 item {
                     EmptyCollectionBox(
                         modifier = modifier.padding(MaterialTheme.spacing.medium),
-                        bodyMessage = R.string.empty_video_collection_body
+                        bodyMessage = R.string.empty_playlist
                     )
                 }
             }
