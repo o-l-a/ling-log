@@ -3,6 +3,9 @@ package com.example.myinputlog.ui.screens.playlists
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
@@ -15,10 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MoreVert
@@ -33,14 +39,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +73,7 @@ import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.video_list.VideoContainer
 import com.example.myinputlog.ui.theme.spacing
+import kotlinx.coroutines.launch
 
 object PlaylistsDestination : NavigationDestination {
     override val route: String = "recent"
@@ -92,24 +102,49 @@ fun PlaylistsScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val playlistsUiState = playlistsViewModel.playlistsUiState.collectAsStateWithLifecycle()
     val videos = playlistsUiState.value.videos.collectAsLazyPagingItems()
+    val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
-        if (playlistsUiState.value.channelEmail.isNotBlank()) {
-            YouTubeAccountTopAppBar(
-                channelPictureUrl = playlistsUiState.value.channelPictureUrl,
-                channelGivenName = playlistsUiState.value.channelGivenName,
-                channelFamilyName = playlistsUiState.value.channelFamilyName,
-                channelEmail = playlistsUiState.value.channelEmail,
-                onLogoutClicked = playlistsViewModel::signOutWithoutRedirect,
-                onAccountChangeClicked = { authorizationLauncher.launch(playlistsViewModel.attemptAuthorization()) },
-                scrollBehavior = scrollBehavior
-            )
+    val lazyColumnListState = rememberLazyListState()
+    val currentIndex = remember { derivedStateOf { lazyColumnListState.firstVisibleItemIndex } }
+
+    Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            if (playlistsUiState.value.channelEmail.isNotBlank()) {
+                YouTubeAccountTopAppBar(
+                    channelPictureUrl = playlistsUiState.value.channelPictureUrl,
+                    channelGivenName = playlistsUiState.value.channelGivenName,
+                    channelFamilyName = playlistsUiState.value.channelFamilyName,
+                    channelEmail = playlistsUiState.value.channelEmail,
+                    onLogoutClicked = playlistsViewModel::signOutWithoutRedirect,
+                    onAccountChangeClicked = { authorizationLauncher.launch(playlistsViewModel.attemptAuthorization()) },
+                    scrollBehavior = scrollBehavior
+                )
+            }
+        },
+        bottomBar = {
+            MyInputLogBottomNavBar(selectedScreen = Screen.RecentlyWatched,
+                onBottomNavClicked = onBottomNavClicked,
+                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(playlistsUiState.value.currentCourseId) })
+        },
+        floatingActionButton = {
+            AnimatedVisibility(
+                visible = currentIndex.value > 0,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                SmallFloatingActionButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            lazyColumnListState.animateScrollToItem(0)
+                        }
+                    }
+                ) {
+                    Icon(imageVector = Icons.Filled.ArrowUpward, contentDescription = null)
+                }
+            }
         }
-    }, bottomBar = {
-        MyInputLogBottomNavBar(selectedScreen = Screen.RecentlyWatched,
-            onBottomNavClicked = onBottomNavClicked,
-            navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(playlistsUiState.value.currentCourseId) })
-    }) { innerPadding ->
+    ) { innerPadding ->
         if (playlistsUiState.value.channelEmail.isBlank()) {
             Column(
                 modifier = Modifier
@@ -134,6 +169,7 @@ fun PlaylistsScreen(
                 modifier = Modifier.padding(innerPadding),
                 playlistsUiState = playlistsUiState.value,
                 videos = videos,
+                lazyColumnListState = lazyColumnListState,
                 onPlaylistClicked = playlistsViewModel::changePlaylist,
                 navigateToYouTubeVideoEntryWithUrl = { videoUrl ->
                     navigateToYouTubeVideoEntryWithUrl(
@@ -152,19 +188,21 @@ fun PlaylistsBody(
     modifier: Modifier = Modifier,
     playlistsUiState: PlaylistsUiState,
     videos: LazyPagingItems<YouTubeVideo>,
+    lazyColumnListState: LazyListState,
     onPlaylistClicked: (String) -> Unit,
     navigateToYouTubeVideoEntryWithUrl: (String) -> Unit
 ) {
-    val lazyListState = rememberLazyListState()
-    val snapBehavior = rememberSnapFlingBehavior(lazyListState = lazyListState)
+    val lazyRowListState = rememberLazyListState()
+    val snapBehavior = rememberSnapFlingBehavior(lazyListState = lazyRowListState)
     LazyColumn(
-        modifier = modifier
+        modifier = modifier,
+        state = lazyColumnListState
     ) {
         item {
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(MaterialTheme.spacing.medium),
-                state = lazyListState,
+                state = lazyRowListState,
                 flingBehavior = snapBehavior
             ) {
                 playlistsUiState.playlistsData?.let {

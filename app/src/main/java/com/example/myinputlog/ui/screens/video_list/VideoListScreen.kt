@@ -1,5 +1,8 @@
 package com.example.myinputlog.ui.screens.video_list
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,7 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -16,10 +23,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,6 +50,7 @@ import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownFiel
 import com.example.myinputlog.ui.screens.utils.composable.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.ext.formatAsListHeader
 import com.example.myinputlog.ui.theme.spacing
+import kotlinx.coroutines.launch
 
 object VideoListDestination : NavigationDestination {
     override val route: String = "videos"
@@ -58,6 +70,10 @@ fun VideoListScreen(
     val userCourses = videoListUiState.value.userCourses.collectAsStateWithLifecycle(emptyList())
     val videos = videoListUiState.value.videos.collectAsLazyPagingItems()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val coroutineScope = rememberCoroutineScope()
+
+    val lazyColumnListState = rememberLazyListState()
+    val currentIndex = remember { derivedStateOf { lazyColumnListState.firstVisibleItemIndex } }
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -81,6 +97,23 @@ fun VideoListScreen(
                 onBottomNavClicked = onBottomNavClicked,
                 navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(videoListUiState.value.currentCourseId) }
             )
+        },
+        floatingActionButton = {
+            AnimatedVisibility(
+                visible = currentIndex.value > 0,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                SmallFloatingActionButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            lazyColumnListState.animateScrollToItem(0)
+                        }
+                    }
+                ) {
+                    Icon(imageVector = Icons.Filled.ArrowUpward, contentDescription = null)
+                }
+            }
         }
     ) { innerPadding ->
         if (userCourses.value == null) {
@@ -99,6 +132,7 @@ fun VideoListScreen(
                 modifier = modifier.padding(innerPadding),
                 videoListUiState = videoListUiState.value,
                 navigateToYouTubeVideo = navigateToYouTubeVideo,
+                lazyColumnListState = lazyColumnListState,
                 videos = videos
             )
         }
@@ -111,6 +145,7 @@ fun VideoListBody(
     videoListUiState: VideoListUiState,
     videos: LazyPagingItems<YouTubeVideo>,
     navigateToYouTubeVideo: (String, String) -> Unit,
+    lazyColumnListState: LazyListState
 ) {
     if (videos.loadState.refresh is LoadState.Loading) {
         LoadingBox()
@@ -118,7 +153,8 @@ fun VideoListBody(
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
-        contentPadding = PaddingValues(MaterialTheme.spacing.extraExtraSmall)
+        contentPadding = PaddingValues(MaterialTheme.spacing.extraExtraSmall),
+        state = lazyColumnListState
     ) {
         if (videos.itemCount > 0) {
             items(
