@@ -28,6 +28,7 @@ class VideoViewModel @Inject constructor(
     private val videoId: String = checkNotNull(savedStateHandle[VideoDestination.videoIdArg])
     private val defaultCourseId: String =
         checkNotNull(savedStateHandle[VideoDestination.courseIdArg])
+    private val videoUrl: String = checkNotNull(savedStateHandle[VideoDestination.videoUrlArg])
 
     companion object {
         private const val TAG = "VideoViewModel"
@@ -54,8 +55,12 @@ class VideoViewModel @Inject constructor(
                     selectedCourseId = defaultCourseId,
                     userCourses = storageService.userCourses,
                     isLoading = false,
-                    isEdit = true
+                    isEdit = true,
+                    videoUrl = videoUrl
                 )
+            }
+            if (videoUrl.isNotBlank()) {
+                loadVideoData {  }
             }
         }
     }

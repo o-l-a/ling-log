@@ -77,6 +77,7 @@ fun PlaylistsScreen(
     playlistsViewModel: PlaylistsViewModel,
     onBottomNavClicked: (String) -> Unit,
     navigateToYouTubeVideoEntry: (String) -> Unit,
+    navigateToYouTubeVideoEntryWithUrl: (String, String) -> Unit
 ) {
     val authorizationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -133,7 +134,13 @@ fun PlaylistsScreen(
                 modifier = Modifier.padding(innerPadding),
                 playlistsUiState = playlistsUiState.value,
                 videos = videos,
-                onPlaylistClicked = playlistsViewModel::changePlaylist
+                onPlaylistClicked = playlistsViewModel::changePlaylist,
+                navigateToYouTubeVideoEntryWithUrl = { videoUrl ->
+                    navigateToYouTubeVideoEntryWithUrl(
+                        playlistsUiState.value.currentCourseId,
+                        videoUrl
+                    )
+                }
             )
         }
     }
@@ -145,7 +152,8 @@ fun PlaylistsBody(
     modifier: Modifier = Modifier,
     playlistsUiState: PlaylistsUiState,
     videos: LazyPagingItems<YouTubeVideo>,
-    onPlaylistClicked: (String) -> Unit
+    onPlaylistClicked: (String) -> Unit,
+    navigateToYouTubeVideoEntryWithUrl: (String) -> Unit
 ) {
     val lazyListState = rememberLazyListState()
     val snapBehavior = rememberSnapFlingBehavior(lazyListState = lazyListState)
@@ -188,7 +196,11 @@ fun PlaylistsBody(
                 count = videos.itemCount, key = videos.itemKey()
             ) { index ->
                 videos[index]?.let { video ->
-                    VideoContainer(video = video, onVideoClicked = {}, isPlaylistItem = true)
+                    VideoContainer(
+                        video = video,
+                        onVideoClicked = navigateToYouTubeVideoEntryWithUrl,
+                        isPlaylistItem = true
+                    )
                 }
             }
             when (videos.loadState.append) {

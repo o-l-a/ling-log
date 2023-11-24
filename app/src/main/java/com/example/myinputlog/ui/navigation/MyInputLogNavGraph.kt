@@ -98,7 +98,7 @@ fun MyInputLogNavHost(
         myInputLogHomeGraph(navController)
         myInputLogSignInGraph(navController)
         myInputLogVideosGraph(navController)
-        myInputLogRecentlyWatchedGraph(navController)
+        myInputLogPlaylistsGraph(navController)
         myInputLogProfileGraph(navController)
     }
 }
@@ -154,7 +154,11 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
             route = VideoDestination.routeWithArgs,
             arguments = listOf(
                 navArgument(VideoDestination.videoIdArg) { type = NavType.StringType },
-                navArgument(VideoDestination.courseIdArg) { type = NavType.StringType }
+                navArgument(VideoDestination.courseIdArg) { type = NavType.StringType },
+                navArgument(VideoDestination.videoUrlArg) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
             )
         ) {
             val videoViewModel = hiltViewModel<VideoViewModel>()
@@ -167,7 +171,7 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
     }
 }
 
-fun NavGraphBuilder.myInputLogRecentlyWatchedGraph(navController: NavHostController) {
+fun NavGraphBuilder.myInputLogPlaylistsGraph(navController: NavHostController) {
     navigation(
         startDestination = PlaylistsDestination.route,
         route = RECENTLY_WATCHED_ROUTE
@@ -181,8 +185,11 @@ fun NavGraphBuilder.myInputLogRecentlyWatchedGraph(navController: NavHostControl
                 onBottomNavClicked = { route ->
                     navController.navigate(route)
                 },
-                navigateToYouTubeVideoEntry = { courseId ->
+                navigateToYouTubeVideoEntry = {courseId ->
                     navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
+                },
+                navigateToYouTubeVideoEntryWithUrl = { courseId, videoUrl ->
+                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID?${VideoDestination.videoUrlArg}=$videoUrl")
                 }
             )
         }

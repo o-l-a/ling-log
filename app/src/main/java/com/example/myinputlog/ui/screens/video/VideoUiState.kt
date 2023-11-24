@@ -5,11 +5,12 @@ import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.ui.screens.utils.Country
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.util.Calendar
 import java.util.Date
 
 data class VideoUiState(
     val id: String = "",
-    val watchedOn: Date? = null,
+    val watchedOn: Date? = getTodayDate(),
     val speakersNationality: Country? = null,
     val title: String = "",
     val channel: String = "",
@@ -72,3 +73,12 @@ fun VideoUiState.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
     thumbnailHighUrl = thumbnailHighUrl,
     defaultAudioLanguage = defaultAudioLanguage
 )
+
+fun getTodayDate(): Date {
+    val calendar = Calendar.getInstance()
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+    return calendar.time
+}
