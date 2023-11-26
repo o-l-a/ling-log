@@ -23,9 +23,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.myinputlog.R
+import com.example.myinputlog.ui.screens.utils.ext.shimmerEffect
 import com.example.myinputlog.ui.screens.utils.formatDuration
 import com.example.myinputlog.ui.theme.spacing
-import java.util.concurrent.TimeUnit
 
 @Composable
 fun VideoThumbnail(
@@ -90,4 +90,21 @@ fun VideoDurationContainer(
             style = MaterialTheme.typography.labelLarge
         )
     }
+}
+
+@Composable
+fun VideoThumbnailPlaceholder(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .aspectRatio(16F / 9F)
+            .fillMaxWidth()
+            .clip(
+                shape = RoundedCornerShape(
+                    MaterialTheme.spacing.small
+                )
+            )
+            .shimmerEffect()
+    )
 }

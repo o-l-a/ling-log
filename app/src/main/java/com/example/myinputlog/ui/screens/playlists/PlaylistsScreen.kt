@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ExpandLess
@@ -70,6 +69,7 @@ import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.ChannelProfilePicture
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.utils.composable.ListItemPlaceholder
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.video_list.VideoContainer
 import com.example.myinputlog.ui.theme.spacing
@@ -145,7 +145,7 @@ fun PlaylistsScreen(
             }
         }
     ) { innerPadding ->
-        if (playlistsUiState.value.channelEmail.isBlank()) {
+        if (playlistsUiState.value.channelEmail.isBlank() && !playlistsUiState.value.isLoading) {
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -164,6 +164,8 @@ fun PlaylistsScreen(
                     Text(stringResource(R.string.choose_account_label))
                 }
             }
+        } else if (playlistsUiState.value.isLoading) {
+            PlaylistsLoadingBody()
         } else {
             PlaylistsBody(
                 modifier = Modifier.padding(innerPadding),
@@ -256,8 +258,8 @@ fun PlaylistsBody(
                 }
             }
         } else if (videos.loadState.refresh is LoadState.Loading) {
-            item {
-                LoadingBox()
+            items(10) {
+                ListItemPlaceholder()
             }
         } else {
             item {
@@ -354,6 +356,19 @@ fun YouTubeAccountTopAppBar(
             }
         }
     })
+}
+
+@Composable
+fun PlaylistsLoadingBody(
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        modifier = modifier
+    ) {
+        items(10) {
+            ListItemPlaceholder()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

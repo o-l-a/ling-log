@@ -282,8 +282,10 @@ class PlaylistsViewModel @Inject constructor(
                         .let {
                             if (it.isSuccessful) {
                                 val playlistsData = it.body()
-                                _playlistsUiState.update { recentlyWatchedUiState ->
-                                    recentlyWatchedUiState.copy(playlistsData = playlistsData)
+                                _playlistsUiState.update { playlistsUiState ->
+                                    playlistsUiState.copy(
+                                        playlistsData = playlistsData
+                                    )
                                 }
                             } else {
                                 Log.d(TAG, it.message())

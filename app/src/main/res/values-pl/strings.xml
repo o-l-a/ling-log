@@ -121,6 +121,9 @@
     <string name="logout_yt_account">Wyloguj się z YouTube</string>
     <string name="grant_access_yt_account_message">Przyznaj dostęp do swojego konta YouTube, żeby wyświetlić swoje playlisty.</string>
     <string name="choose_account_label">Wybierz konto</string>
+
+    <!--    placeholder    -->
+    <string name="placeholder_long_text">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</string>
 </resources>
 
 

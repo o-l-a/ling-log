@@ -1,20 +1,16 @@
 package com.example.myinputlog.ui.screens.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -22,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,7 +53,6 @@ fun HomeScreen(
     homeViewModel: HomeViewModel,
     onBottomNavClicked: (String) -> Unit,
     navigateToYouTubeVideoEntry: (String) -> Unit,
-    navigateToYouTubeVideo: (String, String) -> Unit
 ) {
     val homeUiState = homeViewModel.homeUiState.collectAsStateWithLifecycle()
     val userCourses = homeUiState.value.userCourses.collectAsStateWithLifecycle(emptyList())
@@ -92,7 +86,6 @@ fun HomeScreen(
             HomeBody(
                 modifier = modifier.padding(innerPadding),
                 homeUiState = homeUiState.value,
-                navigateToYouTubeVideo = navigateToYouTubeVideo,
                 doParty = homeViewModel::confetti,
                 stopParty = homeViewModel::confettiStop
             )
@@ -104,11 +97,9 @@ fun HomeScreen(
 fun HomeBody(
     modifier: Modifier = Modifier,
     homeUiState: HomeUiState,
-    navigateToYouTubeVideo: (String, String) -> Unit,
     doParty: () -> Unit,
     stopParty: () -> Unit
 ) {
-    val hoursWatched = homeUiState.courseStatistics.timeWatched
     if (homeUiState.isParty) {
         KonfettiView(
             modifier = Modifier
@@ -144,13 +135,6 @@ fun HomeBody(
             }
         } else {
             item {
-                CourseProgressIndicator(
-                    hoursWatched = hoursWatched,
-                    otherSourceHours = homeUiState.otherSourceHours.toLong() * 3600,
-                    goalInHours = homeUiState.goalInHours.toLong()
-                )
-            }
-            item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -185,57 +169,6 @@ fun HomeBody(
                         onClick = doParty
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun CourseProgressIndicator(
-    modifier: Modifier = Modifier,
-    hoursWatched: Long,
-    otherSourceHours: Long,
-    goalInHours: Long
-) {
-    val progress = (hoursWatched + otherSourceHours).toFloat() / (goalInHours * 3600)
-    ElevatedCard(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(MaterialTheme.spacing.large)
-            .padding(horizontal = MaterialTheme.spacing.small)
-            .padding(bottom = MaterialTheme.spacing.extraSmall),
-        shape = RoundedCornerShape(MaterialTheme.spacing.medium)
-    ) {
-        Row {
-            Column(
-                modifier = Modifier
-                    .weight(if (progress > 0) progress else 0.1F)
-                    .padding(MaterialTheme.spacing.default)
-                    .clip(RoundedCornerShape(MaterialTheme.spacing.medium))
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = MaterialTheme.spacing.medium),
-                    text = formatDurationAsText(hoursWatched + otherSourceHours),
-                    textAlign = TextAlign.Left
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .weight(if (progress > 0) 1 - progress else 0.99F)
-                    .padding(MaterialTheme.spacing.default)
-                    .fillMaxHeight(),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    modifier = Modifier.padding(end = MaterialTheme.spacing.medium),
-                    text = "${goalInHours}h",
-                    textAlign = TextAlign.Right
-                )
             }
         }
     }
@@ -292,16 +225,5 @@ fun StatisticContainerPreview() {
         modifier = Modifier.width(MaterialTheme.spacing.doubleExtraLarge),
         number = "10",
         label = "label"
-    )
-}
-
-@Preview
-@Composable
-fun ProgressIndicatorPreview() {
-    CourseProgressIndicator(
-        modifier = Modifier.width(MaterialTheme.spacing.doubleExtraLarge),
-        hoursWatched = 10,
-        otherSourceHours = 10,
-        goalInHours = 50
     )
 }

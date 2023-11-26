@@ -120,4 +120,7 @@
     <string name="logout_yt_account">Log out from YouTube</string>
     <string name="grant_access_yt_account_message">Grant access to your YouTube account to see your playlists.</string>
     <string name="choose_account_label">Choose account</string>
+
+    <!--    placeholder    -->
+    <string name="placeholder_long_text">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</string>
 </resources>

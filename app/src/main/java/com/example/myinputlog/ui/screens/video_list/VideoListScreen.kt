@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.LibraryAdd
@@ -45,6 +44,7 @@ import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.utils.composable.ListItemPlaceholder
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownField
 import com.example.myinputlog.ui.screens.utils.composable.VideoThumbnail
@@ -117,11 +117,21 @@ fun VideoListScreen(
         }
     ) { innerPadding ->
         if (userCourses.value == null) {
-            LoadingBox()
+            LazyColumn(
+                modifier = modifier,
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
+                contentPadding = PaddingValues(MaterialTheme.spacing.extraExtraSmall),
+            ) {
+                items(10) {
+                    ListItemPlaceholder()
+                }
+            }
         } else if (userCourses.value!!.isEmpty()) {
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
                 EmptyCollectionBox(
                     modifier = modifier.padding(MaterialTheme.spacing.medium),
                     bodyMessage = R.string.empty_course_collection_body
@@ -186,6 +196,9 @@ fun VideoListBody(
                 }
             }
         } else if (videos.loadState.refresh is LoadState.Loading) {
+            items(10) {
+                ListItemPlaceholder()
+            }
         } else {
             item {
                 EmptyCollectionBox(
@@ -253,7 +266,7 @@ fun VideoContainer(
         )
     } else {
         Text(
-            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.small),
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium),
             text = video.watchedOn.formatAsListHeader(),
             style = MaterialTheme.typography.titleMedium
         )

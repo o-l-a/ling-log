@@ -119,9 +119,6 @@ fun NavGraphBuilder.myInputLogHomeGraph(navController: NavHostController) {
                 },
                 navigateToYouTubeVideoEntry = { courseId ->
                     navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
-                },
-                navigateToYouTubeVideo = { courseId, videoId ->
-                    navController.navigate("${VideoDestination.route}/$courseId/$videoId")
                 }
             )
         }
