@@ -68,7 +68,8 @@ object VideoDestination : NavigationDestination {
     override val titleRes: Int = R.string.video_screen_title
     const val videoIdArg = "videoId"
     const val courseIdArg = "courseId"
-    val routeWithArgs = "$route/{$courseIdArg}/{$videoIdArg}"
+    const val videoUrlArg = "videoUrl"
+    val routeWithArgs = "$route/{$courseIdArg}/{$videoIdArg}?$videoUrlArg={$videoUrlArg}"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

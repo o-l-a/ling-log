@@ -13,12 +13,13 @@
     <string name="video_screen_title">Film</string>
     <string name="course_screen_title">Kurs</string>
     <string name="profile_screen_title">Profil</string>
+    <string name="recently_watched_screen_title">Ostatnio obejrzane</string>
 
     <!--    bottom nav descriptions    -->
     <string name="home_bottom_nav_description">Główna</string>
     <string name="videos_bottom_nav_description">Filmy</string>
     <string name="profile_bottom_nav_description">Profil</string>
-    <string name="suggested_bottom_nav_description">YouTube</string>
+    <string name="suggested_bottom_nav_description">Playlisty</string>
 
     <!--    common labels    -->
     <string name="search_text">Szukaj…</string>
@@ -67,6 +68,7 @@
     <string name="empty_collection_headline">Trochę tu pusto.</string>
     <string name="empty_course_collection_body">Dodaj pierwszy kurs w zakładce "Profil".</string>
     <string name="empty_video_collection_body">Twoje filmy pojawią się tutaj, kiedy je dodasz.</string>
+    <string name="empty_playlist">Wygląda na to, że ta playlista jest pusta.</string>
 
     <!--    deleting dialog   -->
     <string name="delete_dialog_title">Usuwanie \"%s\"</string>
@@ -113,6 +115,12 @@
     <string name="yay">Juhu!</string>
     <string name="stats_network_error">Statystyki są dostępne tylko w trybie online.</string>
 
+    <!--    playlists    -->
+    <string name="likes_playlist_title">Polubione filmy</string>
+    <string name="switch_yt_account">Zmień konto YouTube</string>
+    <string name="logout_yt_account">Wyloguj się z YouTube</string>
+    <string name="grant_access_yt_account_message">Przyznaj dostęp do swojego konta YouTube, żeby wyświetlić swoje playlisty.</string>
+    <string name="choose_account_label">Wybierz konto</string>
 </resources>
 
 

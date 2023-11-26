@@ -1,7 +1,10 @@
-package com.example.myinputlog.data.model
+package com.example.myinputlog.data.remote
 
+import com.example.myinputlog.data.model.YouTubeVideo
 import kotlinx.serialization.Serializable
 import java.time.Duration
+
+private const val DEFAULT_YOUTUBE_URL = "https://www.youtube.com/watch?v="
 
 @Serializable
 data class VideoData(
@@ -20,7 +23,7 @@ data class VideoSnippet(
     val title: String,
     val thumbnails: VideoThumbnails,
     val channelTitle: String,
-    val defaultAudioLanguage: String
+    val defaultAudioLanguage: String? = null
 )
 
 @Serializable
@@ -48,9 +51,10 @@ fun VideoData.toYouTubeVideo(): YouTubeVideo? {
             thumbnailDefaultUrl = item.snippet.thumbnails.default.url,
             thumbnailMediumUrl = item.snippet.thumbnails.medium.url,
             thumbnailHighUrl = item.snippet.thumbnails.high.url,
-            defaultAudioLanguage = item.snippet.defaultAudioLanguage,
+            defaultAudioLanguage = item.snippet.defaultAudioLanguage ?: "",
             channel = item.snippet.channelTitle,
-            durationInSeconds = Duration.parse(item.contentDetails.duration).seconds
+            durationInSeconds = Duration.parse(item.contentDetails.duration).seconds,
+            videoUrl = "$DEFAULT_YOUTUBE_URL${item.id}"
         )
     }
     return null

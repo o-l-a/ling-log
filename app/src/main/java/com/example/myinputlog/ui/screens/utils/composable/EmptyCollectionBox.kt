@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,11 +19,11 @@ import com.example.myinputlog.ui.theme.spacing
 @Composable
 fun EmptyCollectionBox(
     modifier: Modifier = Modifier,
+    isFullSize: Boolean = true,
     @StringRes bodyMessage: Int = R.string.empty_course_collection_body
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize(),
+        modifier = if (isFullSize) modifier.fillMaxSize() else modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

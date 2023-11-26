@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
@@ -40,7 +39,7 @@ class VideoListViewModel @Inject constructor(
                 _videoListUiState.update {
                     currentCourse.toVideoListUiState().copy(
                         userCourses = userCourses,
-                        videos = pager.flow.customMap(),
+                        videos = pager.flow.insertHeaderAndSeparators(),
                         isLoading = false
                     )
                 }
@@ -60,7 +59,7 @@ class VideoListViewModel @Inject constructor(
                 _videoListUiState.update {
                     currentCourse.toVideoListUiState().copy(
                         userCourses = userCourses,
-                        videos = pager.flow.customMap(),
+                        videos = pager.flow.insertHeaderAndSeparators(),
                     )
                 }
             } catch (e: Exception) {
@@ -74,7 +73,7 @@ class VideoListViewModel @Inject constructor(
     }
 }
 
-fun Flow<PagingData<YouTubeVideo>>.customMap(): Flow<PagingData<YouTubeVideo>> {
+fun Flow<PagingData<YouTubeVideo>>.insertHeaderAndSeparators(): Flow<PagingData<YouTubeVideo>> {
     return this.map {
         it.insertSeparators { before: YouTubeVideo?, after: YouTubeVideo? ->
             when {

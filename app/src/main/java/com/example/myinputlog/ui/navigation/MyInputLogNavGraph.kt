@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.SmartDisplay
+import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.runtime.Composable
@@ -34,6 +34,9 @@ import com.example.myinputlog.ui.screens.login.LoginViewModel
 import com.example.myinputlog.ui.screens.profile.ProfileDestination
 import com.example.myinputlog.ui.screens.profile.ProfileScreen
 import com.example.myinputlog.ui.screens.profile.ProfileViewModel
+import com.example.myinputlog.ui.screens.playlists.PlaylistsDestination
+import com.example.myinputlog.ui.screens.playlists.PlaylistsScreen
+import com.example.myinputlog.ui.screens.playlists.PlaylistsViewModel
 import com.example.myinputlog.ui.screens.sign_up.SignUpDestination
 import com.example.myinputlog.ui.screens.sign_up.SignUpScreen
 import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
@@ -46,6 +49,7 @@ import com.example.myinputlog.ui.screens.video_list.VideoListViewModel
 
 const val DEFAULT_ID = -1
 const val HOME_ROUTE = "home_route"
+const val RECENTLY_WATCHED_ROUTE = "recently_watched_route"
 const val VIDEOS_ROUTE = "videos_route"
 const val PROFILE_ROUTE = "profile_route"
 const val SIGN_IN_ROUTE = "sign_in_route"
@@ -58,7 +62,7 @@ sealed class Screen(
     object Home : Screen(HOME_ROUTE, R.string.home_bottom_nav_description, Icons.Filled.Home)
     object Videos : Screen(VIDEOS_ROUTE, R.string.videos_bottom_nav_description, Icons.Filled.VideoLibrary)
     object AddVideo : Screen("", null, Icons.Outlined.AddCircleOutline)
-    object Recommendations : Screen("", R.string.suggested_bottom_nav_description, Icons.Filled.SmartDisplay)
+    object RecentlyWatched : Screen(RECENTLY_WATCHED_ROUTE, R.string.suggested_bottom_nav_description, Icons.Filled.PlaylistPlay)
     object Profile : Screen(PROFILE_ROUTE, R.string.profile_bottom_nav_description, Icons.Filled.Person)
 }
 
@@ -66,7 +70,7 @@ val navigationItems = listOf(
     Screen.Home,
     Screen.Videos,
     Screen.AddVideo,
-    Screen.Recommendations,
+    Screen.RecentlyWatched,
     Screen.Profile,
 )
 
@@ -94,6 +98,7 @@ fun MyInputLogNavHost(
         myInputLogHomeGraph(navController)
         myInputLogSignInGraph(navController)
         myInputLogVideosGraph(navController)
+        myInputLogPlaylistsGraph(navController)
         myInputLogProfileGraph(navController)
     }
 }
@@ -149,7 +154,11 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
             route = VideoDestination.routeWithArgs,
             arguments = listOf(
                 navArgument(VideoDestination.videoIdArg) { type = NavType.StringType },
-                navArgument(VideoDestination.courseIdArg) { type = NavType.StringType }
+                navArgument(VideoDestination.courseIdArg) { type = NavType.StringType },
+                navArgument(VideoDestination.videoUrlArg) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
             )
         ) {
             val videoViewModel = hiltViewModel<VideoViewModel>()
@@ -157,6 +166,31 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
                 videoViewModel = videoViewModel,
                 navigateBack = { navController.popBackStack() },
                 onNavigateUp = { navController.navigateUp() }
+            )
+        }
+    }
+}
+
+fun NavGraphBuilder.myInputLogPlaylistsGraph(navController: NavHostController) {
+    navigation(
+        startDestination = PlaylistsDestination.route,
+        route = RECENTLY_WATCHED_ROUTE
+    ) {
+        composable(
+            route = PlaylistsDestination.route
+        ) {
+            val playlistsViewModel = hiltViewModel<PlaylistsViewModel>()
+            PlaylistsScreen(
+                playlistsViewModel = playlistsViewModel,
+                onBottomNavClicked = { route ->
+                    navController.navigate(route)
+                },
+                navigateToYouTubeVideoEntry = {courseId ->
+                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
+                },
+                navigateToYouTubeVideoEntryWithUrl = { courseId, videoUrl ->
+                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID?${VideoDestination.videoUrlArg}=$videoUrl")
+                }
             )
         }
     }

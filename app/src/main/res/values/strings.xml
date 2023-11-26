@@ -12,12 +12,13 @@
     <string name="video_screen_title">Video</string>
     <string name="course_screen_title">Course</string>
     <string name="profile_screen_title">Settings</string>
+    <string name="recently_watched_screen_title">Recently watched</string>
 
     <!--    bottom nav descriptions    -->
     <string name="home_bottom_nav_description">Home</string>
     <string name="videos_bottom_nav_description">Videos</string>
     <string name="profile_bottom_nav_description">Profile</string>
-    <string name="suggested_bottom_nav_description">YouTube</string>
+    <string name="suggested_bottom_nav_description">Playlists</string>
 
     <!--    common labels    -->
     <string name="search_text">Search…</string>
@@ -66,6 +67,7 @@
     <string name="empty_collection_headline">Nothing to see here.</string>
     <string name="empty_course_collection_body">Head over to the "Profile" tab and add your first course.</string>
     <string name="empty_video_collection_body">Your videos will appear here after you add them.</string>
+    <string name="empty_playlist">This playlist seems to be empty.</string>
 
     <!--    deleting dialog   -->
     <string name="delete_dialog_title">Deleting \"%s\"</string>
@@ -111,4 +113,11 @@
     <string name="stats_videos_watched">videos watched</string>
     <string name="yay">Yay!</string>
     <string name="stats_network_error">The statistics will appear when you go back online.</string>
+
+    <!--    playlists    -->
+    <string name="likes_playlist_title">Liked videos</string>
+    <string name="switch_yt_account">Switch YouTube account</string>
+    <string name="logout_yt_account">Log out from YouTube</string>
+    <string name="grant_access_yt_account_message">Grant access to your YouTube account to see your playlists.</string>
+    <string name="choose_account_label">Choose account</string>
 </resources>
