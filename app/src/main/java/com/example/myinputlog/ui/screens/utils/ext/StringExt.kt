@@ -42,3 +42,8 @@ fun String.passwordMatches(repeated: String): Boolean {
 fun String.isValidUsername(): Boolean {
     return this.isNotBlank()
 }
+
+fun String.toNonNegativeLongOrNull(): Long? {
+    val parsedValue = this.toLongOrNull()
+    return if (parsedValue != null && parsedValue >= 0) parsedValue else null
+}

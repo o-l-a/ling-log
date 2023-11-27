@@ -28,7 +28,7 @@ class DefaultAccountService @Inject constructor(
                 FirebaseAuth.AuthStateListener { auth ->
                     this.trySend(auth.currentUser?.let { user ->
                         user.displayName?.let { username ->
-                            UserData(user.uid, username)
+                            UserData(user.uid, username, user.email ?: "")
                         }
                     } ?: UserData())
                 }

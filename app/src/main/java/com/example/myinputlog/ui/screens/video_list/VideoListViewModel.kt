@@ -22,7 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VideoListViewModel @Inject constructor(
-    storageService: DefaultStorageService,
+    private val storageService: DefaultStorageService,
     private val preferenceStorageService: DefaultPreferenceStorageService,
     private val pager: Pager<String, YouTubeVideo>
 ) : ViewModel() {
@@ -41,6 +41,16 @@ class VideoListViewModel @Inject constructor(
                         userCourses = userCourses,
                         videos = pager.flow.insertHeaderAndSeparators(),
                         isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                e.message?.let { Log.d(TAG, it) }
+            }
+            try {
+                val courseStatistics = storageService.getCourseStatistics(currentCourse.id)
+                _videoListUiState.update {
+                    it.copy(
+                        courseStatistics = courseStatistics
                     )
                 }
             } catch (e: Exception) {

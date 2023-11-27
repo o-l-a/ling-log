@@ -12,24 +12,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.myinputlog.CourseTopAppBar
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownField
 import com.example.myinputlog.ui.screens.utils.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
 import nl.dionsegijn.konfetti.compose.KonfettiView
@@ -47,6 +50,7 @@ object HomeDestination : NavigationDestination {
     override val titleRes: Int = R.string.home_screen_title
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -56,14 +60,18 @@ fun HomeScreen(
 ) {
     val homeUiState = homeViewModel.homeUiState.collectAsStateWithLifecycle()
     val userCourses = homeUiState.value.userCourses.collectAsStateWithLifecycle(emptyList())
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             if (userCourses.value != null) {
-                MyInputLogDropdownField(
-                    value = homeUiState.value.toUserCourse(),
+                CourseTopAppBar(
+                    course = homeUiState.value.toUserCourse(),
+                    courseStatistics = homeUiState.value.courseStatistics,
                     onValueChange = homeViewModel::changeCurrentCourseId,
-                    options = userCourses.value!!
+                    options = userCourses.value!!,
+                    scrollBehavior = scrollBehavior
                 )
             }
         },

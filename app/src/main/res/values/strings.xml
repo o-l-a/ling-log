@@ -80,6 +80,8 @@
     <string name="course_name_label">Language</string>
     <string name="course_goal_label">Goal (in hours)</string>
     <string name="course_other_source_hours_label">Hours outside platform</string>
+    <string name="course_goal_card_text">Goal: %dh</string>
+    <string name="course_other_source_hours_card_text">%dh outside platform</string>
 
     <!--    video edit    -->
     <string name="video_watched_on_label">Set watch date</string>

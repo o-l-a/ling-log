@@ -81,6 +81,8 @@
     <string name="course_name_label">Język</string>
     <string name="course_goal_label">Cel (w godzinach)</string>
     <string name="course_other_source_hours_label">Godziny poza platformą</string>
+    <string name="course_goal_card_text">Cel: %dh</string>
+    <string name="course_other_source_hours_card_text">%dh poza platformą</string>
 
     <!--    video edit    -->
     <string name="video_watched_on_label">Ustaw datę obejrzenia</string>
@@ -112,7 +114,7 @@
     <string name="stats_hours_watched">czasu</string>
     <string name="stats_hours_watched_today">czasu dzisiaj</string>
     <string name="stats_videos_watched">filmów</string>
-    <string name="yay">Juhu!</string>
+    <string name="yay">Yay!</string>
     <string name="stats_network_error">Statystyki są dostępne tylko w trybie online.</string>
 
     <!--    playlists    -->

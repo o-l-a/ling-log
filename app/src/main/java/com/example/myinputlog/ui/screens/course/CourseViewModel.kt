@@ -27,7 +27,11 @@ class CourseViewModel @Inject constructor(
             viewModelScope.launch {
                 val course = storageService.getUserCourse(courseId)
                 if (course != null) {
-                    updateUiState(course.toCourseUiState(isLoading = false))
+                    _courseUiState.update {
+                        course.toCourseUiState(
+                            isLoading = false
+                        )
+                    }
                 } else {
                     // TODO("this should never happen")
                 }
@@ -35,8 +39,7 @@ class CourseViewModel @Inject constructor(
         } else {
             _courseUiState.update {
                 it.copy(
-                    isLoading = false,
-                    isEdit = true
+                    isLoading = false
                 )
             }
         }

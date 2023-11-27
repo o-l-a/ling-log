@@ -320,11 +320,11 @@ fun YouTubeAccountTopAppBar(
         ListItem(modifier = Modifier.fillMaxWidth(), headlineContent = {
             Text(
                 text = "$channelGivenName $channelFamilyName",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyLarge
             )
         }, supportingContent = {
             Text(
-                text = channelEmail, style = MaterialTheme.typography.bodySmall
+                text = channelEmail, style = MaterialTheme.typography.bodyMedium
             )
         })
     }, actions = {

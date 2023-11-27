@@ -19,13 +19,12 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val accountService: DefaultAccountService,
-    private val storageService: DefaultStorageService,
+    storageService: DefaultStorageService,
     private val preferenceStorageService: DefaultPreferenceStorageService
 ) : ViewModel() {
 
     private val _profileUiState = MutableStateFlow(ProfileUiState())
     val profileUiState = _profileUiState.asStateFlow()
-    val courses = storageService.userCourses
 
     init {
         viewModelScope.launch {
@@ -35,7 +34,9 @@ class ProfileViewModel @Inject constructor(
                     it.copy(
                         currentCourseId = currentCourseId,
                         username = userData.username,
-                        id = userData.id
+                        email = userData.email,
+                        id = userData.id,
+                        courses = storageService.userCourses
                     )
                 }
                 Log.d("PROFILE", userData.username)

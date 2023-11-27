@@ -117,4 +117,7 @@ dependencies {
     // OAuth
     implementation 'com.auth0.android:jwtdecode:2.0.0'
     implementation 'net.openid:appauth:0.9.1'
+
+    // Accompanist
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.32.0"
 }

@@ -36,12 +36,6 @@ class DefaultStorageService @Inject constructor(
                     .map { snapshot -> snapshot.toObjects() }
             }
 
-//    override fun videos(courseId: String): Pager<QuerySnapshot, YouTubeVideo> {
-//        return Pager(
-//            config = config
-//        ) { source }
-//    }
-
     override suspend fun videosByWatchedOnQuery(courseId: String, lastVideoId: String?, limitSize: Long): Query {
         var query = currentUserCourseCollection(auth.currentUserId)
             .document(courseId)

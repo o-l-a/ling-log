@@ -38,6 +38,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.example.myinputlog.CourseTopAppBar
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.data.model.YouTubeVideo
@@ -79,14 +80,11 @@ fun VideoListScreen(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             if (userCourses.value != null) {
-                TopAppBar(
-                    title = {
-                        MyInputLogDropdownField(
-                            value = videoListUiState.value.toUserCourse(),
-                            onValueChange = videoListViewModel::changeCurrentCourseId,
-                            options = userCourses.value!!
-                        )
-                    },
+                CourseTopAppBar(
+                    course = videoListUiState.value.toUserCourse(),
+                    courseStatistics = videoListUiState.value.courseStatistics,
+                    onValueChange = videoListViewModel::changeCurrentCourseId,
+                    options = userCourses.value!!,
                     scrollBehavior = scrollBehavior
                 )
             }

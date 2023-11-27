@@ -1,6 +1,7 @@
 package com.example.myinputlog.ui.screens.course
 
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.screens.utils.ext.toNonNegativeLongOrNull
 import com.google.firebase.firestore.DocumentId
 
 data class CourseUiState(
@@ -27,7 +28,6 @@ fun UserCourse.toCourseUiState(
     name = name,
     goalInHours = goalInHours.toString(),
     otherSourceHours = otherSourceHours.toString(),
-//    hoursWatched = hoursWatched.toString(),
     isLoading = isLoading,
     isEdit = isEdit,
     isFormValid = isFormValid,
@@ -37,6 +37,6 @@ fun UserCourse.toCourseUiState(
 fun CourseUiState.toUserCourse() : UserCourse = UserCourse(
     id = id,
     name = name,
-    goalInHours = goalInHours.toLongOrNull() ?: 0L,
-    otherSourceHours = otherSourceHours.toLongOrNull() ?: 0L,
+    goalInHours = goalInHours.toNonNegativeLongOrNull() ?: 0L,
+    otherSourceHours = otherSourceHours.toNonNegativeLongOrNull() ?: 0L,
 )

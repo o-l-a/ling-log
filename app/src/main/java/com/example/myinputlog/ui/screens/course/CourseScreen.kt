@@ -21,7 +21,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.MyInputLogBottomSaveBar
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.NavigationDestination
@@ -53,18 +52,14 @@ fun CourseScreen(
                 canNavigateBack = true,
                 navigateUp = onNavigateUp,
                 hasDeleteAction = courseUiState.value.id.isNotBlank(),
+                hasSaveAction = true,
+                isFormValid = courseUiState.value.isFormValid,
                 onDelete = { courseViewModel.toggleDialogVisibility(true) },
-                scrollBehavior = scrollBehavior
-            )
-        },
-        bottomBar = {
-            MyInputLogBottomSaveBar(
-                onCancelClicked = onNavigateUp,
-                onSaveClicked = {
+                onSave = {
                     courseViewModel.persistCourse()
                     onNavigateUp()
                 },
-                isFormValid = courseUiState.value.isFormValid
+                scrollBehavior = scrollBehavior
             )
         }
     ) { innerPadding ->

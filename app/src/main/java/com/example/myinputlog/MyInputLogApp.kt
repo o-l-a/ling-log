@@ -1,6 +1,5 @@
 package com.example.myinputlog
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -8,23 +7,36 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.myinputlog.data.model.CourseStatistics
+import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.ui.navigation.MyInputLogNavHost
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.navigation.navigationItems
+import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
 import com.example.myinputlog.ui.theme.MyInputLogTheme
 import com.example.myinputlog.ui.theme.spacing
+import java.util.concurrent.TimeUnit
 
 /**
  * A top level screen "container"
@@ -162,34 +174,77 @@ fun MyInputLogBottomNavBar(
     }
 }
 
-/**
- * App bottom bar for screens involving edit actions
- */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyInputLogBottomSaveBar(
+fun CourseTopAppBar(
     modifier: Modifier = Modifier,
-    isFormValid: Boolean = false,
-    onCancelClicked: () -> Unit,
-    onSaveClicked: () -> Unit
+    course: UserCourse,
+    courseStatistics: CourseStatistics,
+    onValueChange: (UserCourse) -> Unit,
+    options: List<UserCourse>,
+    scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    BottomAppBar(
-        modifier = modifier
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceAround,
-            modifier = modifier.fillMaxWidth()
-        ) {
-            TextButton(onClick = onCancelClicked) {
-                Text(stringResource(R.string.cancel_text))
-            }
-            TextButton(
-                onClick = onSaveClicked,
-                enabled = isFormValid
+    var expanded by remember { mutableStateOf(false) }
+    val hoursWatched = TimeUnit.SECONDS.toHours(
+        courseStatistics.timeWatched
+    )
+    val totalHours = hoursWatched + course.otherSourceHours
+    val progress =
+        if (course.goalInHours != 0L) totalHours.toFloat() * 100F / course.goalInHours.toFloat() else 0
+    TopAppBar(
+        modifier = modifier,
+        scrollBehavior = scrollBehavior,
+        navigationIcon = {
+            MyInputLogAppIcon(
+                modifier = Modifier
+                    .padding(start = MaterialTheme.spacing.medium)
+                    .size(MaterialTheme.spacing.large)
+            )
+        },
+        title = {
+            ListItem(
+                modifier = Modifier.fillMaxWidth(),
+                headlineContent = {
+                    Text(
+                        text = course.name,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                },
+                supportingContent = {
+                    Text(
+                        text = "${progress.toLong()}% (${totalHours}h/${course.goalInHours}h)",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            )
+        },
+        actions = {
+            Box(
+                modifier = Modifier.wrapContentSize(Alignment.TopStart)
             ) {
-                Text(stringResource(R.string.save_text))
+                IconButton(onClick = { expanded = true }) {
+                    if (expanded) {
+                        Icon(imageVector = Icons.Filled.ArrowDropUp, contentDescription = null)
+                    } else {
+                        Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = null)
+                    }
+                }
+                DropdownMenu(expanded = expanded, onDismissRequest = {
+                    expanded = false
+                }) {
+                    options.forEach { selectionOption ->
+                        DropdownMenuItem(
+                            text = { Text(selectionOption.name) },
+                            onClick = {
+                                onValueChange(selectionOption)
+                                expanded = false
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                        )
+                    }
+                }
             }
-        }
-    }
+        })
 }
 
 @Preview

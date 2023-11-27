@@ -2,12 +2,10 @@ package com.example.myinputlog.ui.screens.home
 
 import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
-import com.google.firebase.firestore.DocumentId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 data class HomeUiState(
-    @DocumentId
     val id: String = "",
     val name: String = "",
     val goalInHours: String = "",
@@ -32,7 +30,7 @@ fun UserCourse.toHomeUiState(
     isLoading = isLoading,
 )
 
-fun HomeUiState.toUserCourse() : UserCourse = UserCourse(
+fun HomeUiState.toUserCourse(): UserCourse = UserCourse(
     id = id,
     name = name,
     goalInHours = goalInHours.toLongOrNull() ?: 0L,
