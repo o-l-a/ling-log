@@ -1,9 +1,6 @@
 package com.example.myinputlog.ui.screens.profile
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -138,32 +135,7 @@ fun ProfileBody(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
         horizontalAlignment = Alignment.CenterHorizontally,
-        contentPadding = PaddingValues(MaterialTheme.spacing.medium)
     ) {
-//        item {
-//            Row(modifier = Modifier.fillMaxWidth()) {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(bottom = MaterialTheme.spacing.extraSmall),
-//                    horizontalAlignment = Alignment.Start
-//                ) {
-//                    Text(
-//                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.extraSmall),
-//                        text = profileUiState.value.username,
-//                        style = MaterialTheme.typography.titleLarge
-//                    )
-//                    Text(
-//                        text = profileUiState.value.email,
-//                        style = MaterialTheme.typography.bodyMedium
-//                    )
-//                }
-//            }
-//
-//        }
-//        item {
-//            Divider(modifier = Modifier.padding(bottom = MaterialTheme.spacing.small))
-//        }
         items(courses) { course ->
             CourseContainer(
                 course = course,
@@ -172,7 +144,6 @@ fun ProfileBody(
         }
         item {
             Button(
-//                modifier = Modifier.fillMaxWidth(),
                 onClick = { onAddCourseClicked() }
             ) {
                 Icon(
@@ -191,7 +162,9 @@ fun ProfileBody(
         }
         item {
             OutlinedButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MaterialTheme.spacing.medium),
                 onClick = { onSignOutClicked() }
             ) {
                 Text(
@@ -201,7 +174,9 @@ fun ProfileBody(
         }
         item {
             OutlinedButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MaterialTheme.spacing.medium),
                 onClick = { toggleDialogVisibility(true) }
             ) {
                 Text(
@@ -220,7 +195,8 @@ private fun CourseContainer(
 ) {
     ListItem(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(start = MaterialTheme.spacing.small),
         headlineContent = {
             Text(
                 text = course.name,

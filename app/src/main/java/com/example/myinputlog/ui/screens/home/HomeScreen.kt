@@ -33,6 +33,7 @@ import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.composable.MyInputLogCalendar
 import com.example.myinputlog.ui.screens.utils.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
 import nl.dionsegijn.konfetti.compose.KonfettiView
@@ -43,6 +44,7 @@ import nl.dionsegijn.konfetti.core.PartySystem
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.Spread
 import nl.dionsegijn.konfetti.core.emitter.Emitter
+import java.time.YearMonth
 import java.util.concurrent.TimeUnit
 
 object HomeDestination : NavigationDestination {
@@ -177,6 +179,12 @@ fun HomeBody(
                         onClick = doParty
                     )
                 }
+            }
+            item {
+                MyInputLogCalendar(
+                    yearMonth = YearMonth.now(),
+                    dailyTotalTimes = (0 until 30).map { it * 4 }.shuffled()
+                )
             }
         }
     }
