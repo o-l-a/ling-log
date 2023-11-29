@@ -3,7 +3,6 @@ package com.example.myinputlog.ui.screens.home
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,18 +10,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SmartDisplay
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Today
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,6 +46,7 @@ import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogCalendar
 import com.example.myinputlog.ui.screens.utils.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
+import kotlinx.coroutines.launch
 import nl.dionsegijn.konfetti.compose.KonfettiView
 import nl.dionsegijn.konfetti.compose.OnParticleSystemUpdateListener
 import nl.dionsegijn.konfetti.core.Angle
@@ -62,6 +73,8 @@ fun HomeScreen(
     val homeUiState = homeViewModel.homeUiState.collectAsStateWithLifecycle()
     val userCourses = homeUiState.value.userCourses.collectAsStateWithLifecycle(emptyList())
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -95,8 +108,15 @@ fun HomeScreen(
             HomeBody(
                 modifier = modifier.padding(innerPadding),
                 homeUiState = homeUiState.value,
-                onCalendarBackClicked = homeViewModel::previousMonth,
-                onCalendarForwardClicked = homeViewModel::nextMonth,
+                listState = scrollState,
+                onCalendarBackClicked = {
+                    homeViewModel.previousMonth()
+                    coroutineScope.launch { scrollState.animateScrollToItem(1) }
+                },
+                onCalendarForwardClicked = {
+                    homeViewModel.nextMonth()
+                    coroutineScope.launch { scrollState.animateScrollToItem(1) }
+                },
                 doParty = homeViewModel::confetti,
                 stopParty = homeViewModel::confettiStop
             )
@@ -108,6 +128,7 @@ fun HomeScreen(
 fun HomeBody(
     modifier: Modifier = Modifier,
     homeUiState: HomeUiState,
+    listState: LazyListState,
     onCalendarBackClicked: () -> Unit,
     onCalendarForwardClicked: () -> Unit,
     doParty: () -> Unit,
@@ -140,11 +161,15 @@ fun HomeBody(
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
-        contentPadding = PaddingValues(MaterialTheme.spacing.extraSmall)
+        contentPadding = PaddingValues(MaterialTheme.spacing.extraSmall),
+        state = listState
     ) {
         if (homeUiState.networkError) {
             item {
-                EmptyCollectionBox(bodyMessage = R.string.stats_network_error)
+                EmptyCollectionBox(
+                    modifier = Modifier.padding(top = MaterialTheme.spacing.doubleExtraLarge),
+                    bodyMessage = R.string.stats_network_error
+                )
             }
         } else {
             item {
@@ -156,12 +181,18 @@ fun HomeBody(
                     StatisticContainer(
                         modifier = Modifier.weight(1F),
                         number = formatDurationAsText(homeUiState.courseStatistics.timeWatched),
-                        label = stringResource(R.string.stats_hours_watched)
+                        label = stringResource(R.string.stats_hours_watched),
+                        leadingContent = {
+                            Icon(imageVector = Icons.Filled.Timer, contentDescription = null)
+                        }
                     )
                     StatisticContainer(
                         modifier = Modifier.weight(1F),
                         number = formatDurationAsText(homeUiState.courseStatistics.timeWatchedToday),
-                        label = stringResource(R.string.stats_hours_watched_today)
+                        label = stringResource(R.string.stats_hours_watched_today),
+                        leadingContent = {
+                            Icon(imageVector = Icons.Filled.Today, contentDescription = null)
+                        }
                     )
                 }
                 Row(
@@ -172,12 +203,18 @@ fun HomeBody(
                     StatisticContainer(
                         modifier = Modifier.weight(1F),
                         number = homeUiState.courseStatistics.videoCount.toString(),
-                        label = stringResource(R.string.stats_videos_watched)
+                        label = stringResource(R.string.stats_videos_watched),
+                        leadingContent = {
+                            Icon(imageVector = Icons.Filled.SmartDisplay, contentDescription = null)
+                        }
                     )
                     StatisticContainer(
                         modifier = Modifier.weight(1F),
-                        number = "🎉",
-                        label = stringResource(R.string.yay),
+                        number = stringResource(R.string.yay),
+                        label = "",
+                        leadingContent = {
+                            Text(text = "🎉", style = MaterialTheme.typography.headlineMedium)
+                        },
                         isClickable = true,
                         onClick = doParty
                     )
@@ -203,41 +240,46 @@ fun StatisticContainer(
     modifier: Modifier = Modifier,
     number: String,
     label: String,
+    leadingContent: @Composable () -> Unit,
     isClickable: Boolean = false,
     onClick: () -> Unit = {}
 ) {
-    ElevatedCard(
+    Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(MaterialTheme.spacing.small)
+            .padding(MaterialTheme.spacing.small),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(
+                alpha = 0.6f
+            )
+        )
     ) {
         Box(
             modifier = Modifier
                 .clickable(enabled = isClickable) { onClick() }
                 .fillMaxSize()
         ) {
-            Column(
+            ListItem(
                 modifier = Modifier
-                    .padding(MaterialTheme.spacing.small),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = MaterialTheme.spacing.small),
-                    text = number,
-                    style = MaterialTheme.typography.headlineSmall,
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    text = label,
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center
-                )
-            }
+                    .fillMaxWidth()
+                    .padding(MaterialTheme.spacing.default),
+                leadingContent = leadingContent,
+                headlineContent = {
+                    Text(
+                        text = number,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                },
+                supportingContent = {
+                    if (label.isNotBlank()) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+            )
         }
     }
 }
@@ -248,6 +290,9 @@ fun StatisticContainerPreview() {
     StatisticContainer(
         modifier = Modifier.width(MaterialTheme.spacing.doubleExtraLarge),
         number = "10",
-        label = "label"
+        label = "label",
+        leadingContent = {
+            Icon(imageVector = Icons.Filled.Timer, contentDescription = null)
+        }
     )
 }

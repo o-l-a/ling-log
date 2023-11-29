@@ -111,9 +111,11 @@
 
     <!--    stats labels    -->
     <string name="stats_hours_watched">time spent</string>
-    <string name="stats_hours_watched_today">time today</string>
+    <string name="stats_hours_watched_today">spent today</string>
     <string name="stats_videos_watched">videos watched</string>
     <string name="yay">Yay!</string>
+    <string name="good_job">Good job.</string>
+    <string name="progress">Progress: %s</string>
     <string name="stats_network_error">The statistics will appear when you go back online.</string>
 
     <!--    playlists    -->

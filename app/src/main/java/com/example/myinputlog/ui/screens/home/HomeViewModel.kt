@@ -34,6 +34,7 @@ class HomeViewModel @Inject constructor(
                     isLoading = false,
                 )
             }
+            updateCalendar()
             try {
                 val courseStatistics = storageService.getCourseStatistics(currentCourseId)
                 _homeUiState.update {
@@ -47,7 +48,6 @@ class HomeViewModel @Inject constructor(
                     it.copy(networkError = true)
                 }
             }
-            updateCalendar()
         }
     }
 
@@ -70,6 +70,7 @@ class HomeViewModel @Inject constructor(
                         networkError = false
                     )
                 }
+                updateCalendar()
             } catch (e: Exception) {
                 _homeUiState.update {
                     it.copy(networkError = true)

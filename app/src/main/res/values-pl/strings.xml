@@ -115,6 +115,8 @@
     <string name="stats_hours_watched_today">czasu dzisiaj</string>
     <string name="stats_videos_watched">filmów</string>
     <string name="yay">Yay!</string>
+    <string name="good_job">Dobra robota.</string>
+    <string name="progress">Postęp: %s</string>
     <string name="stats_network_error">Statystyki są dostępne tylko w trybie online.</string>
 
     <!--    playlists    -->

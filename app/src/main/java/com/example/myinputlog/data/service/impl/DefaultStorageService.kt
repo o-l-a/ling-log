@@ -130,7 +130,7 @@ class DefaultStorageService @Inject constructor(
                 aggregatedDataList.add(todayTime)
             } catch (e: FirebaseFirestoreException) {
                 Log.d(TAG, "Error fetching data for day $dayOfMonth: ${e.message}")
-                aggregatedDataList.add(0L)
+                throw e
             }
         }
         Log.d(TAG, "Data list: $aggregatedDataList")
