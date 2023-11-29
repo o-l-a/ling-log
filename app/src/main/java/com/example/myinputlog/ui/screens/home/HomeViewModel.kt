@@ -47,6 +47,7 @@ class HomeViewModel @Inject constructor(
                     it.copy(networkError = true)
                 }
             }
+            updateCalendar()
         }
     }
 
@@ -86,6 +87,48 @@ class HomeViewModel @Inject constructor(
     fun confettiStop() {
         _homeUiState.update {
             it.copy(isParty = false)
+        }
+    }
+
+    fun previousMonth() {
+        _homeUiState.update {
+            it.copy(selectedYearMonth = it.selectedYearMonth.minusMonths(1))
+        }
+        updateCalendar()
+    }
+
+    fun nextMonth() {
+        _homeUiState.update {
+            it.copy(selectedYearMonth = it.selectedYearMonth.plusMonths(1))
+        }
+        updateCalendar()
+    }
+
+    private fun updateCalendar() {
+        _homeUiState.update {
+            it.copy(
+                isCalendarLoading = true
+            )
+        }
+        viewModelScope.launch {
+            val currentCourseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
+            try {
+                val monthlyAggregateData = storageService.getMonthlyAggregateData(
+                    currentCourseId,
+                    homeUiState.value.selectedYearMonth
+                )
+                _homeUiState.update {
+                    it.copy(
+                        monthlyAggregateData = monthlyAggregateData,
+                        isCalendarLoading = false,
+                        networkError = false
+                    )
+                }
+            } catch (e: Exception) {
+                _homeUiState.update {
+                    it.copy(networkError = true)
+                }
+            }
         }
     }
 }

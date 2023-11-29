@@ -1,5 +1,6 @@
 package com.example.myinputlog.data.service.impl
 
+import android.util.Log
 import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
@@ -9,6 +10,7 @@ import com.google.firebase.firestore.AggregateField
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.snapshots
@@ -19,6 +21,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import java.time.YearMonth
+import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
@@ -95,6 +99,42 @@ class DefaultStorageService @Inject constructor(
             timeWatchedToday = todayTime,
             videoCount = totalVideos
         )
+    }
+
+    override suspend fun getMonthlyAggregateData(userCourseId: String, yearMonth: YearMonth): List<Long> {
+        val aggregateField = AggregateField.sum("durationInSeconds")
+        val collection = youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId)
+
+        val daysInMonth = yearMonth.lengthOfMonth()
+        val aggregatedDataList = mutableListOf<Long>()
+
+        Log.d(TAG, "Aggregating for: $yearMonth")
+
+        for (dayOfMonth in 1..daysInMonth) {
+            val startOfDay = Date(yearMonth.atDay(dayOfMonth)
+                .atStartOfDay(ZoneId.systemDefault())
+                .toEpochSecond() * 1000)
+            val endOfDay = Date(yearMonth.atDay(dayOfMonth)
+                .plusDays(1)
+                .atStartOfDay(ZoneId.systemDefault())
+                .toEpochSecond() * 1000)
+            try {
+                val todayTimeTask = collection
+                    .whereGreaterThanOrEqualTo("watchedOn", startOfDay)
+                    .whereLessThan("watchedOn", endOfDay)
+                    .aggregate(aggregateField)
+                    .get(AggregateSource.SERVER)
+                    .await()
+                val todayTime = todayTimeTask.getLong(aggregateField) ?: 0L
+                Log.d(TAG, "$dayOfMonth: $todayTime")
+                aggregatedDataList.add(todayTime)
+            } catch (e: FirebaseFirestoreException) {
+                Log.d(TAG, "Error fetching data for day $dayOfMonth: ${e.message}")
+                aggregatedDataList.add(0L)
+            }
+        }
+        Log.d(TAG, "Data list: $aggregatedDataList")
+        return aggregatedDataList
     }
 
     override suspend fun getYouTubeVideo(userCourseId: String, youTubeVideoId: String): YouTubeVideo? =

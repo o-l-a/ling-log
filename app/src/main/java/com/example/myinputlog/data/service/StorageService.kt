@@ -5,6 +5,7 @@ import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
+import java.time.YearMonth
 
 interface StorageService {
     val userCourses: Flow<List<UserCourse>>
@@ -15,6 +16,7 @@ interface StorageService {
     suspend fun updateUserCourse(userCourse: UserCourse)
     suspend fun deleteUserCourse(userCourseId: String)
     suspend fun getCourseStatistics(userCourseId: String): CourseStatistics
+    suspend fun getMonthlyAggregateData(userCourseId: String, yearMonth: YearMonth): List<Long>
 
     suspend fun getYouTubeVideo(userCourseId: String, youTubeVideoId: String): YouTubeVideo?
     suspend fun saveYouTubeVideo(userCourseId: String, youTubeVideo: YouTubeVideo)

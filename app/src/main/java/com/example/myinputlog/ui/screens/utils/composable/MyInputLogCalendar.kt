@@ -2,6 +2,7 @@ package com.example.myinputlog.ui.screens.utils.composable
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,7 +38,10 @@ import java.util.Locale
 fun MyInputLogCalendar(
     modifier: Modifier = Modifier,
     yearMonth: YearMonth,
-    dailyTotalTimes: List<Int>
+    dailyTotalTimes: List<Int>,
+    onBackClicked: () -> Unit,
+    onForwardClicked: () -> Unit,
+    isLoading: Boolean = false
 ) {
     val daysOfWeek = DayOfWeek.values()
     val shortWeekdays = daysOfWeek.map {
@@ -53,7 +58,7 @@ fun MyInputLogCalendar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = onBackClicked) {
                 Icon(imageVector = Icons.Filled.ChevronLeft, contentDescription = null)
             }
             Text(
@@ -64,7 +69,7 @@ fun MyInputLogCalendar(
                     it.titlecase(Locale.getDefault())
                 } + " " + yearMonth.year.toString(),
             )
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = onForwardClicked) {
                 Icon(imageVector = Icons.Filled.ChevronRight, contentDescription = null)
             }
         }
@@ -98,48 +103,97 @@ fun MyInputLogCalendar(
                 (1..daysOfMonth).map { it.toString() } +
                 (0 until trailingEmptyDays).map { "" }
 
-        val calendarDailyTotalTimes = (0 until leadingEmptyDays).map { -1 } +
-                dailyTotalTimes +
-                (0 until trailingEmptyDays).map { -1 }
+        val calendarDailyTotalTimes = when(isLoading) {
+            false -> (0 until leadingEmptyDays).map { 0 } +
+                    dailyTotalTimes +
+                    (0 until trailingEmptyDays).map { 0 }
+            true -> List(dayItems.size) { 0 }
+        }
 
         val calendarItems = dayItems.zip(calendarDailyTotalTimes)
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            calendarItems.chunked(7).forEach { weekItems ->
-                Row(
-                    modifier = Modifier.fillMaxWidth()
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer(alpha = 0.2F),
                 ) {
-                    weekItems.forEach { day ->
-                        Column(
-                            modifier = Modifier
-                                .padding(
-                                    horizontal = MaterialTheme.spacing.extraSmall,
-                                    vertical = MaterialTheme.spacing.small
-                                )
-                                .clip(RoundedCornerShape(MaterialTheme.spacing.small))
-                                .background(
-                                    when (day.second) {
-                                        -1 -> Color.Transparent
-                                        0 -> Color.Transparent
-                                        else -> MaterialTheme.colorScheme.primaryContainer.copy(
-                                            alpha = (day.second.toFloat() / 80).coerceAtMost(1.0f)
-                                        )
-                                    }
-                                )
-                                .weight(1f),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                    calendarItems.chunked(7).forEach { weekItems ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
-                                text = day.first
-                            )
-                            Text(
-                                modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
-                                text = if (day.second >= 0) "${day.second}m" else "",
-                                style = MaterialTheme.typography.labelSmall
-                            )
+                            weekItems.forEach { day ->
+                                Column(
+                                    modifier = Modifier
+                                        .padding(
+                                            horizontal = MaterialTheme.spacing.extraSmall,
+                                            vertical = MaterialTheme.spacing.small
+                                        )
+                                        .clip(RoundedCornerShape(MaterialTheme.spacing.small))
+                                        .weight(1f),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
+                                        text = day.first
+                                    )
+                                    Text(
+                                        modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
+                                        text = "",
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                LoadingBox(modifier = Modifier.padding(bottom = MaterialTheme.spacing.large))
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                calendarItems.chunked(7).forEach { weekItems ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        weekItems.forEach { day ->
+                            Column(
+                                modifier = Modifier
+                                    .padding(
+                                        horizontal = MaterialTheme.spacing.extraSmall,
+                                        vertical = MaterialTheme.spacing.small
+                                    )
+                                    .clip(RoundedCornerShape(MaterialTheme.spacing.small))
+                                    .background(
+                                        when (day.second) {
+                                            -1 -> Color.Transparent
+                                            0 -> Color.Transparent
+                                            else -> MaterialTheme.colorScheme.primaryContainer.copy(
+                                                alpha = (day.second.toFloat() / 90).coerceIn(
+                                                    0.2F,
+                                                    1.0F
+                                                )
+                                            )
+                                        }
+                                    )
+                                    .weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
+                                    text = day.first
+                                )
+                                Text(
+                                    modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
+                                    text = if (day.second > 0) "${day.second}m" else "",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
                         }
                     }
                 }
@@ -156,7 +210,9 @@ fun PreviewMyInputLogCalendar() {
         Surface {
             MyInputLogCalendar(
                 yearMonth = currentYearMonth,
-                dailyTotalTimes = (0 until 30).map { (it * 4) }.shuffled()
+                dailyTotalTimes = (0 until 30).map { (it * 4) }.shuffled(),
+                onBackClicked = {},
+                onForwardClicked = {}
             )
         }
     }

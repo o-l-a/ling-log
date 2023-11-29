@@ -44,7 +44,6 @@ import nl.dionsegijn.konfetti.core.PartySystem
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.Spread
 import nl.dionsegijn.konfetti.core.emitter.Emitter
-import java.time.YearMonth
 import java.util.concurrent.TimeUnit
 
 object HomeDestination : NavigationDestination {
@@ -96,6 +95,8 @@ fun HomeScreen(
             HomeBody(
                 modifier = modifier.padding(innerPadding),
                 homeUiState = homeUiState.value,
+                onCalendarBackClicked = homeViewModel::previousMonth,
+                onCalendarForwardClicked = homeViewModel::nextMonth,
                 doParty = homeViewModel::confetti,
                 stopParty = homeViewModel::confettiStop
             )
@@ -107,6 +108,8 @@ fun HomeScreen(
 fun HomeBody(
     modifier: Modifier = Modifier,
     homeUiState: HomeUiState,
+    onCalendarBackClicked: () -> Unit,
+    onCalendarForwardClicked: () -> Unit,
     doParty: () -> Unit,
     stopParty: () -> Unit
 ) {
@@ -182,8 +185,13 @@ fun HomeBody(
             }
             item {
                 MyInputLogCalendar(
-                    yearMonth = YearMonth.now(),
-                    dailyTotalTimes = (0 until 30).map { it * 4 }.shuffled()
+                    yearMonth = homeUiState.selectedYearMonth,
+                    dailyTotalTimes = homeUiState.monthlyAggregateData.map { durationInSeconds ->
+                        (durationInSeconds / 60).toInt()
+                    },
+                    isLoading = homeUiState.isCalendarLoading,
+                    onForwardClicked = onCalendarForwardClicked,
+                    onBackClicked = onCalendarBackClicked,
                 )
             }
         }
