@@ -47,3 +47,16 @@ fun String.toNonNegativeLongOrNull(): Long? {
     val parsedValue = this.toLongOrNull()
     return if (parsedValue != null && parsedValue >= 0) parsedValue else null
 }
+
+fun String.hideEmail(): String {
+    val atIndex = indexOf('@')
+    return buildString {
+        if (atIndex != -1) {
+            append(this@hideEmail[0])
+            append("*".repeat(atIndex - 1))
+            append(this@hideEmail.substring(atIndex))
+        } else {
+            append(this@hideEmail)
+        }
+    }
+}

@@ -122,6 +122,8 @@
     <string name="likes_playlist_title">Liked videos</string>
     <string name="switch_yt_account">Switch YouTube account</string>
     <string name="logout_yt_account">Log out from YouTube</string>
+    <string name="hide_email">Hide e-mail</string>
+    <string name="show_email">Show e-mail</string>
     <string name="grant_access_yt_account_message">Grant access to your YouTube account to see your playlists.</string>
     <string name="choose_account_label">Choose account</string>
 

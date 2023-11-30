@@ -71,6 +71,7 @@ import com.example.myinputlog.ui.screens.utils.composable.ChannelProfilePicture
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.ListItemPlaceholder
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.ext.hideEmail
 import com.example.myinputlog.ui.screens.video_list.VideoContainer
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
@@ -118,6 +119,8 @@ fun PlaylistsScreen(
                     channelEmail = playlistsUiState.value.channelEmail,
                     onLogoutClicked = playlistsViewModel::signOutWithoutRedirect,
                     onAccountChangeClicked = { authorizationLauncher.launch(playlistsViewModel.attemptAuthorization()) },
+                    onHideEmailClicked = playlistsViewModel::toggleHideEmail,
+                    hideEmail = playlistsUiState.value.hideEmail,
                     scrollBehavior = scrollBehavior
                 )
             }
@@ -307,6 +310,8 @@ fun YouTubeAccountTopAppBar(
     channelEmail: String,
     onLogoutClicked: () -> Unit,
     onAccountChangeClicked: () -> Unit,
+    onHideEmailClicked: (Boolean) -> Unit,
+    hideEmail: Boolean,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -324,7 +329,8 @@ fun YouTubeAccountTopAppBar(
             )
         }, supportingContent = {
             Text(
-                text = channelEmail, style = MaterialTheme.typography.bodyMedium
+                text = if (hideEmail) channelEmail.hideEmail() else channelEmail,
+                style = MaterialTheme.typography.bodyMedium
             )
         })
     }, actions = {
@@ -349,6 +355,20 @@ fun YouTubeAccountTopAppBar(
                     text = { Text(stringResource(R.string.logout_yt_account)) },
                     onClick = {
                         onLogoutClicked()
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(
+                        if (hideEmail) {
+                            R.string.show_email
+                        } else {
+                            R.string.hide_email
+                        })
+                    ) },
+                    onClick = {
+                        onHideEmailClicked(!hideEmail)
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
@@ -380,5 +400,8 @@ fun YouTubeAccountTopAppBarPreview() {
         channelFamilyName = "Peperoni",
         channelEmail = "toni@peperoni.com",
         onLogoutClicked = { },
-        onAccountChangeClicked = { })
+        onAccountChangeClicked = { },
+        onHideEmailClicked = { },
+        hideEmail = false
+    )
 }

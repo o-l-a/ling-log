@@ -305,6 +305,12 @@ class PlaylistsViewModel @Inject constructor(
         loadVideos()
     }
 
+    fun toggleHideEmail(newValue: Boolean = true) {
+        _playlistsUiState.update {
+            it.copy(hideEmail = newValue)
+        }
+    }
+
     companion object {
         private const val TAG = "PlaylistsViewModel"
         const val LIKED_PLAYLIST_ID = "LL"

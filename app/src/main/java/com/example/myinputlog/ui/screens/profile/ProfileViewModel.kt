@@ -3,7 +3,6 @@ package com.example.myinputlog.ui.screens.profile
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myinputlog.R
 import com.example.myinputlog.data.service.impl.DefaultAccountService
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
@@ -73,6 +72,12 @@ class ProfileViewModel @Inject constructor(
                     callback(2)
                 }
             }
+        }
+    }
+
+    fun toggleHideEmail(newValue: Boolean = true) {
+        _profileUiState.update {
+            it.copy(hideEmail = newValue)
         }
     }
 }

@@ -123,6 +123,8 @@
     <string name="likes_playlist_title">Polubione filmy</string>
     <string name="switch_yt_account">Zmień konto YouTube</string>
     <string name="logout_yt_account">Wyloguj się z YouTube</string>
+    <string name="hide_email">Ukryj adres e-mail</string>
+    <string name="show_email">Pokaż adres e-mail</string>
     <string name="grant_access_yt_account_message">Przyznaj dostęp do swojego konta YouTube, żeby wyświetlić swoje playlisty.</string>
     <string name="choose_account_label">Wybierz konto</string>
 

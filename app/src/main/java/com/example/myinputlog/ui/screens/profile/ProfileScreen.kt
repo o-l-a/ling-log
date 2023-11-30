@@ -1,20 +1,26 @@
 package com.example.myinputlog.ui.screens.profile
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -30,8 +36,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -43,6 +52,7 @@ import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.LeadingIconWithText
+import com.example.myinputlog.ui.screens.utils.ext.hideEmail
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
 
@@ -76,6 +86,8 @@ fun ProfileScreen(
             ProfileTopAppBar(
                 profileName = profileUiState.value.username,
                 profileEmail = profileUiState.value.email,
+                onHideEmailClicked = profileViewModel::toggleHideEmail,
+                hideEmail = profileUiState.value.hideEmail,
                 scrollBehavior = scrollBehavior
             )
         },
@@ -261,8 +273,11 @@ fun ProfileTopAppBar(
     modifier: Modifier = Modifier,
     profileName: String,
     profileEmail: String,
+    onHideEmailClicked: (Boolean) -> Unit,
+    hideEmail: Boolean,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
+    var expanded by remember { mutableStateOf(false) }
     TopAppBar(
         modifier = modifier,
         scrollBehavior = scrollBehavior,
@@ -285,10 +300,38 @@ fun ProfileTopAppBar(
                 },
                 supportingContent = {
                     Text(
-                        text = profileEmail, style = MaterialTheme.typography.bodyMedium
+                        text = if (hideEmail) profileEmail.hideEmail() else profileEmail,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             )
+        },
+        actions = {
+            Box(
+                modifier = Modifier.wrapContentSize(Alignment.TopStart)
+            ) {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null)
+                }
+                DropdownMenu(expanded = expanded, onDismissRequest = {
+                    expanded = false
+                }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(
+                            if (hideEmail) {
+                                R.string.show_email
+                            } else {
+                                R.string.hide_email
+                            })
+                        ) },
+                        onClick = {
+                            expanded = false
+                            onHideEmailClicked(!hideEmail)
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    )
+                }
+            }
         }
     )
 }

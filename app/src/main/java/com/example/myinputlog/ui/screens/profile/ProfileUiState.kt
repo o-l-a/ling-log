@@ -12,4 +12,5 @@ data class ProfileUiState(
     val courses: Flow<List<UserCourse>> = emptyFlow(),
     val isDialogVisible: Boolean = false,
     val isNetworkError: Boolean = false,
+    val hideEmail: Boolean = false
 )
