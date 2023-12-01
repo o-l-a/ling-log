@@ -17,7 +17,8 @@ data class PlaylistsUiState(
     val channelGivenName: String = "",
     val channelFamilyName: String = "",
     val channelEmail: String = "",
-    val hideEmail: Boolean = false
+    val hideEmail: Boolean = false,
+    val networkError: Boolean = false
 )
 
 fun UserCourse.toPlaylistsUiState(
@@ -26,7 +27,8 @@ fun UserCourse.toPlaylistsUiState(
     channelGivenName: String = "",
     channelFamilyName: String = "",
     channelEmail: String = "",
-    hideEmail: Boolean = false
+    hideEmail: Boolean = false,
+    networkError: Boolean = false
 ): PlaylistsUiState = PlaylistsUiState(
     currentCourseId = id,
     isLoading = isLoading,
@@ -34,5 +36,6 @@ fun UserCourse.toPlaylistsUiState(
     channelFamilyName = channelFamilyName,
     channelGivenName = channelGivenName,
     channelPictureUrl = channelPictureUrl,
-    hideEmail = hideEmail
+    hideEmail = hideEmail,
+    networkError = networkError
 )

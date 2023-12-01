@@ -253,22 +253,24 @@ class PlaylistsViewModel @Inject constructor(
     }
 
     private fun loadVideos() {
-        authState.value.performActionWithFreshTokens(
-            authorizationService
-        ) { _, _, _ ->
-            pagingSource = PlaylistItemsPagingSource(
-                token = "Bearer ${authState.value.accessToken!!}",
-                playlistId = playlistsUiState.value.currentPlaylistId,
-                videoDataRepository = videoDataRepository
-            )
-            pager = Pager(pagingConfig) {
-                pagingSource!!
+        try {
+            authState.value.performActionWithFreshTokens(
+                authorizationService
+            ) { _, _, _ ->
+                pagingSource = PlaylistItemsPagingSource(
+                    token = "Bearer ${authState.value.accessToken!!}",
+                    playlistId = playlistsUiState.value.currentPlaylistId,
+                    videoDataRepository = videoDataRepository
+                )
+                pager = Pager(pagingConfig) {
+                    pagingSource!!
+                }
+                _playlistsUiState.update {
+                    it.copy(videos = pager!!.flow.cachedIn(viewModelScope))
+                }
             }
-
-            Log.d(TAG, "load videos")
-            _playlistsUiState.update {
-                it.copy(videos = pager!!.flow.cachedIn(viewModelScope))
-            }
+        } catch (e: Exception) {
+            Log.d(TAG, "Error loading videos: ${e.message}")
         }
     }
 
@@ -277,6 +279,7 @@ class PlaylistsViewModel @Inject constructor(
             authorizationService
         ) { _, _, _ ->
             viewModelScope.launch {
+                Log.d(TAG, "Attempting HTTP")
                 try {
                     videoDataRepository.getPlaylistsData(token = "Bearer ${authState.value.accessToken!!}")
                         .let {
@@ -284,7 +287,8 @@ class PlaylistsViewModel @Inject constructor(
                                 val playlistsData = it.body()
                                 _playlistsUiState.update { playlistsUiState ->
                                     playlistsUiState.copy(
-                                        playlistsData = playlistsData
+                                        playlistsData = playlistsData,
+                                        networkError = false
                                     )
                                 }
                             } else {
@@ -292,7 +296,10 @@ class PlaylistsViewModel @Inject constructor(
                             }
                         }
                 } catch (e: Exception) {
-                    Log.d(TAG, e.message.toString())
+                    Log.d(TAG, "Error loading playlists: ${e.message}")
+                    _playlistsUiState.update {
+                        it.copy(networkError = true)
+                    }
                 }
             }
         }

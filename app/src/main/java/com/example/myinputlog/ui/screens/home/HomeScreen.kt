@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +25,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -45,6 +47,7 @@ import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogCalendar
 import com.example.myinputlog.ui.screens.utils.formatDurationAsText
+import com.example.myinputlog.ui.theme.MyInputLogTheme
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
 import nl.dionsegijn.konfetti.compose.KonfettiView
@@ -287,12 +290,18 @@ fun StatisticContainer(
 @Preview
 @Composable
 fun StatisticContainerPreview() {
-    StatisticContainer(
-        modifier = Modifier.width(MaterialTheme.spacing.doubleExtraLarge),
-        number = "10",
-        label = "label",
-        leadingContent = {
-            Icon(imageVector = Icons.Filled.Timer, contentDescription = null)
+    MyInputLogTheme {
+        Surface {
+            StatisticContainer(
+                modifier = Modifier
+                    .width(MaterialTheme.spacing.doubleExtraLarge)
+                    .height(MaterialTheme.spacing.extraLarge),
+                number = "10",
+                label = "label",
+                leadingContent = {
+                    Icon(imageVector = Icons.Filled.Timer, contentDescription = null)
+                }
+            )
         }
-    )
+    }
 }

@@ -89,7 +89,7 @@ fun MyInputLogCalendar(
         } else {
             CalendarDays(
                 calendarItems = calendarItems,
-                today = LocalDate.now().dayOfMonth
+                today = if (yearMonth == YearMonth.now()) LocalDate.now().dayOfMonth else -1
             )
         }
     }

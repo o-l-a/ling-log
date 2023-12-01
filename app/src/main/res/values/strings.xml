@@ -126,6 +126,7 @@
     <string name="show_email">Show e-mail</string>
     <string name="grant_access_yt_account_message">Grant access to your YouTube account to see your playlists.</string>
     <string name="choose_account_label">Choose account</string>
+    <string name="network_error_playlists">Your playlist data will appear when you go back online.</string>
 
     <!--    placeholder    -->
     <string name="placeholder_long_text">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</string>

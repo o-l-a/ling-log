@@ -57,6 +57,9 @@ class PlaylistItemsPagingSource(
         } catch (e: InvocationTargetException) {
             e.targetException.message?.let { Log.d(TAG, it) }
             LoadResult.Error(e)
+        } catch (e: Exception) {
+            Log.d(TAG, "Error loading videos: ${e.message}")
+            LoadResult.Error(e)
         }
     }
 }

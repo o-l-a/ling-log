@@ -169,6 +169,10 @@ fun PlaylistsScreen(
             }
         } else if (playlistsUiState.value.isLoading) {
             PlaylistsLoadingBody()
+        } else if (videos.loadState.refresh is LoadState.Error || playlistsUiState.value.networkError) {
+            EmptyCollectionBox(
+                bodyMessage = R.string.network_error_playlists
+            )
         } else {
             PlaylistsBody(
                 modifier = Modifier.padding(innerPadding),
@@ -360,13 +364,17 @@ fun YouTubeAccountTopAppBar(
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )
                 DropdownMenuItem(
-                    text = { Text(stringResource(
-                        if (hideEmail) {
-                            R.string.show_email
-                        } else {
-                            R.string.hide_email
-                        })
-                    ) },
+                    text = {
+                        Text(
+                            stringResource(
+                                if (hideEmail) {
+                                    R.string.show_email
+                                } else {
+                                    R.string.hide_email
+                                }
+                            )
+                        )
+                    },
                     onClick = {
                         onHideEmailClicked(!hideEmail)
                         expanded = false
@@ -395,7 +403,8 @@ fun PlaylistsLoadingBody(
 @Preview
 @Composable
 fun YouTubeAccountTopAppBarPreview() {
-    YouTubeAccountTopAppBar(channelPictureUrl = "",
+    YouTubeAccountTopAppBar(
+        channelPictureUrl = "",
         channelGivenName = "Toni",
         channelFamilyName = "Peperoni",
         channelEmail = "toni@peperoni.com",
