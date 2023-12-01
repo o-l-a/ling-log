@@ -155,11 +155,17 @@ class DefaultStorageService @Inject constructor(
     }
 
     override suspend fun deleteAllForUser(userId: String) {
-        TODO("Not yet implemented")
+        val courses: List<UserCourse> = currentUserCourseCollection(userId).get().await().toObjects()
+        courses.forEach {
+            deleteAllVideosForCourse(userId, it.id)
+        }
     }
 
-    override suspend fun deleteAllVideosForCourse(userCourseId: String) {
-        TODO("Not yet implemented")
+    override suspend fun deleteAllVideosForCourse(userId: String, userCourseId: String) {
+        val videosForCourse: List<YouTubeVideo> = youTubeVideoCollectionForCurrentUserCourse(userId, userCourseId).get().await().toObjects()
+        videosForCourse.forEach {
+            deleteYouTubeVideo(userCourseId, it.id)
+        }
     }
 
     private fun getStartOfTodayTimestamp(): Date {

@@ -17,7 +17,8 @@ const val TAG = "AccountService"
 
 class DefaultAccountService @Inject constructor(
     private val auth: FirebaseAuth,
-    val firestore: FirebaseFirestore
+    val firestore: FirebaseFirestore,
+    private val storageService: DefaultStorageService
 ) : AccountService {
     override val currentUserId: String
         get() = auth.currentUser?.uid.orEmpty()
@@ -80,6 +81,7 @@ class DefaultAccountService @Inject constructor(
 
         if (uid != null) {
             try {
+                storageService.deleteAllForUser(uid)
                 firestore.collection(DefaultStorageService.USER_COLLECTION).document(uid).delete().await()
                 auth.currentUser?.delete()?.await()
             } catch (e: Exception) {
