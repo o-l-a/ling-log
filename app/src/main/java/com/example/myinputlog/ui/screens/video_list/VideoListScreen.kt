@@ -24,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -47,7 +46,6 @@ import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.ListItemPlaceholder
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownField
 import com.example.myinputlog.ui.screens.utils.composable.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.ext.formatAsListHeader
 import com.example.myinputlog.ui.theme.spacing
@@ -79,7 +77,7 @@ fun VideoListScreen(
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            if (userCourses.value != null) {
+            if (userCourses.value != null && userCourses.value!!.isNotEmpty()) {
                 CourseTopAppBar(
                     course = videoListUiState.value.toUserCourse(),
                     courseStatistics = videoListUiState.value.courseStatistics,

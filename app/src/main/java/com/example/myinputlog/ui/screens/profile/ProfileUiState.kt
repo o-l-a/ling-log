@@ -10,7 +10,9 @@ data class ProfileUiState(
     val email: String = "",
     val id: String = "",
     val courses: Flow<List<UserCourse>> = emptyFlow(),
-    val isDialogVisible: Boolean = false,
+    val isConfirmDialogVisible: Boolean = false,
     val isNetworkError: Boolean = false,
+    val isUsernameDialogVisible: Boolean = false,
+    val newUsername: String = "",
     val hideEmail: Boolean = false
 )

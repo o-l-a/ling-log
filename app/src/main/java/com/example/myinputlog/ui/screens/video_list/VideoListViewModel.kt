@@ -34,7 +34,7 @@ class VideoListViewModel @Inject constructor(
         viewModelScope.launch {
             val currentCourse = userCourses.firstOrNull()?.find {
                 it.id == (preferenceStorageService.currentCourseId.firstOrNull() ?: "")
-            } ?: UserCourse()
+            } ?: userCourses.firstOrNull()?.getOrNull(0) ?: UserCourse()
             try {
                 _videoListUiState.update {
                     currentCourse.toVideoListUiState().copy(

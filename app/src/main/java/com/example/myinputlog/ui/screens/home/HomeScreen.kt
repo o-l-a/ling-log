@@ -82,7 +82,7 @@ fun HomeScreen(
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            if (userCourses.value != null) {
+            if (userCourses.value != null && userCourses.value!!.isNotEmpty()) {
                 CourseTopAppBar(
                     course = homeUiState.value.toUserCourse(),
                     courseStatistics = homeUiState.value.courseStatistics,

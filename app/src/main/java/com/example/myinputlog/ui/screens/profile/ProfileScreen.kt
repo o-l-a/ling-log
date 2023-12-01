@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
@@ -26,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -35,7 +37,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
+import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.utils.composable.LeadingIconWithText
 import com.example.myinputlog.ui.screens.utils.ext.hideEmail
 import com.example.myinputlog.ui.theme.spacing
@@ -88,6 +90,7 @@ fun ProfileScreen(
                 profileEmail = profileUiState.value.email,
                 onHideEmailClicked = profileViewModel::toggleHideEmail,
                 hideEmail = profileUiState.value.hideEmail,
+                onChangeUsernameClicked = { profileViewModel.toggleUsernameDialogVisibility(true) },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -100,6 +103,38 @@ fun ProfileScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
+        if (profileUiState.value.isConfirmDialogVisible) {
+            ConfirmDeleteAccountDialog(
+                onConfirm = {
+                    profileViewModel.deleteAccount(navigateWithPopUp) { returnCode ->
+                        if (returnCode != 0) {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(if (returnCode == 2) snackbarGeneralErrorMessage else snackbarRecentLogErrorMessage)
+                            }
+                        }
+                    }
+                },
+                onDismiss = {
+                    profileViewModel.toggleDialogVisibility(false)
+                }
+            )
+        }
+        if (profileUiState.value.isUsernameDialogVisible) {
+            EditUsernameDialog(
+                profileUiState = profileUiState.value,
+                onConfirm = {
+                    profileViewModel.updateUsername { returnCode ->
+                        if (returnCode != 0) {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(snackbarGeneralErrorMessage)
+                            }
+                        }
+                    }
+                },
+                onDismiss = { profileViewModel.toggleUsernameDialogVisibility(false) },
+                onValueChange = { profileViewModel.updateUiState(it) }
+            )
+        }
         ProfileBody(
             modifier = modifier.padding(innerPadding),
             onSignOutClicked = {
@@ -108,16 +143,6 @@ fun ProfileScreen(
             },
             onAddCourseClicked = navigateToUserCourseEntry,
             onCourseClicked = navigateToUserCourse,
-            onConfirm = {
-                profileViewModel.deleteAccount(navigateWithPopUp) { returnCode ->
-                    if (returnCode != 0) {
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar(if (returnCode == 2) snackbarGeneralErrorMessage else snackbarRecentLogErrorMessage)
-                        }
-                    }
-                }
-            },
-            profileUiState = profileUiState,
             courses = profileUiState.value.courses.collectAsStateWithLifecycle(initialValue = listOf()).value,
             toggleDialogVisibility = { visible ->
                 profileViewModel.toggleDialogVisibility(visible)
@@ -132,17 +157,9 @@ fun ProfileBody(
     onSignOutClicked: () -> Unit,
     onAddCourseClicked: () -> Unit,
     onCourseClicked: (String) -> Unit,
-    onConfirm: () -> Unit,
-    profileUiState: State<ProfileUiState>,
     courses: List<UserCourse>,
     toggleDialogVisibility: (Boolean) -> Unit
 ) {
-    if (profileUiState.value.isDialogVisible) {
-        ConfirmDeleteAccountDialog(
-            onConfirm = onConfirm,
-            onDismiss = { toggleDialogVisibility(false) }
-        )
-    }
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
@@ -267,6 +284,44 @@ private fun ConfirmDeleteAccountDialog(
     )
 }
 
+@Composable
+fun EditUsernameDialog(
+    modifier: Modifier = Modifier,
+    profileUiState: ProfileUiState,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    onValueChange: (ProfileUiState) -> Unit
+) {
+    AlertDialog(
+        modifier = modifier,
+        onDismissRequest = onDismiss,
+        text = {
+            OutlinedTextField(
+                value = profileUiState.newUsername,
+                onValueChange = { onValueChange(profileUiState.copy(newUsername = it)) },
+                label = {
+                    Text(stringResource(R.string.new_username))
+                },
+                keyboardOptions = IME_ACTION_DONE,
+                keyboardActions = KeyboardActions(
+                    onDone = { onConfirm() }
+                ),
+                textStyle = MaterialTheme.typography.bodyLarge
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.save_text))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.dismiss_delete))
+            }
+        }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileTopAppBar(
@@ -275,6 +330,7 @@ fun ProfileTopAppBar(
     profileEmail: String,
     onHideEmailClicked: (Boolean) -> Unit,
     hideEmail: Boolean,
+    onChangeUsernameClicked: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -317,16 +373,30 @@ fun ProfileTopAppBar(
                     expanded = false
                 }) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(
-                            if (hideEmail) {
-                                R.string.show_email
-                            } else {
-                                R.string.hide_email
-                            })
-                        ) },
+                        text = {
+                            Text(
+                                stringResource(
+                                    if (hideEmail) {
+                                        R.string.show_email
+                                    } else {
+                                        R.string.hide_email
+                                    }
+                                )
+                            )
+                        },
                         onClick = {
                             expanded = false
                             onHideEmailClicked(!hideEmail)
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(stringResource(R.string.change_username))
+                        },
+                        onClick = {
+                            expanded = false
+                            onChangeUsernameClicked()
                         },
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                     )

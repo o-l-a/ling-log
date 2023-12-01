@@ -35,7 +35,8 @@ class ProfileViewModel @Inject constructor(
                         username = userData.username,
                         email = userData.email,
                         id = userData.id,
-                        courses = storageService.userCourses
+                        courses = storageService.userCourses,
+                        newUsername = userData.username
                     )
                 }
                 Log.d("PROFILE", userData.username)
@@ -52,8 +53,38 @@ class ProfileViewModel @Inject constructor(
     fun toggleDialogVisibility(visible: Boolean) {
         _profileUiState.update {
             it.copy(
-                isDialogVisible = visible
+                isConfirmDialogVisible = visible
             )
+        }
+    }
+
+    fun toggleUsernameDialogVisibility(visible: Boolean) {
+        _profileUiState.update {
+            it.copy(
+                isUsernameDialogVisible = visible
+            )
+        }
+    }
+
+    fun updateUiState(updatedUiState: ProfileUiState) {
+        _profileUiState.update {
+            updatedUiState
+        }
+    }
+
+    fun updateUsername(callback: (Int) -> Unit) {
+        viewModelScope.launch {
+            try {
+                accountService.changeUsername(profileUiState.value.newUsername)
+                _profileUiState.update {
+                    it.copy(username = it.newUsername)
+                }
+                toggleUsernameDialogVisibility(false)
+                callback(0)
+            } catch (e: Exception) {
+                toggleUsernameDialogVisibility(false)
+                callback(1)
+            }
         }
     }
 

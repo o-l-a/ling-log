@@ -22,7 +22,4 @@ interface StorageService {
     suspend fun saveYouTubeVideo(userCourseId: String, youTubeVideo: YouTubeVideo)
     suspend fun updateYouTubeVideo(userCourseId: String, youTubeVideo: YouTubeVideo)
     suspend fun deleteYouTubeVideo(userCourseId: String, youTubeVideoId: String)
-
-    suspend fun deleteAllForUser(userId: String)
-    suspend fun deleteAllVideosForCourse(userId: String, userCourseId: String)
 }

@@ -45,6 +45,7 @@
     <string name="sign_up_bottom_text">Masz już konto? </string>
     <string name="required">wymagane pole</string>
     <string name="username">Nazwa użytkownika</string>
+    <string name="new_username">Nowa nazwa użytkownika</string>
     <string name="password">Hasło</string>
     <string name="email">E-mail</string>
     <string name="username_hint">Nazwa użytkownika nie może być pusta.</string>
@@ -77,6 +78,7 @@
     <string name="confirm_delete">Usuń</string>
 
     <!--    course    -->
+    <string name="change_username">Zmień nazwę użytkownika</string>
     <string name="new_course_button">Nowy język</string>
     <string name="course_name_label">Język</string>
     <string name="course_goal_label">Cel (w godzinach)</string>

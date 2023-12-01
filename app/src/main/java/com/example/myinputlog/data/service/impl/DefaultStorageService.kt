@@ -108,8 +108,6 @@ class DefaultStorageService @Inject constructor(
         val daysInMonth = yearMonth.lengthOfMonth()
         val aggregatedDataList = mutableListOf<Long>()
 
-        Log.d(TAG, "Aggregating for: $yearMonth")
-
         for (dayOfMonth in 1..daysInMonth) {
             val startOfDay = Date(yearMonth.atDay(dayOfMonth)
                 .atStartOfDay(ZoneId.systemDefault())
@@ -126,14 +124,12 @@ class DefaultStorageService @Inject constructor(
                     .get(AggregateSource.SERVER)
                     .await()
                 val todayTime = todayTimeTask.getLong(aggregateField) ?: 0L
-                Log.d(TAG, "$dayOfMonth: $todayTime")
                 aggregatedDataList.add(todayTime)
             } catch (e: FirebaseFirestoreException) {
                 Log.d(TAG, "Error fetching data for day $dayOfMonth: ${e.message}")
                 throw e
             }
         }
-        Log.d(TAG, "Data list: $aggregatedDataList")
         return aggregatedDataList
     }
 
@@ -152,20 +148,6 @@ class DefaultStorageService @Inject constructor(
 
     override suspend fun deleteYouTubeVideo(userCourseId: String, youTubeVideoId: String) {
         youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).document(youTubeVideoId).delete().await()
-    }
-
-    override suspend fun deleteAllForUser(userId: String) {
-        val courses: List<UserCourse> = currentUserCourseCollection(userId).get().await().toObjects()
-        courses.forEach {
-            deleteAllVideosForCourse(userId, it.id)
-        }
-    }
-
-    override suspend fun deleteAllVideosForCourse(userId: String, userCourseId: String) {
-        val videosForCourse: List<YouTubeVideo> = youTubeVideoCollectionForCurrentUserCourse(userId, userCourseId).get().await().toObjects()
-        videosForCourse.forEach {
-            deleteYouTubeVideo(userCourseId, it.id)
-        }
     }
 
     private fun getStartOfTodayTimestamp(): Date {
@@ -192,10 +174,10 @@ class DefaultStorageService @Inject constructor(
     companion object {
         private const val TAG = "VideoStorageService"
         const val USER_COLLECTION = "users"
-        private const val USER_COURSE_COLLECTION = "userCourses"
+        const val USER_COURSE_COLLECTION = "userCourses"
         private const val USER_COURSE_SAVE_TRACE = "saveUserCourse"
         private const val USER_COURSE_UPDATE_TRACE = "updateUserCourse"
-        private const val YOU_TUBE_VIDEO_COLLECTION = "youTubeVideos"
+        const val YOU_TUBE_VIDEO_COLLECTION = "youTubeVideos"
         private const val YOU_TUBE_VIDEO_SAVE_TRACE = "saveYouTubeVideo"
         private const val YOU_TUBE_VIDEO_UPDATE_TRACE = "updateYouTubeVideo"
     }

@@ -27,7 +27,7 @@ class HomeViewModel @Inject constructor(
             val currentCourseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
             val currentCourse = userCourses.firstOrNull()?.find {
                 it.id == currentCourseId
-            } ?: UserCourse()
+            } ?: userCourses.firstOrNull()?.getOrNull(0) ?: UserCourse()
             _homeUiState.update {
                 currentCourse.toHomeUiState().copy(
                     userCourses = userCourses,
