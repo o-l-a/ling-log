@@ -215,7 +215,8 @@ fun VideoContainer(
     video: YouTubeVideo,
     isSeparator: Boolean = false,
     onVideoClicked: (String) -> Unit,
-    isPlaylistItem: Boolean = false
+    isPlaylistItem: Boolean = false,
+    isClickable: Boolean = false
 ) {
     if (!isSeparator) {
         ListItem(
@@ -250,7 +251,10 @@ fun VideoContainer(
             },
             trailingContent = {
                 if (isPlaylistItem) {
-                    IconButton(onClick = { onVideoClicked(video.videoUrl) }) {
+                    IconButton(
+                        enabled = isClickable,
+                        onClick = { onVideoClicked(video.videoUrl) }
+                    ) {
                         Icon(
                             modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
                             imageVector = Icons.Filled.LibraryAdd,

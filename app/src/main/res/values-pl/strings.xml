@@ -34,6 +34,9 @@
     <string name="copy_text">Kopiuj</string>
     <string name="share_text">Udostępnij</string>
     <string name="ok_text">OK</string>
+    <string name="today_text">Dzisiaj</string>
+    <string name="yesterday_text">Wczoraj</string>
+    <string name="long_ago_text">Dawno temu</string>
 
     <!--    routine screen field labels    -->
     <string name="date_placeholder">dd/mm/yyyy</string>
@@ -113,9 +116,9 @@
     <string name="country_bolivia">Boliwia</string>
 
     <!--    stats labels    -->
-    <string name="stats_hours_watched">czasu</string>
-    <string name="stats_hours_watched_today">czasu dzisiaj</string>
-    <string name="stats_videos_watched">filmów</string>
+    <string name="stats_hours_watched">łączny czas</string>
+    <string name="stats_hours_watched_today">czas dzisiaj</string>
+    <string name="stats_videos_watched">liczba filmów</string>
     <string name="yay">Yay!</string>
     <string name="good_job">Dobra robota.</string>
     <string name="progress">Postęp: %s</string>

@@ -1,9 +1,13 @@
 package com.example.myinputlog.ui.screens.utils.ext
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.utils.dateFormatter
 import java.util.Calendar
 import java.util.Date
 
+@Composable
 fun Date.formatAsListHeader(): String {
     val calendar = Calendar.getInstance()
     val today = calendar.clone() as Calendar
@@ -13,15 +17,15 @@ fun Date.formatAsListHeader(): String {
 
     return when {
         isSameDay(today.time, this) -> {
-            "Today"
+            stringResource(R.string.today_text)
         }
 
         isSameDay(yesterday.time, this) -> {
-            "Yesterday"
+            stringResource(R.string.yesterday_text)
         }
 
         isSameDay(Date(0), this) -> {
-            "Long ago"
+            stringResource(R.string.long_ago_text)
         }
 
         else -> {

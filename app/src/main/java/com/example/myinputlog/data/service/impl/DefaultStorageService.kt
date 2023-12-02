@@ -63,7 +63,7 @@ class DefaultStorageService @Inject constructor(
     override suspend fun getUserCourse(userCourseId: String): UserCourse? =
         currentUserCourseCollection(auth.currentUserId).document(userCourseId).get().await().toObject()
 
-    override suspend fun saveUserCourse(userCourse: UserCourse): Unit =
+    override suspend fun saveUserCourse(userCourse: UserCourse): String =
         trace(USER_COURSE_SAVE_TRACE) {
             currentUserCourseCollection(auth.currentUserId).add(userCourse).await().id
         }

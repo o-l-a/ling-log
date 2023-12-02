@@ -246,7 +246,8 @@ fun PlaylistsBody(
                     VideoContainer(
                         video = video,
                         onVideoClicked = navigateToYouTubeVideoEntryWithUrl,
-                        isPlaylistItem = true
+                        isPlaylistItem = true,
+                        isClickable = playlistsUiState.currentCourseId.isNotBlank()
                     )
                 }
             }

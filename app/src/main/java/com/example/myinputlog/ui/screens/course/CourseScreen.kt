@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -17,13 +17,17 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.NavigationDestination
+import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
+import com.example.myinputlog.ui.screens.utils.IME_ACTION_NEXT
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.theme.spacing
 
@@ -69,7 +73,11 @@ fun CourseScreen(
             CourseEditBody(
                 modifier = Modifier.padding(innerPadding),
                 courseUiState = courseUiState.value,
-                onCourseValueChange = courseViewModel::updateUiState
+                onCourseValueChange = courseViewModel::updateUiState,
+                onDone = {
+                    courseViewModel.persistCourse()
+                    onNavigateUp()
+                }
             )
         }
     }
@@ -92,7 +100,10 @@ fun CourseEditBody(
     modifier: Modifier = Modifier,
     courseUiState: CourseUiState,
     onCourseValueChange: (CourseUiState) -> Unit,
+    onDone: () -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
+
     Column(
         modifier = modifier
             .fillMaxSize(),
@@ -117,7 +128,11 @@ fun CourseEditBody(
                     )
                 )
             },
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = IME_ACTION_NEXT,
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+            )
         )
         OutlinedTextField(
             modifier = Modifier
@@ -138,8 +153,11 @@ fun CourseEditBody(
                 )
             },
             singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardOptions = IME_ACTION_NEXT.copy(
                 keyboardType = KeyboardType.Number
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
         )
         OutlinedTextField(
@@ -161,8 +179,14 @@ fun CourseEditBody(
                 )
             },
             singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardOptions = IME_ACTION_DONE.copy(
                 keyboardType = KeyboardType.Number
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    onDone()
+                    focusManager.clearFocus()
+                }
             )
         )
     }

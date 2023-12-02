@@ -12,7 +12,7 @@ interface StorageService {
     suspend fun videosByWatchedOnQuery(courseId: String, lastVideoId: String?, limitSize: Long): Query
 
     suspend fun getUserCourse(userCourseId: String): UserCourse?
-    suspend fun saveUserCourse(userCourse: UserCourse)
+    suspend fun saveUserCourse(userCourse: UserCourse): String
     suspend fun updateUserCourse(userCourse: UserCourse)
     suspend fun deleteUserCourse(userCourseId: String)
     suspend fun getCourseStatistics(userCourseId: String): CourseStatistics

@@ -33,6 +33,9 @@
     <string name="copy_text">Copy</string>
     <string name="share_text">Share</string>
     <string name="ok_text">OK</string>
+    <string name="today_text">Today</string>
+    <string name="yesterday_text">Yesterday</string>
+    <string name="long_ago_text">Long ago</string>
 
     <!--    routine screen field labels    -->
     <string name="date_placeholder">dd/mm/yyyy</string>
@@ -114,7 +117,7 @@
     <!--    stats labels    -->
     <string name="stats_hours_watched">time spent</string>
     <string name="stats_hours_watched_today">spent today</string>
-    <string name="stats_videos_watched">videos watched</string>
+    <string name="stats_videos_watched">videos total</string>
     <string name="yay">Yay!</string>
     <string name="good_job">Good job.</string>
     <string name="progress">Progress: %s</string>
