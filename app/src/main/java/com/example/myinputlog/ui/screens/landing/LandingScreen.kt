@@ -20,7 +20,7 @@ import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
 import kotlinx.coroutines.delay
 
-private const val LANDING_TIMEOUT = 1L
+private const val LANDING_TIMEOUT = 2L
 
 object LandingDestination : NavigationDestination {
     override val route: String = "landing"

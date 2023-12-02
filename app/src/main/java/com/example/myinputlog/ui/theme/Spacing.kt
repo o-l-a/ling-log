@@ -15,6 +15,7 @@ data class Spacing(
     val small: Dp = 8.dp,
     val medium: Dp = 16.dp,
     val large: Dp = 32.dp,
+    val appLogoSize: Dp = 48.dp,
     val extraLarge: Dp = 64.dp,
     val doubleExtraLarge: Dp = 128.dp
 )

@@ -32,7 +32,7 @@ import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.ui.navigation.MyInputLogNavHost
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.navigation.navigationItems
-import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
+import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIconWithoutBackground
 import com.example.myinputlog.ui.theme.MyInputLogTheme
 import com.example.myinputlog.ui.theme.spacing
 import java.util.concurrent.TimeUnit
@@ -194,10 +194,10 @@ fun CourseTopAppBar(
         modifier = modifier,
         scrollBehavior = scrollBehavior,
         navigationIcon = {
-            MyInputLogAppIcon(
+            MyInputLogAppIconWithoutBackground(
                 modifier = Modifier
                     .padding(start = MaterialTheme.spacing.medium)
-                    .size(MaterialTheme.spacing.large)
+                    .size(MaterialTheme.spacing.appLogoSize)
             )
         },
         title = {
@@ -211,7 +211,10 @@ fun CourseTopAppBar(
                 },
                 supportingContent = {
                     Text(
-                        text = stringResource(R.string.progress, "${progress.toLong()}% (${totalHours}h/${course.goalInHours}h)"),
+                        text = stringResource(
+                            R.string.progress,
+                            "${progress.toLong()}% (${totalHours}h/${course.goalInHours}h)"
+                        ),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
