@@ -3,6 +3,7 @@ package com.example.myinputlog.ui.screens.video
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.ui.screens.utils.Country
+import com.example.myinputlog.ui.screens.utils.ext.asStartOfDay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Calendar
@@ -62,7 +63,7 @@ fun YouTubeVideo.toVideoUiState(
 
 fun VideoUiState.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
     id = id,
-    watchedOn = watchedOn ?: Date(0),
+    watchedOn = watchedOn?.asStartOfDay() ?: Date(0),
     speakersNationality = speakersNationality,
     title = title,
     channel = channel,

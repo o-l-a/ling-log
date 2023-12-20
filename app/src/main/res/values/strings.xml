@@ -113,6 +113,7 @@
     <string name="country_uruguay">Uruguay</string>
     <string name="country_paraguay">Paraguay</string>
     <string name="country_bolivia">Bolivia</string>
+    <string name="country_guatemala">Guatemala</string>
 
     <!--    stats labels    -->
     <string name="stats_hours_watched">time spent</string>

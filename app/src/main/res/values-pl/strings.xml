@@ -114,6 +114,7 @@
     <string name="country_uruguay">Urugwaj</string>
     <string name="country_paraguay">Paragwaj</string>
     <string name="country_bolivia">Boliwia</string>
+    <string name="country_guatemala">Gwatemala</string>
 
     <!--    stats labels    -->
     <string name="stats_hours_watched">łączny czas</string>

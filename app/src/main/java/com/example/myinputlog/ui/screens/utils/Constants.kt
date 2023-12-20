@@ -101,6 +101,7 @@ enum class Country(@StringRes val countryNameResId: Int, val flagEmoji: String) 
     URUGUAY(R.string.country_uruguay, "🇺🇾"),
     PARAGUAY(R.string.country_paraguay, "🇵🇾"),
     BOLIVIA(R.string.country_bolivia, "🇧🇴"),
+    GUATEMALA(R.string.country_guatemala, "🇬🇹"),
 }
 
 class AuthConstants {

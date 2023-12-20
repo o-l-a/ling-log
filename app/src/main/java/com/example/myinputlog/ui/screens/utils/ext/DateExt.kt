@@ -43,3 +43,17 @@ private fun isSameDay(date1: Date, date2: Date): Boolean {
             cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
             cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
 }
+
+fun Date.asStartOfDay(): Date {
+    val calendar = Calendar.getInstance()
+    this.let { date ->
+        calendar.time = date
+    }
+
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+
+    return calendar.time
+}
