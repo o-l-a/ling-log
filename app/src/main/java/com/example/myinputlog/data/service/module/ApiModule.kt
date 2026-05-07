@@ -2,7 +2,7 @@ package com.example.myinputlog.data.service.module
 
 import com.example.myinputlog.data.repository.impl.DefaultVideoDataRepository
 import com.example.myinputlog.data.service.ApiService
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -66,7 +66,7 @@ class DefaultAccountService @Inject constructor(
 
                 val firestoreTask =
                     firestore.collection(DefaultStorageService.USER_COLLECTION).document(user.uid)
-                        .set({})
+                        .set(hashMapOf<String, Any>())
                 firestoreTask.await()
                 Log.d(TAG, "createCollection:success")
             } else {
