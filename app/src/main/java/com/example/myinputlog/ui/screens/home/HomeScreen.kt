@@ -29,6 +29,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +39,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.CourseTopAppBar
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
@@ -71,57 +72,74 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel,
     onBottomNavClicked: (String) -> Unit,
-    navigateToYouTubeVideoEntry: (String) -> Unit,
+    navigateToYouTubeVideoEntry: (String?) -> Unit,
 ) {
-    val homeUiState = homeViewModel.homeUiState.collectAsStateWithLifecycle()
-    val userCourses = homeUiState.value.userCourses.collectAsStateWithLifecycle(emptyList())
+    val homeUiState by homeViewModel.homeUiState.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            if (userCourses.value != null && userCourses.value!!.isNotEmpty()) {
+    val currentCourseId = (homeUiState as? HomeUiState.Success)?.currentCourse?.id
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
+            if (homeUiState is HomeUiState.Success) {
                 CourseTopAppBar(
-                    course = homeUiState.value.toUserCourse(),
-                    courseStatistics = homeUiState.value.courseStatistics,
+                    course = (homeUiState as HomeUiState.Success).currentCourse,
+                    courseStatistics = (homeUiState as HomeUiState.Success).courseStatistics,
                     onValueChange = homeViewModel::changeCurrentCourseId,
-                    options = userCourses.value!!,
+                    options = (homeUiState as HomeUiState.Success).userCourses,
                     scrollBehavior = scrollBehavior
                 )
             }
-        },
-        bottomBar = {
+        }, bottomBar = {
             MyInputLogBottomNavBar(
                 selectedScreen = Screen.Home,
                 onBottomNavClicked = onBottomNavClicked,
-                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(homeUiState.value.id) }
-            )
+                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
+        }) { innerPadding ->
+            when (homeUiState) {
+                is HomeUiState.Loading -> {
+                    LoadingBox()
+                }
+
+                is HomeUiState.Error -> {
+                    EmptyCollectionBox(
+                        modifier = modifier.padding(MaterialTheme.spacing.medium),
+                        bodyMessage = R.string.empty_course_collection_body
+                    )
+                }
+
+                is HomeUiState.NetworkError -> {
+                    EmptyCollectionBox(
+                        modifier = Modifier.padding(top = MaterialTheme.spacing.doubleExtraLarge),
+                        bodyMessage = R.string.stats_network_error
+                    )
+                }
+
+                is HomeUiState.Success -> {
+                    HomeBody(
+                        modifier = modifier.padding(innerPadding),
+                        homeUiState = homeUiState as HomeUiState.Success,
+                        listState = scrollState,
+                        onCalendarBackClicked = {
+                            homeViewModel.previousMonth()
+                            coroutineScope.launch { scrollState.animateScrollToItem(1) }
+                        },
+                        onCalendarForwardClicked = {
+                            homeViewModel.nextMonth()
+                            coroutineScope.launch { scrollState.animateScrollToItem(1) }
+                        },
+                        doParty = homeViewModel::confetti
+
+                    )
+                }
+            }
         }
-    ) { innerPadding ->
-        if (userCourses.value == null) {
-            LoadingBox()
-        } else if (userCourses.value!!.isEmpty()) {
-            EmptyCollectionBox(
-                modifier = modifier.padding(MaterialTheme.spacing.medium),
-                bodyMessage = R.string.empty_course_collection_body
-            )
-        } else {
-            HomeBody(
-                modifier = modifier.padding(innerPadding),
-                homeUiState = homeUiState.value,
-                listState = scrollState,
-                onCalendarBackClicked = {
-                    homeViewModel.previousMonth()
-                    coroutineScope.launch { scrollState.animateScrollToItem(1) }
-                },
-                onCalendarForwardClicked = {
-                    homeViewModel.nextMonth()
-                    coroutineScope.launch { scrollState.animateScrollToItem(1) }
-                },
-                doParty = homeViewModel::confetti,
-                stopParty = homeViewModel::confettiStop
+
+        if (homeUiState is HomeUiState.Success && (homeUiState as HomeUiState.Success).isParty) {
+            ConfettiOverlay(
+                modifier = modifier.fillMaxSize(), stopParty = homeViewModel::confettiStop
             )
         }
     }
@@ -130,112 +148,102 @@ fun HomeScreen(
 @Composable
 fun HomeBody(
     modifier: Modifier = Modifier,
-    homeUiState: HomeUiState,
+    homeUiState: HomeUiState.Success,
     listState: LazyListState,
     onCalendarBackClicked: () -> Unit,
     onCalendarForwardClicked: () -> Unit,
-    doParty: () -> Unit,
-    stopParty: () -> Unit
+    doParty: () -> Unit
 ) {
-    if (homeUiState.isParty) {
-        KonfettiView(
-            modifier = Modifier
-                .fillMaxSize()
-                .zIndex(1F),
-            parties = listOf(
-                Party(
-                    speed = 0f,
-                    maxSpeed = 15f,
-                    damping = 0.9f,
-                    angle = Angle.BOTTOM,
-                    spread = Spread.ROUND,
-                    colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
-                    emitter = Emitter(duration = 5, TimeUnit.SECONDS).perSecond(100),
-                    position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0))
-                )
-            ),
-            updateListener = object : OnParticleSystemUpdateListener {
-                override fun onParticleSystemEnded(system: PartySystem, activeSystems: Int) {
-                    if (activeSystems == 0) stopParty()
-                }
-            }
-        )
-    }
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
         contentPadding = PaddingValues(MaterialTheme.spacing.extraSmall),
         state = listState
     ) {
-        if (homeUiState.networkError) {
-            item {
-                EmptyCollectionBox(
-                    modifier = Modifier.padding(top = MaterialTheme.spacing.doubleExtraLarge),
-                    bodyMessage = R.string.stats_network_error
-                )
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                StatisticContainer(
+                    modifier = Modifier.weight(1F),
+                    number = formatDurationAsText(homeUiState.courseStatistics.timeWatched),
+                    label = stringResource(R.string.stats_hours_watched),
+                    leadingContent = {
+                        Icon(imageVector = Icons.Filled.Timer, contentDescription = null)
+                    })
+                StatisticContainer(
+                    modifier = Modifier.weight(1F),
+                    number = formatDurationAsText(homeUiState.courseStatistics.timeWatchedToday),
+                    label = stringResource(R.string.stats_hours_watched_today),
+                    leadingContent = {
+                        Icon(imageVector = Icons.Filled.Today, contentDescription = null)
+                    })
             }
-        } else {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    StatisticContainer(
-                        modifier = Modifier.weight(1F),
-                        number = formatDurationAsText(homeUiState.courseStatistics.timeWatched),
-                        label = stringResource(R.string.stats_hours_watched),
-                        leadingContent = {
-                            Icon(imageVector = Icons.Filled.Timer, contentDescription = null)
-                        }
-                    )
-                    StatisticContainer(
-                        modifier = Modifier.weight(1F),
-                        number = formatDurationAsText(homeUiState.courseStatistics.timeWatchedToday),
-                        label = stringResource(R.string.stats_hours_watched_today),
-                        leadingContent = {
-                            Icon(imageVector = Icons.Filled.Today, contentDescription = null)
-                        }
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    StatisticContainer(
-                        modifier = Modifier.weight(1F),
-                        number = homeUiState.courseStatistics.videoCount.toString(),
-                        label = stringResource(R.string.stats_videos_watched),
-                        leadingContent = {
-                            Icon(imageVector = Icons.Filled.SmartDisplay, contentDescription = null)
-                        }
-                    )
-                    StatisticContainer(
-                        modifier = Modifier.weight(1F),
-                        number = stringResource(R.string.yay),
-                        label = "",
-                        leadingContent = {
-                            Text(text = "🎉", style = MaterialTheme.typography.headlineMedium)
-                        },
-                        isClickable = true,
-                        onClick = doParty
-                    )
-                }
-            }
-            item {
-                MyInputLogCalendar(
-                    yearMonth = homeUiState.selectedYearMonth,
-                    dailyTotalTimes = homeUiState.monthlyAggregateData.map { durationInSeconds ->
-                        (durationInSeconds / 60).toInt()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                StatisticContainer(
+                    modifier = Modifier.weight(1F),
+                    number = homeUiState.courseStatistics.videoCount.toString(),
+                    label = stringResource(R.string.stats_videos_watched),
+                    leadingContent = {
+                        Icon(imageVector = Icons.Filled.SmartDisplay, contentDescription = null)
+                    })
+                StatisticContainer(
+                    modifier = Modifier.weight(1F),
+                    number = stringResource(R.string.yay),
+                    label = "",
+                    leadingContent = {
+                        Text(text = "🎉", style = MaterialTheme.typography.headlineMedium)
                     },
-                    isLoading = homeUiState.isCalendarLoading,
-                    onForwardClicked = onCalendarForwardClicked,
-                    onBackClicked = onCalendarBackClicked,
+                    isClickable = true,
+                    onClick = doParty
                 )
             }
         }
+        item {
+            MyInputLogCalendar(
+                yearMonth = homeUiState.selectedYearMonth,
+                dailyTotalTimes = homeUiState.monthlyAggregateData.map { durationInSeconds ->
+                    (durationInSeconds / 60).toInt()
+                },
+                isLoading = homeUiState.isCalendarLoading,
+                onForwardClicked = onCalendarForwardClicked,
+                onBackClicked = onCalendarBackClicked,
+            )
+        }
     }
+
+}
+
+@Composable
+fun ConfettiOverlay(
+    modifier: Modifier, stopParty: () -> Unit
+) {
+    KonfettiView(
+        modifier = modifier
+            .fillMaxSize()
+            .zIndex(1F), parties = listOf(
+            Party(
+                speed = 0f,
+                maxSpeed = 15f,
+                damping = 0.9f,
+                angle = Angle.BOTTOM,
+                spread = Spread.ROUND,
+                colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
+                emitter = Emitter(duration = 5, TimeUnit.SECONDS).perSecond(100),
+                position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0)),
+                timeToLive = 3500L
+            )
+        ), updateListener = object : OnParticleSystemUpdateListener {
+            override fun onParticleSystemEnded(system: PartySystem, activeSystems: Int) {
+                if (activeSystems == 0) stopParty()
+            }
+        })
 }
 
 @Composable
@@ -257,11 +265,9 @@ fun StatisticContainer(
             )
         )
     ) {
-        Box(
-            modifier = Modifier
-                .clickable(enabled = isClickable) { onClick() }
-                .fillMaxSize()
-        ) {
+        Box(modifier = Modifier
+            .clickable(enabled = isClickable) { onClick() }
+            .fillMaxSize()) {
             ListItem(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -269,15 +275,13 @@ fun StatisticContainer(
                 leadingContent = leadingContent,
                 headlineContent = {
                     Text(
-                        text = number,
-                        style = MaterialTheme.typography.labelLarge
+                        text = number, style = MaterialTheme.typography.labelLarge
                     )
                 },
                 supportingContent = {
                     if (label.isNotBlank()) {
                         Text(
-                            text = label,
-                            style = MaterialTheme.typography.bodySmall
+                            text = label, style = MaterialTheme.typography.bodySmall
                         )
                     }
                 },
@@ -300,8 +304,7 @@ fun StatisticContainerPreview() {
                 label = "label",
                 leadingContent = {
                     Icon(imageVector = Icons.Filled.Timer, contentDescription = null)
-                }
-            )
+                })
         }
     }
 }

@@ -12,5 +12,4 @@ data class UserCourse (
     val name: String = "",
     val goalInHours: Long = 0L,
     val otherSourceHours: Long = 0L,
-    val videos: List<YouTubeVideo> = listOf()
 )

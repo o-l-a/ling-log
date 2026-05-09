@@ -2,134 +2,131 @@ package com.example.myinputlog.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.YearMonth
 import javax.inject.Inject
+
+sealed interface StatsResult {
+    data object Loading : StatsResult
+    data class Success(val stats: CourseStatistics) : StatsResult
+    data class Error(val e: Throwable) : StatsResult
+}
+
+sealed interface CalendarResult {
+    data object Loading : CalendarResult
+    data class Success(val data: List<Long>) : CalendarResult
+    data class Error(val e: Throwable) : CalendarResult
+}
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val storageService: DefaultStorageService,
     private val preferenceStorageService: DefaultPreferenceStorageService
 ) : ViewModel() {
-    private val _homeUiState = MutableStateFlow(HomeUiState())
-    val homeUiState = _homeUiState.asStateFlow()
-    private val userCourses = storageService.userCourses
 
-    init {
-        viewModelScope.launch {
-            val currentCourseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
-            val currentCourse = userCourses.firstOrNull()?.find {
-                it.id == currentCourseId
-            } ?: userCourses.firstOrNull()?.getOrNull(0) ?: UserCourse()
-            _homeUiState.update {
-                currentCourse.toHomeUiState().copy(
-                    userCourses = userCourses,
-                    isLoading = false,
-                )
-            }
-            updateCalendar()
+    private val userCoursesFlow = storageService.userCourses
+    private val currentIdFlow = preferenceStorageService.currentCourseId
+    private val selectedYearMonth = MutableStateFlow(YearMonth.now())
+    private val isParty = MutableStateFlow(false)
+
+    private val uiControlFlow = combine(
+        selectedYearMonth, isParty
+    ) { month, party ->
+        month to party
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val statsWorker = currentIdFlow.flatMapLatest { id ->
+        flow {
+            emit(StatsResult.Loading)
             try {
-                val courseStatistics = storageService.getCourseStatistics(currentCourseId)
-                _homeUiState.update {
-                    it.copy(
-                        courseStatistics = courseStatistics,
-                        networkError = false
-                    )
-                }
+                val stats = storageService.getCourseStatistics(id)
+                emit(StatsResult.Success(stats))
             } catch (e: Exception) {
-                _homeUiState.update {
-                    it.copy(networkError = true)
+                emit(StatsResult.Error(e))
+            }
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val calendarWorker =
+        combine(currentIdFlow, selectedYearMonth) { id, month ->
+            id to month
+        }.flatMapLatest { (id, month) ->
+            flow {
+                emit(CalendarResult.Loading)
+                try {
+                    val data = storageService.getMonthlyAggregateData(id, month)
+                    emit(CalendarResult.Success(data))
+                } catch (e: Exception) {
+                    emit(CalendarResult.Error(e))
                 }
             }
         }
+
+    val homeUiState: StateFlow<HomeUiState> = combine(
+        userCoursesFlow, currentIdFlow, statsWorker, calendarWorker, uiControlFlow
+    ) { courses, id, statsRes, calendarRes, controls ->
+
+        val (month, party) = controls
+        when {
+            courses == null -> HomeUiState.Loading
+            statsRes is StatsResult.Error -> HomeUiState.NetworkError
+
+            else -> {
+                val current = courses.find { it.id == id } ?: courses.getOrNull(0) ?: UserCourse()
+
+                HomeUiState.Success(
+                    currentCourse = current,
+                    userCourses = courses,
+                    selectedYearMonth = month,
+                    isParty = party,
+                    courseStatistics = (statsRes as? StatsResult.Success)?.stats
+                        ?: CourseStatistics(),
+                    monthlyAggregateData = (calendarRes as? CalendarResult.Success)?.data
+                        ?: emptyList(),
+                    isCalendarLoading = calendarRes is CalendarResult.Loading
+                )
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), // Save battery
+        initialValue = HomeUiState.Loading
+    )
+
+    fun nextMonth() {
+        selectedYearMonth.update { it.plusMonths(1) }
+    }
+
+    fun previousMonth() {
+        selectedYearMonth.update { it.minusMonths(1) }
+    }
+
+    fun confetti() {
+        isParty.value = true
+    }
+
+    fun confettiStop() {
+        isParty.value = false
     }
 
     fun changeCurrentCourseId(newCourse: UserCourse) {
         viewModelScope.launch {
             preferenceStorageService.saveCurrentCourseId(newCourse.id)
-            val currentCourse = userCourses.firstOrNull()?.find {
-                it.id == (preferenceStorageService.currentCourseId.firstOrNull() ?: "")
-            } ?: UserCourse()
-            _homeUiState.update {
-                currentCourse.toHomeUiState().copy(
-                    userCourses = userCourses,
-                )
-            }
-            try {
-                val courseStatistics = storageService.getCourseStatistics(currentCourse.id)
-                _homeUiState.update {
-                    it.copy(
-                        courseStatistics = courseStatistics,
-                        networkError = false
-                    )
-                }
-                updateCalendar()
-            } catch (e: Exception) {
-                _homeUiState.update {
-                    it.copy(networkError = true)
-                }
-            }
-        }
-    }
-
-    fun confetti() {
-        _homeUiState.update {
-            it.copy(isParty = true)
-        }
-    }
-
-    fun confettiStop() {
-        _homeUiState.update {
-            it.copy(isParty = false)
-        }
-    }
-
-    fun previousMonth() {
-        _homeUiState.update {
-            it.copy(selectedYearMonth = it.selectedYearMonth.minusMonths(1))
-        }
-        updateCalendar()
-    }
-
-    fun nextMonth() {
-        _homeUiState.update {
-            it.copy(selectedYearMonth = it.selectedYearMonth.plusMonths(1))
-        }
-        updateCalendar()
-    }
-
-    private fun updateCalendar() {
-        _homeUiState.update {
-            it.copy(
-                isCalendarLoading = true
-            )
-        }
-        viewModelScope.launch {
-            val currentCourseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
-            try {
-                val monthlyAggregateData = storageService.getMonthlyAggregateData(
-                    currentCourseId,
-                    homeUiState.value.selectedYearMonth
-                )
-                _homeUiState.update {
-                    it.copy(
-                        monthlyAggregateData = monthlyAggregateData,
-                        isCalendarLoading = false,
-                        networkError = false
-                    )
-                }
-            } catch (e: Exception) {
-                _homeUiState.update {
-                    it.copy(networkError = true)
-                }
-            }
         }
     }
 }
