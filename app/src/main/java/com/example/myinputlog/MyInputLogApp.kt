@@ -1,6 +1,8 @@
 package com.example.myinputlog
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -193,32 +195,26 @@ fun CourseTopAppBar(
     TopAppBar(
         modifier = modifier,
         scrollBehavior = scrollBehavior,
-        navigationIcon = {
-            MyInputLogAppIcon(
-                modifier = Modifier
-                    .padding(start = MaterialTheme.spacing.medium)
-                    .size(MaterialTheme.spacing.appLogoSize)
-            )
-        },
         title = {
-            ListItem(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                headlineContent = {
-                    Text(
-                        text = course.name,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                },
-                supportingContent = {
-                    Text(
-                        text = stringResource(
-                            R.string.progress,
-                            "${progress.toLong()}% (${totalHours}h/${course.goalInHours}h)"
-                        ),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            )
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = course.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = stringResource(
+                        R.string.progress,
+                        "${progress.toLong()}% (${totalHours}h/${course.goalInHours}h)"
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant // Optional: gives it that "supporting" look
+                )
+            }
         },
         actions = {
             Box(
@@ -249,11 +245,20 @@ fun CourseTopAppBar(
         })
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun BottomNavBarPreview() {
     MyInputLogTheme {
         Scaffold(
+            topBar = {
+                CourseTopAppBar(
+                    course = UserCourse(name="Test 123"),
+                    courseStatistics = CourseStatistics(),
+                    onValueChange = {},
+                    options = emptyList()
+                )
+            },
             bottomBar = {
                 MyInputLogBottomNavBar(
                     selectedScreen = Screen.Home,
