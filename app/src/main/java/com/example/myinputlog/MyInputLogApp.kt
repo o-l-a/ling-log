@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Delete
@@ -34,7 +34,6 @@ import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.ui.navigation.MyInputLogNavHost
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.navigation.navigationItems
-import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
 import com.example.myinputlog.ui.theme.MyInputLogTheme
 import com.example.myinputlog.ui.theme.spacing
 import java.util.concurrent.TimeUnit
@@ -77,7 +76,7 @@ fun MyInputLogTopAppBar(
             navigationIcon = {
                 IconButton(onClick = navigateUp) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.back_button_content_description)
                     )
                 }

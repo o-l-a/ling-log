@@ -17,6 +17,9 @@ import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObjects
 import com.google.firebase.perf.trace
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -28,27 +31,28 @@ import java.util.Date
 import javax.inject.Inject
 
 class DefaultStorageService @Inject constructor(
-    private val auth: AccountService,
-    private val firestore: FirebaseFirestore
+    private val auth: AccountService, private val firestore: FirebaseFirestore
 ) : StorageService {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val userCourses: Flow<List<UserCourse>>
-        get() =
-            auth.currentUser.flatMapLatest { user ->
-                currentUserCourseCollection(user.id).snapshots()
-                    .map { snapshot -> snapshot.toObjects() }
-            }
+        get() = auth.currentUser.flatMapLatest { user ->
+            currentUserCourseCollection(user.id).snapshots()
+                .map { snapshot -> snapshot.toObjects() }
+        }
 
-    override suspend fun videosByWatchedOnQuery(courseId: String, lastVideoId: String?, limitSize: Long): Query {
-        var query = currentUserCourseCollection(auth.currentUserId)
-            .document(courseId)
-            .collection(YOU_TUBE_VIDEO_COLLECTION)
-            .orderBy("watchedOn", Query.Direction.DESCENDING)
+    override suspend fun videosByWatchedOnQuery(
+        courseId: String, lastVideoId: String?, limitSize: Long
+    ): Query {
+        var query = currentUserCourseCollection(auth.currentUserId).document(courseId)
+            .collection(YOU_TUBE_VIDEO_COLLECTION).orderBy("watchedOn", Query.Direction.DESCENDING)
             .orderBy("timestamp", Query.Direction.DESCENDING)
 
         if (lastVideoId != null) {
-            val lastVideo = youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, courseId).document(lastVideoId).get().await()
+            val lastVideo =
+                youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, courseId).document(
+                    lastVideoId
+                ).get().await()
             query = query.startAfter(lastVideo)
         }
         return query.limit(limitSize)
@@ -57,11 +61,14 @@ class DefaultStorageService @Inject constructor(
     private fun currentUserCourseCollection(uid: String): CollectionReference =
         firestore.collection(USER_COLLECTION).document(uid).collection(USER_COURSE_COLLECTION)
 
-    private fun youTubeVideoCollectionForCurrentUserCourse(uid: String, courseId: String): CollectionReference =
+    private fun youTubeVideoCollectionForCurrentUserCourse(
+        uid: String, courseId: String
+    ): CollectionReference =
         currentUserCourseCollection(uid).document(courseId).collection(YOU_TUBE_VIDEO_COLLECTION)
 
     override suspend fun getUserCourse(userCourseId: String): UserCourse? =
-        currentUserCourseCollection(auth.currentUserId).document(userCourseId).get().await().toObject()
+        currentUserCourseCollection(auth.currentUserId).document(userCourseId).get().await()
+            .toObject()
 
     override suspend fun saveUserCourse(userCourse: UserCourse): String =
         trace(USER_COURSE_SAVE_TRACE) {
@@ -70,84 +77,98 @@ class DefaultStorageService @Inject constructor(
 
     override suspend fun updateUserCourse(userCourse: UserCourse): Unit =
         trace(USER_COURSE_UPDATE_TRACE) {
-            currentUserCourseCollection(auth.currentUserId).document(userCourse.id).set(userCourse).await()
+            currentUserCourseCollection(auth.currentUserId).document(userCourse.id).set(userCourse)
+                .await()
         }
 
     override suspend fun deleteUserCourse(userCourseId: String) {
         currentUserCourseCollection(auth.currentUserId).document(userCourseId).delete().await()
     }
 
-    override suspend fun getCourseStatistics(userCourseId: String): CourseStatistics {
+    override suspend fun getCourseStatistics(userCourseId: String): CourseStatistics =
+        coroutineScope {
+            val aggregateField = AggregateField.sum("durationInSeconds")
+            val collection =
+                youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId)
+
+            val totalVideosTask = async { collection.count().get(AggregateSource.SERVER).await() }
+            val totalTimeTask =
+                async { collection.aggregate(aggregateField).get(AggregateSource.SERVER).await() }
+            val todayTimeTask = async {
+                collection.whereGreaterThanOrEqualTo("watchedOn", getStartOfTodayTimestamp())
+                    .whereLessThan("watchedOn", getStartOfTomorrowTimestamp())
+                    .aggregate(aggregateField).get(AggregateSource.SERVER).await()
+            }
+
+            val totalVideos = totalVideosTask.await().count
+            val totalTime = totalTimeTask.await().getLong(aggregateField) ?: 0L
+            val todayTime = todayTimeTask.await().getLong(aggregateField) ?: 0L
+
+            CourseStatistics(
+                timeWatched = totalTime, timeWatchedToday = todayTime, videoCount = totalVideos
+            )
+        }
+
+    override suspend fun getMonthlyAggregateData(
+        userCourseId: String, yearMonth: YearMonth
+    ): List<Long> = coroutineScope {
         val aggregateField = AggregateField.sum("durationInSeconds")
-        val collection = youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId)
-
-        val totalVideosTask = collection.count().get(AggregateSource.SERVER).await()
-        val totalTimeTask = collection.aggregate(aggregateField).get(AggregateSource.SERVER).await()
-        val todayTimeTask = collection
-            .whereGreaterThanOrEqualTo("watchedOn", getStartOfTodayTimestamp())
-            .whereLessThan("watchedOn", getStartOfTomorrowTimestamp())
-            .aggregate(aggregateField)
-            .get(AggregateSource.SERVER)
-            .await()
-
-        val totalVideos = totalVideosTask.count
-        val totalTime = totalTimeTask.getLong(aggregateField) ?: 0L
-        val todayTime = todayTimeTask.getLong(aggregateField) ?: 0L
-
-        return CourseStatistics(
-            timeWatched = totalTime,
-            timeWatchedToday = todayTime,
-            videoCount = totalVideos
-        )
-    }
-
-    override suspend fun getMonthlyAggregateData(userCourseId: String, yearMonth: YearMonth): List<Long> {
-        val aggregateField = AggregateField.sum("durationInSeconds")
-        val collection = youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId)
+        val collection =
+            youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId)
 
         val daysInMonth = yearMonth.lengthOfMonth()
-        val aggregatedDataList = mutableListOf<Long>()
 
-        for (dayOfMonth in 1..daysInMonth) {
-            val startOfDay = Date(yearMonth.atDay(dayOfMonth)
-                .atStartOfDay(ZoneId.systemDefault())
-                .toEpochSecond() * 1000)
-            val endOfDay = Date(yearMonth.atDay(dayOfMonth)
-                .plusDays(1)
-                .atStartOfDay(ZoneId.systemDefault())
-                .toEpochSecond() * 1000)
-            try {
-                val todayTimeTask = collection
-                    .whereGreaterThanOrEqualTo("watchedOn", startOfDay)
-                    .whereLessThan("watchedOn", endOfDay)
-                    .aggregate(aggregateField)
-                    .get(AggregateSource.SERVER)
-                    .await()
-                val todayTime = todayTimeTask.getLong(aggregateField) ?: 0L
-                aggregatedDataList.add(todayTime)
-            } catch (e: FirebaseFirestoreException) {
-                Log.d(TAG, "Error fetching data for day $dayOfMonth: ${e.message}")
-                throw e
+        val tasks = (1..daysInMonth).map { dayOfMonth ->
+            async {
+                val startOfDay = Date(
+                    yearMonth.atDay(dayOfMonth).atStartOfDay(ZoneId.systemDefault())
+                        .toEpochSecond() * 1000
+                )
+                val endOfDay = Date(
+                    yearMonth.atDay(dayOfMonth).plusDays(1).atStartOfDay(ZoneId.systemDefault())
+                        .toEpochSecond() * 1000
+                )
+                try {
+                    val todayTimeTask =
+                        collection.whereGreaterThanOrEqualTo("watchedOn", startOfDay)
+                            .whereLessThan("watchedOn", endOfDay).aggregate(aggregateField)
+                            .get(AggregateSource.SERVER).await()
+                    todayTimeTask.getLong(aggregateField) ?: 0L
+                } catch (e: FirebaseFirestoreException) {
+                    Log.d(TAG, "Error fetching data for day $dayOfMonth: ${e.message}")
+                    throw e
+                }
             }
         }
-        return aggregatedDataList
+        tasks.awaitAll()
     }
 
-    override suspend fun getYouTubeVideo(userCourseId: String, youTubeVideoId: String): YouTubeVideo? =
-        youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).document(youTubeVideoId).get().await().toObject()
+    override suspend fun getYouTubeVideo(
+        userCourseId: String, youTubeVideoId: String
+    ): YouTubeVideo? =
+        youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).document(
+            youTubeVideoId
+        ).get().await().toObject()
 
     override suspend fun saveYouTubeVideo(userCourseId: String, youTubeVideo: YouTubeVideo): Unit =
         trace(YOU_TUBE_VIDEO_SAVE_TRACE) {
-            youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).add(youTubeVideo).await().id
+            youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).add(
+                youTubeVideo
+            ).await().id
         }
 
-    override suspend fun updateYouTubeVideo(userCourseId: String, youTubeVideo: YouTubeVideo): Unit =
-        trace(YOU_TUBE_VIDEO_UPDATE_TRACE) {
-            youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).document(youTubeVideo.id).set(youTubeVideo).await()
-        }
+    override suspend fun updateYouTubeVideo(
+        userCourseId: String, youTubeVideo: YouTubeVideo
+    ): Unit = trace(YOU_TUBE_VIDEO_UPDATE_TRACE) {
+        youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).document(
+            youTubeVideo.id
+        ).set(youTubeVideo).await()
+    }
 
     override suspend fun deleteYouTubeVideo(userCourseId: String, youTubeVideoId: String) {
-        youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).document(youTubeVideoId).delete().await()
+        youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId).document(
+            youTubeVideoId
+        ).delete().await()
     }
 
     private fun getStartOfTodayTimestamp(): Date {
