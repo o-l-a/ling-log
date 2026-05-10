@@ -1,14 +1,8 @@
 package com.example.myinputlog.data.service.module
 
-import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import com.example.myinputlog.data.model.YouTubeVideo
-import com.example.myinputlog.data.paging.VideoPagingSource
-import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
-import com.example.myinputlog.data.service.impl.DefaultStorageService
 import com.example.myinputlog.ui.screens.utils.MAX_PAGE_SIZE
 import com.example.myinputlog.ui.screens.utils.PAGE_SIZE
-import com.google.firebase.firestore.DocumentSnapshot
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

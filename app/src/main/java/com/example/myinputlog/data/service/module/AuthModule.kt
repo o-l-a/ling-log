@@ -1,7 +1,6 @@
 package com.example.myinputlog.data.service.module
 
 import android.content.Context
-import android.net.Uri
 import com.example.myinputlog.ui.screens.utils.AuthConstants
 import dagger.Module
 import dagger.Provides
