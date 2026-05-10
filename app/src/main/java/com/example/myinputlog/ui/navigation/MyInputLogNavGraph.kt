@@ -2,15 +2,15 @@ package com.example.myinputlog.ui.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -62,7 +62,9 @@ sealed class Screen(
     object Home : Screen(HOME_ROUTE, R.string.home_bottom_nav_description, Icons.Filled.Home)
     object Videos : Screen(VIDEOS_ROUTE, R.string.videos_bottom_nav_description, Icons.Filled.VideoLibrary)
     object AddVideo : Screen("", null, Icons.Outlined.AddCircleOutline)
-    object RecentlyWatched : Screen(RECENTLY_WATCHED_ROUTE, R.string.suggested_bottom_nav_description, Icons.Filled.PlaylistPlay)
+    object RecentlyWatched : Screen(RECENTLY_WATCHED_ROUTE, R.string.suggested_bottom_nav_description,
+        Icons.AutoMirrored.Filled.PlaylistPlay
+    )
     object Profile : Screen(PROFILE_ROUTE, R.string.profile_bottom_nav_description, Icons.Filled.Person)
 }
 

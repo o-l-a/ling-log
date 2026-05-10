@@ -8,6 +8,7 @@ import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
 import com.example.myinputlog.ui.screens.utils.MAX_PAGE_SIZE
 import com.example.myinputlog.ui.screens.utils.PAGE_SIZE
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.QuerySnapshot
 import dagger.Module
 import dagger.Provides
@@ -21,8 +22,7 @@ object PagingModule {
     @Provides
     @Singleton
     fun providePagingConfig() = PagingConfig(
-        pageSize = PAGE_SIZE,
-        maxSize = MAX_PAGE_SIZE
+        pageSize = PAGE_SIZE, maxSize = MAX_PAGE_SIZE
     )
 
     @Provides
@@ -31,16 +31,14 @@ object PagingModule {
         storageService: DefaultStorageService,
         preferenceStorageService: DefaultPreferenceStorageService
     ) = VideoPagingSource(
-        storageService = storageService,
-        preferenceStorageService = preferenceStorageService
+        storageService = storageService, preferenceStorageService = preferenceStorageService
     )
 
     @Provides
     @Singleton
     fun provideVideoPager(
-        pagingConfig: PagingConfig,
-        videoPagingSource: VideoPagingSource
-    ): Pager<String, YouTubeVideo> {
+        pagingConfig: PagingConfig, videoPagingSource: VideoPagingSource
+    ): Pager<DocumentSnapshot, YouTubeVideo> {
         return Pager(
             config = pagingConfig
         ) {

@@ -10,6 +10,7 @@ import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
+import com.google.firebase.firestore.DocumentSnapshot
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,7 @@ import javax.inject.Inject
 class VideoListViewModel @Inject constructor(
     private val storageService: DefaultStorageService,
     private val preferenceStorageService: DefaultPreferenceStorageService,
-    private val pager: Pager<String, YouTubeVideo>
+    private val pager: Pager<DocumentSnapshot, YouTubeVideo>
 ) : ViewModel() {
     private val _videoListUiState = MutableStateFlow(VideoListUiState())
     val videoListUiState = _videoListUiState.asStateFlow()

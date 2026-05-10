@@ -9,11 +9,12 @@ import com.example.myinputlog.data.service.StorageService
 import com.google.firebase.firestore.AggregateField
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.snapshots
+import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.toObjects
 import com.google.firebase.perf.trace
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -42,17 +43,13 @@ class DefaultStorageService @Inject constructor(
         }
 
     override suspend fun videosByWatchedOnQuery(
-        courseId: String, lastVideoId: String?, limitSize: Long
+        courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long
     ): Query {
         var query = currentUserCourseCollection(auth.currentUserId).document(courseId)
             .collection(YOU_TUBE_VIDEO_COLLECTION).orderBy("watchedOn", Query.Direction.DESCENDING)
             .orderBy("timestamp", Query.Direction.DESCENDING)
 
-        if (lastVideoId != null) {
-            val lastVideo =
-                youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, courseId).document(
-                    lastVideoId
-                ).get().await()
+        if (lastVideo != null) {
             query = query.startAfter(lastVideo)
         }
         return query.limit(limitSize)
