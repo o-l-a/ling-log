@@ -9,17 +9,17 @@ import kotlinx.coroutines.flow.Flow
 import java.time.YearMonth
 
 interface StorageService {
-    val userCourses: Flow<List<UserCourse>>
+    val userCourses: Flow<List<UserCourse>?>
     suspend fun videosByWatchedOnQuery(
-        courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long
+        userId: String, courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long
     ): Query
 
     suspend fun getUserCourse(userCourseId: String): UserCourse?
     suspend fun saveUserCourse(userCourse: UserCourse): String
     suspend fun updateUserCourse(userCourse: UserCourse)
     suspend fun deleteUserCourse(userCourseId: String)
-    suspend fun getCourseStatistics(userCourseId: String): CourseStatistics
-    suspend fun getMonthlyAggregateData(userCourseId: String, yearMonth: YearMonth): List<Long>
+    suspend fun getCourseStatistics(currentUserId: String, userCourseId: String): CourseStatistics
+    suspend fun getMonthlyAggregateData(currentUserId: String, userCourseId: String, yearMonth: YearMonth): List<Long>
 
     suspend fun getYouTubeVideo(userCourseId: String, youTubeVideoId: String): YouTubeVideo?
     suspend fun saveYouTubeVideo(userCourseId: String, youTubeVideo: YouTubeVideo)

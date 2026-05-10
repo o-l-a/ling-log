@@ -56,7 +56,7 @@ const val SIGN_IN_ROUTE = "sign_in_route"
 
 sealed class Screen(
     val route: String,
-    @StringRes val resourceId: Int?,
+    @get:StringRes val resourceId: Int?,
     val icon: ImageVector
 ) {
     object Home : Screen(HOME_ROUTE, R.string.home_bottom_nav_description, Icons.Filled.Home)

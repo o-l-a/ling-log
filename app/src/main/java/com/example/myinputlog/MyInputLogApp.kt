@@ -16,7 +16,19 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,14 +41,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseHeaderUiModel
 import com.example.myinputlog.ui.navigation.MyInputLogNavHost
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.navigation.navigationItems
 import com.example.myinputlog.ui.theme.MyInputLogTheme
 import com.example.myinputlog.ui.theme.spacing
-import java.util.concurrent.TimeUnit
 
 /**
  * A top level screen "container"
@@ -178,19 +189,13 @@ fun MyInputLogBottomNavBar(
 @Composable
 fun CourseTopAppBar(
     modifier: Modifier = Modifier,
-    course: UserCourse,
-    courseStatistics: CourseStatistics,
+    courseHeader: CourseHeaderUiModel,
     onValueChange: (UserCourse) -> Unit,
     options: List<UserCourse>,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val hoursWatched = TimeUnit.SECONDS.toHours(
-        courseStatistics.timeWatched
-    )
-    val totalHours = hoursWatched + course.otherSourceHours
-    val progress =
-        if (course.goalInHours != 0L) totalHours.toFloat() * 100F / course.goalInHours.toFloat() else 0
+
     TopAppBar(
         modifier = modifier,
         scrollBehavior = scrollBehavior,
@@ -200,7 +205,7 @@ fun CourseTopAppBar(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = course.name,
+                    text = courseHeader.name,
                     style = MaterialTheme.typography.bodyLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -208,10 +213,10 @@ fun CourseTopAppBar(
                 Text(
                     text = stringResource(
                         R.string.progress,
-                        "${progress.toLong()}% (${totalHours}h/${course.goalInHours}h)"
+                        "${courseHeader.progress}% (${courseHeader.totalHours}h/${courseHeader.goalInHours}h)"
                     ),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant // Optional: gives it that "supporting" look
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
@@ -252,8 +257,7 @@ fun BottomNavBarPreview() {
         Scaffold(
             topBar = {
                 CourseTopAppBar(
-                    course = UserCourse(name="Test 123"),
-                    courseStatistics = CourseStatistics(),
+                    courseHeader = CourseHeaderUiModel(name = "Test 123"),
                     onValueChange = {},
                     options = emptyList()
                 )

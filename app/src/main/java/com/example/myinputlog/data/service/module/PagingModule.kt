@@ -23,25 +23,4 @@ object PagingModule {
     fun providePagingConfig() = PagingConfig(
         pageSize = PAGE_SIZE, maxSize = MAX_PAGE_SIZE
     )
-
-    @Provides
-    @Singleton
-    fun provideVideoPagingSource(
-        storageService: DefaultStorageService,
-        preferenceStorageService: DefaultPreferenceStorageService
-    ) = VideoPagingSource(
-        storageService = storageService, preferenceStorageService = preferenceStorageService
-    )
-
-    @Provides
-    @Singleton
-    fun provideVideoPager(
-        pagingConfig: PagingConfig, videoPagingSource: VideoPagingSource
-    ): Pager<DocumentSnapshot, YouTubeVideo> {
-        return Pager(
-            config = pagingConfig
-        ) {
-            videoPagingSource
-        }
-    }
 }

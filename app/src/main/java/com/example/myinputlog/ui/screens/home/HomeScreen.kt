@@ -29,7 +29,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -39,6 +38,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.CourseTopAppBar
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
@@ -72,21 +72,20 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel,
     onBottomNavClicked: (String) -> Unit,
-    navigateToYouTubeVideoEntry: (String?) -> Unit,
+    navigateToYouTubeVideoEntry: (String) -> Unit,
 ) {
-    val homeUiState by homeViewModel.homeUiState.collectAsState()
+    val homeUiState by homeViewModel.homeUiState.collectAsStateWithLifecycle()
+    val currentCourseId by homeViewModel.currentCourseId.collectAsStateWithLifecycle()
+
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-
-    val currentCourseId = (homeUiState as? HomeUiState.Success)?.currentCourse?.id
 
     Box(modifier = modifier.fillMaxSize()) {
         Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
             if (homeUiState is HomeUiState.Success) {
                 CourseTopAppBar(
-                    course = (homeUiState as HomeUiState.Success).currentCourse,
-                    courseStatistics = (homeUiState as HomeUiState.Success).courseStatistics,
+                    courseHeader = (homeUiState as HomeUiState.Success).courseHeader,
                     onValueChange = homeViewModel::changeCurrentCourseId,
                     options = (homeUiState as HomeUiState.Success).userCourses,
                     scrollBehavior = scrollBehavior
@@ -103,10 +102,17 @@ fun HomeScreen(
                     LoadingBox()
                 }
 
-                is HomeUiState.Error -> {
+                is HomeUiState.Empty -> {
                     EmptyCollectionBox(
                         modifier = modifier.padding(MaterialTheme.spacing.medium),
                         bodyMessage = R.string.empty_course_collection_body
+                    )
+                }
+
+                is HomeUiState.Error -> {
+                    EmptyCollectionBox(
+                        modifier = modifier.padding(MaterialTheme.spacing.medium),
+                        bodyMessage = R.string.something_went_wrong
                     )
                 }
 
@@ -265,9 +271,10 @@ fun StatisticContainer(
             )
         )
     ) {
-        Box(modifier = Modifier
-            .clickable(enabled = isClickable) { onClick() }
-            .fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .clickable(enabled = isClickable) { onClick() }
+                .fillMaxSize()) {
             ListItem(
                 modifier = Modifier
                     .fillMaxWidth()

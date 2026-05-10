@@ -15,6 +15,7 @@ import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.browser.BrowserAllowList
 import net.openid.appauth.browser.VersionedBrowserMatcher
 import javax.inject.Singleton
+import androidx.core.net.toUri
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -37,9 +38,9 @@ object AuthModule {
     @Provides
     fun provideAuthorizationServiceConfiguration(): AuthorizationServiceConfiguration =
         AuthorizationServiceConfiguration(
-            Uri.parse(AuthConstants.URL_AUTHORIZATION),
-            Uri.parse(AuthConstants.URL_TOKEN_EXCHANGE),
+            AuthConstants.URL_AUTHORIZATION.toUri(),
+            AuthConstants.URL_TOKEN_EXCHANGE.toUri(),
             null,
-            Uri.parse(AuthConstants.URL_LOGOUT)
+            AuthConstants.URL_LOGOUT.toUri()
         )
 }

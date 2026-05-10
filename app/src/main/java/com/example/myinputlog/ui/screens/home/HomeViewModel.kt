@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
+import com.example.myinputlog.ui.models.mapToCourseHeader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,13 +38,24 @@ sealed interface CalendarResult {
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val storageService: DefaultStorageService,
-    private val preferenceStorageService: DefaultPreferenceStorageService
+    private val preferenceStorageService: DefaultPreferenceStorageService,
+    accountService: AccountService
 ) : ViewModel() {
-
+    private val userIdFlow = accountService.currentUser.map { it.id }
     private val userCoursesFlow = storageService.userCourses
     private val currentIdFlow = preferenceStorageService.currentCourseId
     private val selectedYearMonth = MutableStateFlow(YearMonth.now())
     private val isParty = MutableStateFlow(false)
+
+    val currentCourseId: StateFlow<String> = preferenceStorageService.currentCourseId.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ""
+        )
+
+    private val sessionFlow = combine(userIdFlow, currentIdFlow) { uid, cid ->
+        uid to cid
+    }
 
     private val uiControlFlow = combine(
         selectedYearMonth, isParty
@@ -50,11 +64,11 @@ class HomeViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val statsWorker = currentIdFlow.flatMapLatest { id ->
+    private val statsWorker = sessionFlow.flatMapLatest { (uid, cid) ->
         flow {
             emit(StatsResult.Loading)
             try {
-                val stats = storageService.getCourseStatistics(id)
+                val stats = storageService.getCourseStatistics(uid, cid)
                 emit(StatsResult.Success(stats))
             } catch (e: Exception) {
                 emit(StatsResult.Error(e))
@@ -63,20 +77,19 @@ class HomeViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val calendarWorker =
-        combine(currentIdFlow, selectedYearMonth) { id, month ->
-            id to month
-        }.flatMapLatest { (id, month) ->
-            flow {
-                emit(CalendarResult.Loading)
-                try {
-                    val data = storageService.getMonthlyAggregateData(id, month)
-                    emit(CalendarResult.Success(data))
-                } catch (e: Exception) {
-                    emit(CalendarResult.Error(e))
-                }
+    private val calendarWorker = combine(sessionFlow, selectedYearMonth) { (uid, cid), month ->
+        Triple(uid, cid, month)
+    }.flatMapLatest { (uid, cid, month) ->
+        flow {
+            emit(CalendarResult.Loading)
+            try {
+                val data = storageService.getMonthlyAggregateData(uid, cid, month)
+                emit(CalendarResult.Success(data))
+            } catch (e: Exception) {
+                emit(CalendarResult.Error(e))
             }
         }
+    }
 
     val homeUiState: StateFlow<HomeUiState> = combine(
         userCoursesFlow, currentIdFlow, statsWorker, calendarWorker, uiControlFlow
@@ -85,18 +98,21 @@ class HomeViewModel @Inject constructor(
         val (month, party) = controls
         when {
             courses == null -> HomeUiState.Loading
+            courses.isEmpty() -> HomeUiState.Empty
             statsRes is StatsResult.Error -> HomeUiState.NetworkError
 
             else -> {
-                val current = courses.find { it.id == id } ?: courses.getOrNull(0) ?: UserCourse()
+                val current = courses.find { it.id == id } ?: courses.first()
+                val courseStatistics =
+                    (statsRes as? StatsResult.Success)?.stats ?: CourseStatistics()
+                val courseHeader = mapToCourseHeader(current, courseStatistics)
 
                 HomeUiState.Success(
-                    currentCourse = current,
+                    courseHeader = courseHeader,
                     userCourses = courses,
                     selectedYearMonth = month,
                     isParty = party,
-                    courseStatistics = (statsRes as? StatsResult.Success)?.stats
-                        ?: CourseStatistics(),
+                    courseStatistics = courseStatistics,
                     monthlyAggregateData = (calendarRes as? CalendarResult.Success)?.data
                         ?: emptyList(),
                     isCalendarLoading = calendarRes is CalendarResult.Loading

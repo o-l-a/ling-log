@@ -36,16 +36,16 @@ class DefaultStorageService @Inject constructor(
 ) : StorageService {
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val userCourses: Flow<List<UserCourse>>
+    override val userCourses: Flow<List<UserCourse>?>
         get() = auth.currentUser.flatMapLatest { user ->
             currentUserCourseCollection(user.id).snapshots()
                 .map { snapshot -> snapshot.toObjects() }
         }
 
     override suspend fun videosByWatchedOnQuery(
-        courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long
+        userId: String, courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long
     ): Query {
-        var query = currentUserCourseCollection(auth.currentUserId).document(courseId)
+        var query = currentUserCourseCollection(userId).document(courseId)
             .collection(YOU_TUBE_VIDEO_COLLECTION).orderBy("watchedOn", Query.Direction.DESCENDING)
             .orderBy("timestamp", Query.Direction.DESCENDING)
 
@@ -82,36 +82,35 @@ class DefaultStorageService @Inject constructor(
         currentUserCourseCollection(auth.currentUserId).document(userCourseId).delete().await()
     }
 
-    override suspend fun getCourseStatistics(userCourseId: String): CourseStatistics =
-        coroutineScope {
-            val aggregateField = AggregateField.sum("durationInSeconds")
-            val collection =
-                youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId)
+    override suspend fun getCourseStatistics(
+        currentUserId: String, userCourseId: String
+    ): CourseStatistics = coroutineScope {
+        val aggregateField = AggregateField.sum("durationInSeconds")
+        val collection = youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId)
 
-            val totalVideosTask = async { collection.count().get(AggregateSource.SERVER).await() }
-            val totalTimeTask =
-                async { collection.aggregate(aggregateField).get(AggregateSource.SERVER).await() }
-            val todayTimeTask = async {
-                collection.whereGreaterThanOrEqualTo("watchedOn", getStartOfTodayTimestamp())
-                    .whereLessThan("watchedOn", getStartOfTomorrowTimestamp())
-                    .aggregate(aggregateField).get(AggregateSource.SERVER).await()
-            }
-
-            val totalVideos = totalVideosTask.await().count
-            val totalTime = totalTimeTask.await().getLong(aggregateField) ?: 0L
-            val todayTime = todayTimeTask.await().getLong(aggregateField) ?: 0L
-
-            CourseStatistics(
-                timeWatched = totalTime, timeWatchedToday = todayTime, videoCount = totalVideos
-            )
+        val totalVideosTask = async { collection.count().get(AggregateSource.SERVER).await() }
+        val totalTimeTask =
+            async { collection.aggregate(aggregateField).get(AggregateSource.SERVER).await() }
+        val todayTimeTask = async {
+            collection.whereGreaterThanOrEqualTo("watchedOn", getStartOfTodayTimestamp())
+                .whereLessThan("watchedOn", getStartOfTomorrowTimestamp()).aggregate(aggregateField)
+                .get(AggregateSource.SERVER).await()
         }
 
+        val totalVideos = totalVideosTask.await().count
+        val totalTime = totalTimeTask.await().getLong(aggregateField) ?: 0L
+        val todayTime = todayTimeTask.await().getLong(aggregateField) ?: 0L
+
+        CourseStatistics(
+            timeWatched = totalTime, timeWatchedToday = todayTime, videoCount = totalVideos
+        )
+    }
+
     override suspend fun getMonthlyAggregateData(
-        userCourseId: String, yearMonth: YearMonth
+        currentUserId: String, userCourseId: String, yearMonth: YearMonth
     ): List<Long> = coroutineScope {
         val aggregateField = AggregateField.sum("durationInSeconds")
-        val collection =
-            youTubeVideoCollectionForCurrentUserCourse(auth.currentUserId, userCourseId)
+        val collection = youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId)
 
         val daysInMonth = yearMonth.lengthOfMonth()
 

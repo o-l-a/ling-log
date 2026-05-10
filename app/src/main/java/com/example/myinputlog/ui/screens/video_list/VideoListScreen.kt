@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -65,82 +66,96 @@ fun VideoListScreen(
     navigateToYouTubeVideoEntry: (String) -> Unit,
     navigateToYouTubeVideo: (String, String) -> Unit
 ) {
-    val videoListUiState = videoListViewModel.videoListUiState.collectAsStateWithLifecycle()
-    val userCourses = videoListUiState.value.userCourses.collectAsStateWithLifecycle(emptyList())
-    val videos = videoListUiState.value.videos.collectAsLazyPagingItems()
+    val videoListUiState by videoListViewModel.videoListUiState.collectAsStateWithLifecycle()
+    val currentCourseId by videoListViewModel.currentCourseId.collectAsStateWithLifecycle()
+
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val coroutineScope = rememberCoroutineScope()
 
     val lazyColumnListState = rememberLazyListState()
     val currentIndex = remember { derivedStateOf { lazyColumnListState.firstVisibleItemIndex } }
 
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            if (userCourses.value != null && userCourses.value!!.isNotEmpty()) {
-                CourseTopAppBar(
-                    course = videoListUiState.value.toUserCourse(),
-                    courseStatistics = videoListUiState.value.courseStatistics,
-                    onValueChange = videoListViewModel::changeCurrentCourseId,
-                    options = userCourses.value!!,
-                    scrollBehavior = scrollBehavior
-                )
-            }
-        },
-        bottomBar = {
-            MyInputLogBottomNavBar(
-                selectedScreen = Screen.Videos,
-                onBottomNavClicked = onBottomNavClicked,
-                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(videoListUiState.value.currentCourseId) }
+    Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
+        if (videoListUiState is VideoListUiState.Success) {
+            CourseTopAppBar(
+                courseHeader = (videoListUiState as VideoListUiState.Success).courseHeader,
+                onValueChange = videoListViewModel::changeCurrentCourseId,
+                options = (videoListUiState as VideoListUiState.Success).userCourses,
+                scrollBehavior = scrollBehavior
             )
-        },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = currentIndex.value > 0,
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                SmallFloatingActionButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            lazyColumnListState.animateScrollToItem(0)
-                        }
+        }
+    }, bottomBar = {
+        MyInputLogBottomNavBar(
+            selectedScreen = Screen.Videos,
+            onBottomNavClicked = onBottomNavClicked,
+            navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
+    }, floatingActionButton = {
+        AnimatedVisibility(
+            visible = currentIndex.value > 0,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            SmallFloatingActionButton(
+                onClick = {
+                    coroutineScope.launch {
+                        lazyColumnListState.animateScrollToItem(0)
                     }
-                ) {
-                    Icon(imageVector = Icons.Filled.ArrowUpward, contentDescription = null)
-                }
+                }) {
+                Icon(imageVector = Icons.Filled.ArrowUpward, contentDescription = null)
             }
         }
-    ) { innerPadding ->
-        if (userCourses.value == null) {
-            LazyColumn(
-                modifier = modifier,
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
-                contentPadding = PaddingValues(MaterialTheme.spacing.extraExtraSmall),
-            ) {
-                items(10) {
-                    ListItemPlaceholder()
+    }) { innerPadding ->
+        when (videoListUiState) {
+            is VideoListUiState.Loading -> {
+                LazyColumn(
+                    modifier = modifier,
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
+                    contentPadding = PaddingValues(MaterialTheme.spacing.extraExtraSmall),
+                ) {
+                    items(10) {
+                        ListItemPlaceholder()
+                    }
                 }
             }
-        } else if (userCourses.value!!.isEmpty()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
+
+            is VideoListUiState.Empty -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    EmptyCollectionBox(
+                        modifier = modifier.padding(MaterialTheme.spacing.medium),
+                        bodyMessage = R.string.empty_course_collection_body
+                    )
+                }
+            }
+
+            is VideoListUiState.Error -> {
                 EmptyCollectionBox(
                     modifier = modifier.padding(MaterialTheme.spacing.medium),
-                    bodyMessage = R.string.empty_course_collection_body
+                    bodyMessage = R.string.something_went_wrong
                 )
             }
-        } else {
-            VideoListBody(
-                modifier = modifier.padding(innerPadding),
-                videoListUiState = videoListUiState.value,
-                navigateToYouTubeVideo = navigateToYouTubeVideo,
-                lazyColumnListState = lazyColumnListState,
-                videos = videos
-            )
+
+            is VideoListUiState.NetworkError -> {
+                EmptyCollectionBox(
+                    modifier = modifier.padding(MaterialTheme.spacing.medium),
+                    bodyMessage = R.string.something_went_wrong
+                )
+            }
+
+            is VideoListUiState.Success -> {
+                val videos =
+                    (videoListUiState as VideoListUiState.Success).videos.collectAsLazyPagingItems()
+                VideoListBody(
+                    modifier = modifier.padding(innerPadding),
+                    videoListUiState = videoListUiState as VideoListUiState.Success,
+                    navigateToYouTubeVideo = navigateToYouTubeVideo,
+                    lazyColumnListState = lazyColumnListState,
+                    videos = videos
+                )
+            }
         }
     }
 }
@@ -148,7 +163,7 @@ fun VideoListScreen(
 @Composable
 fun VideoListBody(
     modifier: Modifier = Modifier,
-    videoListUiState: VideoListUiState,
+    videoListUiState: VideoListUiState.Success,
     videos: LazyPagingItems<YouTubeVideo>,
     navigateToYouTubeVideo: (String, String) -> Unit,
     lazyColumnListState: LazyListState
@@ -164,17 +179,13 @@ fun VideoListBody(
     ) {
         if (videos.itemCount > 0) {
             items(
-                count = videos.itemCount,
-                key = videos.itemKey()
+                count = videos.itemCount, key = videos.itemKey()
             ) { index ->
                 videos[index]?.let { video ->
                     VideoContainer(
-                        video = video,
-                        isSeparator = video.id.isBlank(),
-                        onVideoClicked = {
-                            navigateToYouTubeVideo(videoListUiState.currentCourseId, video.id)
-                        }
-                    )
+                        video = video, isSeparator = video.id.isBlank(), onVideoClicked = {
+                            navigateToYouTubeVideo(videoListUiState.courseHeader.id, video.id)
+                        })
                 }
             }
             when (videos.loadState.append) {
@@ -219,51 +230,43 @@ fun VideoContainer(
     isClickable: Boolean = false
 ) {
     if (!isSeparator) {
-        ListItem(
-            modifier = modifier.clickable {
-                if (!isPlaylistItem) {
-                    onVideoClicked(video.id)
-                }
-            },
-            headlineContent = {
-                Text(
-                    text = video.title,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            supportingContent = {
-                Text(
-                    text = "${video.channel}${if (video.speakersNationality != null) " • " + video.speakersNationality.flagEmoji else ""}",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            },
-            leadingContent = {
-                VideoThumbnail(
-                    modifier = Modifier.width(MaterialTheme.spacing.doubleExtraLarge),
-                    videoUrl = video.thumbnailMediumUrl,
-                    duration = video.durationInSeconds,
-                    isListItemLeading = true
-                )
-            },
-            trailingContent = {
-                if (isPlaylistItem) {
-                    IconButton(
-                        enabled = isClickable,
-                        onClick = { onVideoClicked(video.videoUrl) }
-                    ) {
-                        Icon(
-                            modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
-                            imageVector = Icons.Filled.LibraryAdd,
-                            contentDescription = null
-                        )
-                    }
+        ListItem(modifier = modifier.clickable {
+            if (!isPlaylistItem) {
+                onVideoClicked(video.id)
+            }
+        }, headlineContent = {
+            Text(
+                text = video.title,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }, supportingContent = {
+            Text(
+                text = "${video.channel}${if (video.speakersNationality != null) " • " + video.speakersNationality.flagEmoji else ""}",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }, leadingContent = {
+            VideoThumbnail(
+                modifier = Modifier.width(MaterialTheme.spacing.doubleExtraLarge),
+                videoUrl = video.thumbnailMediumUrl,
+                duration = video.durationInSeconds,
+                isListItemLeading = true
+            )
+        }, trailingContent = {
+            if (isPlaylistItem) {
+                IconButton(
+                    enabled = isClickable, onClick = { onVideoClicked(video.videoUrl) }) {
+                    Icon(
+                        modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
+                        imageVector = Icons.Filled.LibraryAdd,
+                        contentDescription = null
+                    )
                 }
             }
-        )
+        })
     } else {
         Text(
             modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium),
