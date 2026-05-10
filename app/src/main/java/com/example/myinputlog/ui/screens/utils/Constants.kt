@@ -10,6 +10,7 @@ import androidx.compose.ui.text.input.ImeAction
 import com.example.myinputlog.BuildConfig
 import com.example.myinputlog.R
 import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 const val PAGE_SIZE = 10
@@ -55,9 +56,9 @@ fun formatDuration(duration: Long): String {
     val seconds = duration - TimeUnit.HOURS.toSeconds(hours) - TimeUnit.MINUTES.toSeconds(minutes)
 
     return if (hours > 0) {
-        String.format("%02d:%02d:%02d", hours, minutes, seconds)
+        String.format(Locale.ROOT, "%02d:%02d:%02d", hours, minutes, seconds)
     } else {
-        String.format("%02d:%02d", minutes, seconds)
+        String.format(Locale.ROOT, "%02d:%02d", minutes, seconds)
     }
 }
 
@@ -86,22 +87,53 @@ fun myInputLogTextFieldColors() = OutlinedTextFieldDefaults.colors(
     errorBorderColor = Color.Transparent
 )
 
-enum class Country(@StringRes val countryNameResId: Int, val flagEmoji: String) {
-    SPAIN(R.string.country_spain, "🇪🇸"),
-    MEXICO(R.string.country_mexico, "🇲🇽"),
-    ARGENTINA(R.string.country_argentina, "🇦🇷"),
-    COLOMBIA(R.string.country_colombia, "🇨🇴"),
-    CHILE(R.string.country_chile, "🇨🇱"),
-    VENEZUELA(R.string.country_venezuela, "🇻🇪"),
-    PERU(R.string.country_peru, "🇵🇪"),
-    ECUADOR(R.string.country_ecuador, "🇪🇨"),
-    CUBA(R.string.country_cuba, "🇨🇺"),
-    DOMINICAN_REPUBLIC(R.string.country_dominican_republic, "🇩🇴"),
-    PUERTO_RICO(R.string.country_puerto_rico, "🇵🇷"),
-    URUGUAY(R.string.country_uruguay, "🇺🇾"),
-    PARAGUAY(R.string.country_paraguay, "🇵🇾"),
-    BOLIVIA(R.string.country_bolivia, "🇧🇴"),
+enum class Country(@get:StringRes val countryNameResId: Int, val flagEmoji: String) {
+    SPAIN(R.string.country_spain, "🇪🇸"), MEXICO(
+        R.string.country_mexico, "🇲🇽"
+    ),
+    ARGENTINA(R.string.country_argentina, "🇦🇷"), COLOMBIA(
+        R.string.country_colombia, "🇨🇴"
+    ),
+    CHILE(R.string.country_chile, "🇨🇱"), VENEZUELA(
+        R.string.country_venezuela, "🇻🇪"
+    ),
+    PERU(R.string.country_peru, "🇵🇪"), ECUADOR(
+        R.string.country_ecuador, "🇪🇨"
+    ),
+    CUBA(R.string.country_cuba, "🇨🇺"), DOMINICAN_REPUBLIC(
+        R.string.country_dominican_republic, "🇩🇴"
+    ),
+    PUERTO_RICO(R.string.country_puerto_rico, "🇵🇷"), URUGUAY(
+        R.string.country_uruguay, "🇺🇾"
+    ),
+    PARAGUAY(R.string.country_paraguay, "🇵🇾"), BOLIVIA(
+        R.string.country_bolivia, "🇧🇴"
+    ),
     GUATEMALA(R.string.country_guatemala, "🇬🇹"),
+}
+
+enum class ConfettiOptions(@get:StringRes val optionName: Int, val colors: List<Int>) {
+    OPTION1(
+        R.string.confetti_option_1, listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def)
+    ),
+    OPTION2(
+        R.string.confetti_option_2,
+        listOf(0xE40303, 0xFF8C00, 0xFFED00, 0x008026, 0x004CFF, 0x732982)
+    ),
+    OPTION3(
+        R.string.confetti_option_3,
+        listOf(0xD52D00, 0xEF7627, 0xFF9A56, 0xFFFFFF, 0xD162A4, 0xB55690, 0xA30262)
+    ),
+    OPTION4(
+        R.string.confetti_option_4, listOf(0x5BCEFA, 0xF5A9B8, 0xFFFFFF)
+    ),
+    OPTION5(
+        R.string.confetti_option_5, listOf(0xD60270, 0x9B4F96, 0x0038A8)
+    ),
+    OPTION6(
+        R.string.confetti_option_6, listOf(0x000000, 0xA3A3A3, 0xFFFFFF, 0x800080)
+    ),
+    OPTION7(R.string.confetti_option_7, listOf(0xFF218C, 0xFFD800, 0x21B1FF))
 }
 
 class AuthConstants {
@@ -119,14 +151,17 @@ class AuthConstants {
         const val SCOPE_GDATA_YOUTUBE_SLASH_NO_SSL = "http://gdata.youtube.com/"
         const val SCOPE_GDATA_YOUTUBE_FEEDS = "https://gdata.youtube.com/feeds/"
         const val SCOPE_GDATA_YOUTUBE_VIDEO_API = "http://gdata.youtube.com/feeds/api/videos/"
-        const val SCOPE_GDATA_YOUTUBE_USER_PLAYLISTS = "http://gdata.youtube.com/feeds/api/users/default/playlists"
+        const val SCOPE_GDATA_YOUTUBE_USER_PLAYLISTS =
+            "http://gdata.youtube.com/feeds/api/users/default/playlists"
         const val SCOPE_GDATA_YOUTUBE_OTHER = "http://gdata.youtube.com/youtube"
-        const val SCOPE_GDATA_YOUTUBE_USER_FAVORITES = "https://gdata.youtube.com/feeds/api/users/default/favorites/"
+        const val SCOPE_GDATA_YOUTUBE_USER_FAVORITES =
+            "https://gdata.youtube.com/feeds/api/users/default/favorites/"
         const val SCOPE_GDATA_YOUTUBE_API = "https://gdata.youtube.com/feeds/api"
         const val SCOPE_GDATA_YOUTUBE_CAPTIONS = "https://gdata.youtube.com/captions"
         const val SCOPE_GDATA_YOUTUBE_FEED = "https://gdata.youtube.com/feed"
         const val SCOPE_YOUTUBE_PARTNER = "https://www.googleapis.com/auth/youtubepartner"
-        const val SCOPE_YOUTUBE_PARTNER_CHANNEL_AUDIT = "https://www.googleapis.com/auth/youtubepartner-channel-audit"
+        const val SCOPE_YOUTUBE_PARTNER_CHANNEL_AUDIT =
+            "https://www.googleapis.com/auth/youtubepartner-channel-audit"
         const val SCOPE_YOUTUBE_READONLY = "https://www.googleapis.com/auth/youtube.readonly"
         const val SCOPE_YOUTUBE_FORCE_SSL = "https://www.googleapis.com/auth/youtube.force-ssl"
 

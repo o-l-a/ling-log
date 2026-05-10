@@ -9,7 +9,6 @@ import com.example.myinputlog.data.service.impl.DefaultStorageService
 import com.example.myinputlog.ui.screens.utils.MAX_PAGE_SIZE
 import com.example.myinputlog.ui.screens.utils.PAGE_SIZE
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.QuerySnapshot
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

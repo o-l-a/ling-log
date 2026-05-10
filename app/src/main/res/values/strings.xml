@@ -115,6 +115,15 @@
     <string name="country_bolivia">Bolivia</string>
     <string name="country_guatemala">Guatemala</string>
 
+    <!--    confetti options   -->
+    <string name="confetti_option_1">Option 1</string>
+    <string name="confetti_option_2">Option 2</string>
+    <string name="confetti_option_3">Option 3</string>
+    <string name="confetti_option_4">Option 4</string>
+    <string name="confetti_option_5">Option 5</string>
+    <string name="confetti_option_6">Option 6</string>
+    <string name="confetti_option_7">Option 7</string>
+
     <!--    stats labels    -->
     <string name="stats_hours_watched">time spent</string>
     <string name="stats_hours_watched_today">spent today</string>

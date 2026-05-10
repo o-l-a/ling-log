@@ -25,9 +25,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
-import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
 
@@ -169,24 +169,14 @@ class DefaultStorageService @Inject constructor(
     }
 
     private fun getStartOfTodayTimestamp(): Date {
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = System.currentTimeMillis()
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        return Date(calendar.timeInMillis)
+        val startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()
+        return Date.from(startOfDay)
     }
 
     private fun getStartOfTomorrowTimestamp(): Date {
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = System.currentTimeMillis()
-        calendar.add(Calendar.DAY_OF_YEAR, 1)
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        return Date(calendar.timeInMillis)
+        val startOfTomorrow =
+            LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
+        return Date.from(startOfTomorrow)
     }
 
     companion object {
