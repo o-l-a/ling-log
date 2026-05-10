@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,7 +36,7 @@ class ProfileViewModel @Inject constructor(
                         username = userData.username,
                         email = userData.email,
                         id = userData.id,
-                        courses = storageService.userCourses,
+                        courses = storageService.getUserCourses(accountService.currentUser.first().id),
                         newUsername = userData.username
                     )
                 }

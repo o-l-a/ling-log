@@ -6,11 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.data.remote.toYouTubeVideo
 import com.example.myinputlog.data.repository.impl.DefaultVideoDataRepository
+import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.regex.Pattern
@@ -20,7 +22,8 @@ import javax.inject.Inject
 class VideoViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val storageService: DefaultStorageService,
-    private val videoDataRepository: DefaultVideoDataRepository
+    private val videoDataRepository: DefaultVideoDataRepository,
+    private val accountService: AccountService
 ) : ViewModel() {
     private val _videoUiState = MutableStateFlow(VideoUiState())
     val videoUiState = _videoUiState.asStateFlow()
@@ -37,12 +40,13 @@ class VideoViewModel @Inject constructor(
     init {
         if (videoId != DEFAULT_ID.toString()) {
             viewModelScope.launch {
-                val video = storageService.getYouTubeVideo(defaultCourseId, videoId)
+                val userId = accountService.currentUser.first().id
+                val video = storageService.getYouTubeVideo(userId,defaultCourseId, videoId)
                 if (video != null) {
                     _videoUiState.update {
                         video.toVideoUiState(isLoading = false).copy(
                             selectedCourseId = defaultCourseId,
-                            userCourses = storageService.userCourses
+                            userCourses = storageService.getUserCourses(userId)
                         )
                     }
                 } else {
@@ -50,14 +54,17 @@ class VideoViewModel @Inject constructor(
                 }
             }
         } else {
-            _videoUiState.update {
-                it.copy(
-                    selectedCourseId = defaultCourseId,
-                    userCourses = storageService.userCourses,
-                    isLoading = false,
-                    isEdit = true,
-                    videoUrl = videoUrl
-                )
+            viewModelScope.launch {
+                val userId = accountService.currentUser.first().id
+                _videoUiState.update {
+                    it.copy(
+                        selectedCourseId = defaultCourseId,
+                        userCourses = storageService.getUserCourses(userId),
+                        isLoading = false,
+                        isEdit = true,
+                        videoUrl = videoUrl
+                    )
+                }
             }
             if (videoUrl.isNotBlank()) {
                 loadVideoData {  }
@@ -183,18 +190,20 @@ class VideoViewModel @Inject constructor(
     fun deleteVideo() {
         toggleDeleteDialogVisibility(false)
         viewModelScope.launch {
-            storageService.deleteYouTubeVideo(defaultCourseId, videoId)
+            val userId = accountService.currentUser.first().id
+            storageService.deleteYouTubeVideo(userId, defaultCourseId, videoId)
         }
     }
 
     fun persistVideo() {
         viewModelScope.launch {
             val video = _videoUiState.value.toYouTubeVideo()
+            val userId = accountService.currentUser.first().id
             val selectedCourseId = _videoUiState.value.selectedCourseId
             if (video.id.isBlank()) {
-                storageService.saveYouTubeVideo(selectedCourseId, video)
+                storageService.saveYouTubeVideo(userId,selectedCourseId, video)
             } else {
-                storageService.updateYouTubeVideo(defaultCourseId, video)
+                storageService.updateYouTubeVideo(userId,defaultCourseId, video)
             }
         }
     }

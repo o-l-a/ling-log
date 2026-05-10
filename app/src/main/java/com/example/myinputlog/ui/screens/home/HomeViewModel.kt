@@ -7,15 +7,17 @@ import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
-import com.example.myinputlog.ui.models.mapToCourseHeader
+import com.example.myinputlog.ui.models.mapToCourseUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -42,7 +44,6 @@ class HomeViewModel @Inject constructor(
     accountService: AccountService
 ) : ViewModel() {
     private val userIdFlow = accountService.currentUser.map { it.id }
-    private val userCoursesFlow = storageService.userCourses
     private val currentIdFlow = preferenceStorageService.currentCourseId
     private val selectedYearMonth = MutableStateFlow(YearMonth.now())
     private val isParty = MutableStateFlow(false)
@@ -52,6 +53,15 @@ class HomeViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = ""
         )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val userCoursesFlow: Flow<List<UserCourse>?> = userIdFlow.flatMapLatest { id ->
+        if (id.isEmpty()) {
+            flowOf(null)
+        } else {
+            storageService.getUserCourses(id)
+        }
+    }
 
     private val sessionFlow = combine(userIdFlow, currentIdFlow) { uid, cid ->
         uid to cid
@@ -105,7 +115,7 @@ class HomeViewModel @Inject constructor(
                 val current = courses.find { it.id == id } ?: courses.first()
                 val courseStatistics =
                     (statsRes as? StatsResult.Success)?.stats ?: CourseStatistics()
-                val courseHeader = mapToCourseHeader(current, courseStatistics)
+                val courseHeader = mapToCourseUiModel(current, courseStatistics)
 
                 HomeUiState.Success(
                     courseHeader = courseHeader,

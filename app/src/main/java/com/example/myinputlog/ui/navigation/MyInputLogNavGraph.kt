@@ -180,16 +180,16 @@ fun NavGraphBuilder.myInputLogPlaylistsGraph(navController: NavHostController) {
         ) {
             val playlistsViewModel = hiltViewModel<PlaylistsViewModel>()
             PlaylistsScreen(
-                playlistsViewModel = playlistsViewModel,
+//                playlistsViewModel = playlistsViewModel,
                 onBottomNavClicked = { route ->
                     navController.navigate(route)
                 },
                 navigateToYouTubeVideoEntry = {courseId ->
                     navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
                 },
-                navigateToYouTubeVideoEntryWithUrl = { courseId, videoUrl ->
-                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID?${VideoDestination.videoUrlArg}=$videoUrl")
-                }
+//                navigateToYouTubeVideoEntryWithUrl = { courseId, videoUrl ->
+//                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID?${VideoDestination.videoUrlArg}=$videoUrl")
+//                }
             )
         }
     }
@@ -225,7 +225,7 @@ fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
         }
         composable(
             route = CourseDestination.routeWithArgs,
-            arguments = listOf(navArgument(CourseDestination.courseIdArg) {
+            arguments = listOf(navArgument(CourseDestination.COURSE_ID_ARG) {
                 type = NavType.StringType
             })
         ) {

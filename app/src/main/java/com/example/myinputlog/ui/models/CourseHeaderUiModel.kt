@@ -8,12 +8,13 @@ data class CourseHeaderUiModel(
     val id: String = "",
     val name: String = "",
     val goalInHours: Long = 0L,
+    val otherSourceHours: Long = 0L,
     val progress: Float = 0F,
     val totalHours: Long = 0L,
     val percentageText: String = ""
 )
 
-fun mapToCourseHeader(
+fun mapToCourseUiModel(
     course: UserCourse, courseStatistics: CourseStatistics
 ): CourseHeaderUiModel {
     val hoursWatched = TimeUnit.SECONDS.toHours(
@@ -30,6 +31,7 @@ fun mapToCourseHeader(
         id = course.id,
         name = course.name,
         goalInHours = course.goalInHours,
+        otherSourceHours = course.otherSourceHours,
         progress = progressValue,
         totalHours = totalHours,
         percentageText = "${(progressValue * 100).toInt()}%"

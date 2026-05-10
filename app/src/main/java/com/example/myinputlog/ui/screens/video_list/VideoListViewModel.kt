@@ -14,7 +14,7 @@ import com.example.myinputlog.data.paging.VideoPagingSource
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
 import com.example.myinputlog.data.service.impl.DefaultStorageService
-import com.example.myinputlog.ui.models.mapToCourseHeader
+import com.example.myinputlog.ui.models.mapToCourseUiModel
 import com.example.myinputlog.ui.screens.home.StatsResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,7 +38,6 @@ class VideoListViewModel @Inject constructor(
     private val pagingSourceFactory: VideoPagingSource.Factory,
     private val pagingConfig: PagingConfig
 ) : ViewModel() {
-    private val userCoursesFlow = storageService.userCourses
     private val userIdFlow = accountService.currentUser.map { it.id }
     private val currentIdFlow = preferenceStorageService.currentCourseId
 
@@ -51,6 +50,15 @@ class VideoListViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = ""
         )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val userCoursesFlow: Flow<List<UserCourse>?> = userIdFlow.flatMapLatest { id ->
+        if (id.isEmpty()) {
+            flowOf(null)
+        } else {
+            storageService.getUserCourses(id)
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val videoFlow = sessionFlow.flatMapLatest { (uid, cid) ->
@@ -89,7 +97,7 @@ class VideoListViewModel @Inject constructor(
                 val current = courses.find { it.id == id } ?: courses.first()
                 val courseStatistics =
                     (statsRes as? StatsResult.Success)?.stats ?: CourseStatistics()
-                val courseHeader = mapToCourseHeader(current, courseStatistics)
+                val courseHeader = mapToCourseUiModel(current, courseStatistics)
 
                 VideoListUiState.Success(
                     courseHeader = courseHeader,
