@@ -50,22 +50,21 @@ fun CourseScreen(
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
-            if (courseUiState is CourseUiState.Success) {
-                MyInputLogTopAppBar(
-                    title = "",
-                    canNavigateBack = true,
-                    navigateUp = onNavigateUp,
-                    hasDeleteAction = (courseUiState as CourseUiState.Success).courseFields.id.isNotBlank(),
-                    hasSaveAction = true,
-                    isFormValid = (courseUiState as CourseUiState.Success).isFormValid,
-                    onDelete = { courseViewModel.toggleDialogVisibility(true) },
-                    onSave = {
-                        courseViewModel.persistCourse()
-                        onNavigateUp()
-                    },
-                    scrollBehavior = scrollBehavior
-                )
-            }
+            val successState = courseUiState as? CourseUiState.Success
+            MyInputLogTopAppBar(
+                title = "",
+                canNavigateBack = true,
+                navigateUp = onNavigateUp,
+                hasDeleteAction = successState?.courseId?.isNotBlank() ?: false,
+                hasSaveAction = true,
+                isFormValid = successState?.isFormValid ?: false,
+                onDelete = { courseViewModel.toggleDialogVisibility(true) },
+                onSave = {
+                    courseViewModel.persistCourse()
+                    onNavigateUp()
+                },
+                scrollBehavior = scrollBehavior
+            )
         }) { innerPadding ->
         when (courseUiState) {
             is CourseUiState.Loading -> {

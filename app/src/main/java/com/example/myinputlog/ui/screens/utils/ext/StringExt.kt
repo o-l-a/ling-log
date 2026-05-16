@@ -23,15 +23,20 @@ private const val MIN_PASS_LENGTH = 8
 
 // deleted the "non-white" character constraint
 private const val PASS_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{4,}$"
+private val passPatternCompiled = Pattern.compile(PASS_PATTERN)
+
+private const val URL_PATTERN =
+    "http(?:s)?://(?:m\\.)?(?:www\\.)?youtu(?:\\.be/|(?:be-nocookie|be)\\.com/(?:watch|[\\w]+\\?(?:feature=[\\w]+\\.[\\w]+\\&)?v=|v/|e/|embed/|live/|shorts/|user/(?:[\\w#]+/)+))([^&#?\\n]+)"
+private val urlPatternCompiled = Pattern.compile(URL_PATTERN)
+
 
 fun String.isValidEmail(): Boolean {
     return this.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }
 
 fun String.isValidPassword(): Boolean {
-    return this.isNotBlank() &&
-            this.length >= MIN_PASS_LENGTH &&
-            Pattern.compile(PASS_PATTERN).matcher(this).matches()
+    return this.isNotBlank() && this.length >= MIN_PASS_LENGTH && passPatternCompiled.matcher(this)
+        .matches()
 }
 
 fun String.passwordMatches(repeated: String): Boolean {
@@ -59,4 +64,11 @@ fun String.hideEmail(): String {
             append(this@hideEmail)
         }
     }
+}
+
+fun String.extractYouTubeVideoId(): String? {
+    val matcher = urlPatternCompiled.matcher(this)
+    return if (matcher.find()) {
+        matcher.group(1)
+    } else null
 }

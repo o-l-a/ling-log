@@ -17,7 +17,7 @@ class DefaultPreferenceStorageService @Inject constructor(
     private val datastore: DataStore<Preferences>
 ) : PreferenceStorageService {
 
-    val currentCourseId: Flow<String> = datastore.data.catch {
+    override val currentCourseId: Flow<String> = datastore.data.catch {
         if (it is IOException) {
             Log.e(TAG, "Error reading preferences.", it)
             emit(emptyPreferences())

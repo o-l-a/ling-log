@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.data.service.AccountService
-import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
-import com.example.myinputlog.data.service.impl.DefaultStorageService
+import com.example.myinputlog.data.service.PreferenceStorageService
+import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,8 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CourseViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val storageService: DefaultStorageService,
-    private val preferenceStorageService: DefaultPreferenceStorageService,
+    private val storageService: StorageService,
+    private val preferenceStorageService: PreferenceStorageService,
     accountService: AccountService
 ) : ViewModel() {
     private val courseId: String = checkNotNull(savedStateHandle[CourseDestination.COURSE_ID_ARG])
@@ -42,8 +42,7 @@ class CourseViewModel @Inject constructor(
             CourseUiState.Success(
                 courseFields = fields,
                 isFormValid = validateFields(fields),
-                isDialogVisible = dialogVisible,
-                isEdit = fields.id.isNotBlank()
+                isDialogVisible = dialogVisible
             )
         }
     }.stateIn(
@@ -63,7 +62,6 @@ class CourseViewModel @Inject constructor(
                 val course = storageService.getUserCourse(userId, courseId)
                 if (course != null) {
                     _fields.value = CourseFields(
-                        id = course.id,
                         name = course.name,
                         goalInHours = course.goalInHours.toString(),
                         otherSourceHours = course.otherSourceHours.toString()
@@ -115,7 +113,7 @@ class CourseViewModel @Inject constructor(
         viewModelScope.launch {
             val currentFields = _fields.value
             val userId = userIdFlow.first()
-            val course = currentFields.toUserCourse()
+            val course = currentFields.toUserCourse(id = courseId)
             if (course.id.isBlank()) {
                 val newCourseId = storageService.saveUserCourse(userId, course)
                 preferenceStorageService.saveCurrentCourseId(newCourseId)

@@ -152,9 +152,9 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
         composable(
             route = VideoDestination.routeWithArgs,
             arguments = listOf(
-                navArgument(VideoDestination.videoIdArg) { type = NavType.StringType },
-                navArgument(VideoDestination.courseIdArg) { type = NavType.StringType },
-                navArgument(VideoDestination.videoUrlArg) {
+                navArgument(VideoDestination.VIDEO_ID_ARG) { type = NavType.StringType },
+                navArgument(VideoDestination.COURSE_ID_ARG) { type = NavType.StringType },
+                navArgument(VideoDestination.VIDEO_URL_ARG) {
                     type = NavType.StringType
                     defaultValue = ""
                 }
