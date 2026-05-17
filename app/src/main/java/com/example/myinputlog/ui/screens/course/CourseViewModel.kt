@@ -3,9 +3,11 @@ package com.example.myinputlog.ui.screens.course
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.PreferenceStorageService
 import com.example.myinputlog.data.service.StorageService
+import com.example.myinputlog.ui.navigation.CourseRoute
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +29,8 @@ class CourseViewModel @Inject constructor(
     private val preferenceStorageService: PreferenceStorageService,
     accountService: AccountService
 ) : ViewModel() {
-    private val courseId: String = checkNotNull(savedStateHandle[CourseDestination.COURSE_ID_ARG])
+    private val courseRoute = savedStateHandle.toRoute<CourseRoute>()
+    private val courseId: String = courseRoute.courseId
     private val userIdFlow = accountService.currentUser.map { it.id }
     private val _fields = MutableStateFlow(CourseFields())
     private val _isLoading = MutableStateFlow(true)

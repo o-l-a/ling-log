@@ -26,19 +26,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_NEXT
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.theme.spacing
-
-object CourseDestination : NavigationDestination {
-    override val route: String = "course"
-    override val titleRes: Int = R.string.course_screen_title
-    const val COURSE_ID_ARG = "courseId"
-    val routeWithArgs = "$route/{$COURSE_ID_ARG}"
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

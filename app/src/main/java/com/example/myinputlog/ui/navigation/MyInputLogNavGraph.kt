@@ -13,59 +13,85 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.screens.course.CourseDestination
 import com.example.myinputlog.ui.screens.course.CourseScreen
 import com.example.myinputlog.ui.screens.course.CourseViewModel
-import com.example.myinputlog.ui.screens.home.HomeDestination
 import com.example.myinputlog.ui.screens.home.HomeScreen
 import com.example.myinputlog.ui.screens.home.HomeViewModel
-import com.example.myinputlog.ui.screens.landing.LandingDestination
 import com.example.myinputlog.ui.screens.landing.LandingScreen
 import com.example.myinputlog.ui.screens.landing.LandingViewModel
-import com.example.myinputlog.ui.screens.login.LoginDestination
 import com.example.myinputlog.ui.screens.login.LoginScreen
 import com.example.myinputlog.ui.screens.login.LoginViewModel
-import com.example.myinputlog.ui.screens.profile.ProfileDestination
 import com.example.myinputlog.ui.screens.profile.ProfileScreen
 import com.example.myinputlog.ui.screens.profile.ProfileViewModel
-import com.example.myinputlog.ui.screens.playlists.PlaylistsDestination
-import com.example.myinputlog.ui.screens.playlists.PlaylistsScreen
-import com.example.myinputlog.ui.screens.playlists.PlaylistsViewModel
-import com.example.myinputlog.ui.screens.sign_up.SignUpDestination
 import com.example.myinputlog.ui.screens.sign_up.SignUpScreen
 import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
-import com.example.myinputlog.ui.screens.video.VideoDestination
 import com.example.myinputlog.ui.screens.video.VideoScreen
 import com.example.myinputlog.ui.screens.video.VideoViewModel
-import com.example.myinputlog.ui.screens.video_list.VideoListDestination
 import com.example.myinputlog.ui.screens.video_list.VideoListScreen
 import com.example.myinputlog.ui.screens.video_list.VideoListViewModel
+import kotlinx.serialization.Serializable
 
 const val DEFAULT_ID = -1
-const val HOME_ROUTE = "home_route"
-const val RECENTLY_WATCHED_ROUTE = "recently_watched_route"
-const val VIDEOS_ROUTE = "videos_route"
-const val PROFILE_ROUTE = "profile_route"
-const val SIGN_IN_ROUTE = "sign_in_route"
+
+@Serializable
+object HomeGraph
+
+@Serializable
+object VideosGraph
+
+@Serializable
+object AuthGraph
+
+@Serializable
+object ProfileGraph
+
+@Serializable
+object LandingRoute
+
+@Serializable
+object HomeRoute
+
+@Serializable
+object VideoListRoute
+
+@Serializable
+data class VideoRoute(val courseId: String, val videoId: String, val videoUrl: String? = null)
+
+@Serializable
+object PlaylistsRoute
+
+@Serializable
+object ProfileRoute
+
+@Serializable
+data class CourseRoute(val courseId: String)
+
+@Serializable
+object LoginRoute
+
+@Serializable
+object SignUpRoute
 
 sealed class Screen(
-    val route: String,
-    @get:StringRes val resourceId: Int?,
-    val icon: ImageVector
+    val route: Any, @get:StringRes val resourceId: Int?, val icon: ImageVector
 ) {
-    object Home : Screen(HOME_ROUTE, R.string.home_bottom_nav_description, Icons.Filled.Home)
-    object Videos : Screen(VIDEOS_ROUTE, R.string.videos_bottom_nav_description, Icons.Filled.VideoLibrary)
+    object Home : Screen(HomeRoute, R.string.home_bottom_nav_description, Icons.Filled.Home)
+    object Videos :
+        Screen(VideoListRoute, R.string.videos_bottom_nav_description, Icons.Filled.VideoLibrary)
+
     object AddVideo : Screen("", null, Icons.Outlined.AddCircleOutline)
-    object RecentlyWatched : Screen(RECENTLY_WATCHED_ROUTE, R.string.suggested_bottom_nav_description,
+    object RecentlyWatched : Screen(
+        PlaylistsRoute,
+        R.string.suggested_bottom_nav_description,
         Icons.AutoMirrored.Filled.PlaylistPlay
     )
-    object Profile : Screen(PROFILE_ROUTE, R.string.profile_bottom_nav_description, Icons.Filled.Person)
+
+    object Profile :
+        Screen(ProfileRoute, R.string.profile_bottom_nav_description, Icons.Filled.Person)
 }
 
 val navigationItems = listOf(
@@ -78,212 +104,128 @@ val navigationItems = listOf(
 
 @Composable
 fun MyInputLogNavHost(
-    modifier: Modifier = Modifier,
-    navController: NavHostController
+    modifier: Modifier = Modifier, navController: NavHostController
 ) {
     NavHost(
-        modifier = modifier,
-        navController = navController,
-        startDestination = LandingDestination.route
+        modifier = modifier, navController = navController, startDestination = LandingRoute
     ) {
-        composable(
-            route = LandingDestination.route
-        ) {
+        composable<LandingRoute> {
             val landingViewModel = hiltViewModel<LandingViewModel>()
             LandingScreen(
-                navigateWithPopUp = { route ->
-                    navController.navigateWithPopUp(route, LandingDestination.route)
-                },
+                navigateWithPopUp = { navController.navigateWithPopUp(HomeGraph, LandingRoute) },
                 viewModel = landingViewModel
             )
         }
         myInputLogHomeGraph(navController)
         myInputLogSignInGraph(navController)
         myInputLogVideosGraph(navController)
-        myInputLogPlaylistsGraph(navController)
         myInputLogProfileGraph(navController)
     }
 }
 
 fun NavGraphBuilder.myInputLogHomeGraph(navController: NavHostController) {
-    navigation(
-        startDestination = HomeDestination.route,
-        route = HOME_ROUTE
+    navigation<HomeGraph>(
+        startDestination = HomeRoute,
     ) {
-        composable(
-            route = HomeDestination.route
-        ) {
+        composable<HomeRoute> {
             val homeViewModel = hiltViewModel<HomeViewModel>()
-            HomeScreen(
-                homeViewModel = homeViewModel,
-                onBottomNavClicked = { route ->
-                    navController.navigate(route)
-                },
-                navigateToYouTubeVideoEntry = { courseId ->
-                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
-                }
-            )
+            HomeScreen(homeViewModel = homeViewModel, onBottomNavClicked = { route ->
+                navController.navigate(route)
+            }, navigateToYouTubeVideoEntry = { courseId ->
+                navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
+            })
         }
     }
 }
 
 fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
-    navigation(
-        startDestination = VideoListDestination.route,
-        route = VIDEOS_ROUTE
+    navigation<VideosGraph>(
+        startDestination = VideoListRoute,
     ) {
-        composable(
-            route = VideoListDestination.route
-        ) {
+        composable<VideoListRoute> {
             val videoListViewModel = hiltViewModel<VideoListViewModel>()
-            VideoListScreen(
-                videoListViewModel = videoListViewModel,
-                onBottomNavClicked = { route ->
-                    navController.navigateWithPopUp(route, VideoListDestination.route)
-                },
-                navigateToYouTubeVideoEntry = { courseId ->
-                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
-                },
-                navigateToYouTubeVideo = { courseId, videoId ->
-                    navController.navigate("${VideoDestination.route}/$courseId/$videoId")
-                }
-            )
+            VideoListScreen(videoListViewModel = videoListViewModel, onBottomNavClicked = { route ->
+                navController.navigateWithPopUp(route, VideoListRoute)
+            }, navigateToYouTubeVideoEntry = { courseId ->
+                navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
+            }, navigateToYouTubeVideo = { courseId, videoId ->
+                navController.navigate(VideoRoute(courseId, videoId))
+            })
         }
-        composable(
-            route = VideoDestination.routeWithArgs,
-            arguments = listOf(
-                navArgument(VideoDestination.VIDEO_ID_ARG) { type = NavType.StringType },
-                navArgument(VideoDestination.COURSE_ID_ARG) { type = NavType.StringType },
-                navArgument(VideoDestination.VIDEO_URL_ARG) {
-                    type = NavType.StringType
-                    defaultValue = ""
-                }
-            )
-        ) {
+        composable<VideoRoute> {
             val videoViewModel = hiltViewModel<VideoViewModel>()
             VideoScreen(
                 videoViewModel = videoViewModel,
                 navigateBack = { navController.popBackStack() },
-                onNavigateUp = { navController.navigateUp() }
-            )
-        }
-    }
-}
-
-fun NavGraphBuilder.myInputLogPlaylistsGraph(navController: NavHostController) {
-    navigation(
-        startDestination = PlaylistsDestination.route,
-        route = RECENTLY_WATCHED_ROUTE
-    ) {
-        composable(
-            route = PlaylistsDestination.route
-        ) {
-            val playlistsViewModel = hiltViewModel<PlaylistsViewModel>()
-            PlaylistsScreen(
-//                playlistsViewModel = playlistsViewModel,
-                onBottomNavClicked = { route ->
-                    navController.navigate(route)
-                },
-                navigateToYouTubeVideoEntry = {courseId ->
-                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
-                },
-//                navigateToYouTubeVideoEntryWithUrl = { courseId, videoUrl ->
-//                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID?${VideoDestination.videoUrlArg}=$videoUrl")
-//                }
-            )
+                onNavigateUp = { navController.navigateUp() })
         }
     }
 }
 
 fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
-    navigation(
-        startDestination = ProfileDestination.route,
-        route = PROFILE_ROUTE
+    navigation<ProfileGraph>(
+        startDestination = ProfileRoute,
     ) {
-        composable(
-            route = ProfileDestination.route
-        ) {
+        composable<ProfileRoute> {
             val profileViewModel = hiltViewModel<ProfileViewModel>()
             ProfileScreen(
                 profileViewModel = profileViewModel,
                 onBottomNavClicked = { route ->
-                    navController.navigateWithPopUp(route, ProfileDestination.route)
+                    navController.navigateWithPopUp(route, ProfileRoute)
                 },
-                navigateToUserCourseEntry = { navController.navigate("${CourseDestination.route}/$DEFAULT_ID") },
+                navigateToUserCourseEntry = { navController.navigate(CourseRoute(DEFAULT_ID.toString())) },
                 navigateToUserCourse = { courseId ->
-                    navController.navigate("${CourseDestination.route}/$courseId")
+                    navController.navigate(CourseRoute(courseId))
                 },
                 navigateWithPopUp = {
                     navController.navigateWithPopUp(
-                        LoginDestination.route, HomeDestination.route
+                        LoginRoute, HomeRoute
                     )
                 },
                 navigateToYouTubeVideoEntry = { courseId ->
-                    navController.navigate("${VideoDestination.route}/$courseId/$DEFAULT_ID")
-                }
-            )
+                    navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
+                })
         }
-        composable(
-            route = CourseDestination.routeWithArgs,
-            arguments = listOf(navArgument(CourseDestination.COURSE_ID_ARG) {
-                type = NavType.StringType
-            })
-        ) {
+        composable<CourseRoute> {
             val courseViewModel = hiltViewModel<CourseViewModel>()
             CourseScreen(
-                courseViewModel = courseViewModel,
-                onNavigateUp = { navController.navigateUp() }
-            )
+                courseViewModel = courseViewModel, onNavigateUp = { navController.navigateUp() })
         }
     }
 }
 
 fun NavGraphBuilder.myInputLogSignInGraph(navController: NavHostController) {
-    navigation(
-        startDestination = LoginDestination.route,
-        route = SIGN_IN_ROUTE
+    navigation<AuthGraph>(
+        startDestination = LoginRoute
     ) {
-        composable(
-            route = LoginDestination.route
-        ) {
+        composable<LoginRoute> {
             val loginViewModel = hiltViewModel<LoginViewModel>()
-            LoginScreen(
-                viewModel = loginViewModel,
-                onSignUpClick = {
-                    navController.navigateWithPopUp(
-                        SignUpDestination.route, LoginDestination.route
-                    )
-                },
-                onLoginClick = {
-                    navController.navigateWithPopUp(
-                        HomeDestination.route, LoginDestination.route
-                    )
-                }
-            )
+            LoginScreen(viewModel = loginViewModel, onSignUpClick = {
+                navController.navigateWithPopUp(
+                    SignUpRoute, LoginRoute
+                )
+            }, onLoginClick = {
+                navController.navigateWithPopUp(
+                    HomeRoute, LoginRoute
+                )
+            })
         }
-        composable(
-            route = SignUpDestination.route
-        ) {
+        composable<SignUpRoute> {
             val signUpViewModel = hiltViewModel<SignUpViewModel>()
-            SignUpScreen(
-                viewModel = signUpViewModel,
-                onSignInClick = {
-                    navController.navigate(LoginDestination.route)
-                },
-                onSignUpClick = {
-                    navController.navigateWithPopUp(
-                        HomeDestination.route, SignUpDestination.route
-                    )
-                }
-            )
+            SignUpScreen(viewModel = signUpViewModel, onSignInClick = {
+                navController.navigate(LoginRoute)
+            }, onSignUpClick = {
+                navController.navigateWithPopUp(
+                    HomeRoute, SignUpRoute
+                )
+            })
         }
     }
 }
 
-fun NavHostController.navigateWithPopUp(route: String, popUp: String) {
+fun NavHostController.navigateWithPopUp(route: Any, popUpToRoute: Any) {
     navigate(route) {
-        popUpTo(popUp) { inclusive = true }
+        popUpTo(popUpToRoute) { inclusive = true }
         launchSingleTop = true
     }
 }
-

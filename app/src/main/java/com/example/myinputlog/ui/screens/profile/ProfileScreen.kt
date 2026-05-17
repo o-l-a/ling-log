@@ -17,11 +17,11 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -50,7 +50,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.data.model.UserCourse
-import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.utils.composable.LeadingIconWithText
@@ -58,17 +57,12 @@ import com.example.myinputlog.ui.screens.utils.ext.hideEmail
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
 
-object ProfileDestination : NavigationDestination {
-    override val route: String = "settings"
-    override val titleRes: Int = R.string.profile_screen_title
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     profileViewModel: ProfileViewModel,
-    onBottomNavClicked: (String) -> Unit,
+    onBottomNavClicked: (Any) -> Unit,
     navigateToUserCourseEntry: () -> Unit,
     navigateToUserCourse: (String) -> Unit,
     navigateToYouTubeVideoEntry: (String) -> Unit,
@@ -187,7 +181,7 @@ fun ProfileBody(
             }
         }
         item {
-            Divider()
+            HorizontalDivider()
         }
         item {
             OutlinedButton(

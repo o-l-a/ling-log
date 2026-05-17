@@ -58,7 +58,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.data.model.UserCourse
-import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
@@ -68,15 +67,6 @@ import com.example.myinputlog.ui.screens.utils.dateFormatter
 import com.example.myinputlog.ui.screens.utils.getLanguageName
 import com.example.myinputlog.ui.theme.spacing
 import java.util.Date
-
-object VideoDestination : NavigationDestination {
-    override val route: String = "video"
-    override val titleRes: Int = R.string.video_screen_title
-    const val VIDEO_ID_ARG = "videoId"
-    const val COURSE_ID_ARG = "courseId"
-    const val VIDEO_URL_ARG = "videoUrl"
-    val routeWithArgs = "$route/{$COURSE_ID_ARG}/{$VIDEO_ID_ARG}?$VIDEO_URL_ARG={$VIDEO_URL_ARG}"
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

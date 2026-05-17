@@ -42,7 +42,6 @@ import com.example.myinputlog.CourseTopAppBar
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.data.model.YouTubeVideo
-import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.ListItemPlaceholder
@@ -52,17 +51,12 @@ import com.example.myinputlog.ui.screens.utils.ext.formatAsListHeader
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
 
-object VideoListDestination : NavigationDestination {
-    override val route: String = "videos"
-    override val titleRes: Int = R.string.video_list_screen_title
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoListScreen(
     modifier: Modifier = Modifier,
     videoListViewModel: VideoListViewModel,
-    onBottomNavClicked: (String) -> Unit,
+    onBottomNavClicked: (Any) -> Unit,
     navigateToYouTubeVideoEntry: (String) -> Unit,
     navigateToYouTubeVideo: (String, String) -> Unit
 ) {

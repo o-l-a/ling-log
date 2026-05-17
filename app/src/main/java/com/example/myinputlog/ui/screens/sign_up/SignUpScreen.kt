@@ -40,14 +40,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
 import com.example.myinputlog.ui.screens.utils.composable.SomethingWentWrongBox
-
-object SignUpDestination : NavigationDestination {
-    override val route: String = "sign_up"
-    override val titleRes: Int = 0
-}
 
 @Composable
 fun SignUpScreen(

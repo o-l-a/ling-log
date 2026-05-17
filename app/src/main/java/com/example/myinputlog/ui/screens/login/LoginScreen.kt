@@ -36,14 +36,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
 import com.example.myinputlog.ui.screens.utils.composable.SomethingWentWrongBox
-
-object LoginDestination : NavigationDestination {
-    override val route: String = "login"
-    override val titleRes: Int = 0
-}
 
 @Composable
 fun LoginScreen(
@@ -78,16 +72,12 @@ fun LoginScreen(
             },
             supportingText = { Text("") },
             keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Next,
-                keyboardType = KeyboardType.Email
+                imeAction = ImeAction.Next, keyboardType = KeyboardType.Email
             ),
             keyboardActions = KeyboardActions(
-                onNext = { focusManager.moveFocus(FocusDirection.Down) }
-            )
-        )
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }))
         OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             label = { Text(stringResource(R.string.password)) },
             leadingIcon = {
                 Icon(Icons.Filled.Lock, contentDescription = null)
@@ -96,21 +86,17 @@ fun LoginScreen(
                 if (loginUiState.value.isPasswordVisible) {
                     Icon(
                         modifier = Modifier.clickable(
-                            onClick = { viewModel.togglePasswordVisibility(false) }
-                        ),
+                            onClick = { viewModel.togglePasswordVisibility(false) }),
                         imageVector = Icons.Filled.Visibility,
                         tint = MaterialTheme.colorScheme.onSurface,
-                        contentDescription = null
-                    )
+                        contentDescription = null)
                 } else {
                     Icon(
                         modifier = Modifier.clickable(
-                            onClick = { viewModel.togglePasswordVisibility(true) }
-                        ),
+                            onClick = { viewModel.togglePasswordVisibility(true) }),
                         imageVector = Icons.Filled.VisibilityOff,
                         tint = MaterialTheme.colorScheme.onSurface,
-                        contentDescription = null
-                    )
+                        contentDescription = null)
                 }
             },
             isError = !loginUiState.value.isFormValid,
@@ -125,24 +111,18 @@ fun LoginScreen(
                 viewModel.updatePassword(it)
             },
             keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done,
-                keyboardType = KeyboardType.Password
+                imeAction = ImeAction.Done, keyboardType = KeyboardType.Password
             ),
             keyboardActions = KeyboardActions(
                 onDone = {
                     viewModel.onLoginClick(onLoginClick)
                     focusManager.clearFocus()
-                }
-            )
-        )
+                }))
         Spacer(modifier = Modifier.height(20.dp))
         Button(
-            modifier = Modifier
-                .fillMaxWidth(),
-            onClick = {
+            modifier = Modifier.fillMaxWidth(), onClick = {
                 viewModel.onLoginClick(onLoginClick)
-            }
-        ) {
+            }) {
             Text(text = stringResource(R.string.sign_in))
         }
         Row(modifier = Modifier.weight(1f)) {

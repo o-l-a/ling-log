@@ -42,7 +42,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.CourseTopAppBar
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.navigation.NavigationDestination
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
@@ -61,17 +60,12 @@ import nl.dionsegijn.konfetti.core.Spread
 import nl.dionsegijn.konfetti.core.emitter.Emitter
 import java.util.concurrent.TimeUnit
 
-object HomeDestination : NavigationDestination {
-    override val route: String = "home"
-    override val titleRes: Int = R.string.home_screen_title
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel,
-    onBottomNavClicked: (String) -> Unit,
+    onBottomNavClicked: (Any) -> Unit,
     navigateToYouTubeVideoEntry: (String) -> Unit,
 ) {
     val homeUiState by homeViewModel.homeUiState.collectAsStateWithLifecycle()

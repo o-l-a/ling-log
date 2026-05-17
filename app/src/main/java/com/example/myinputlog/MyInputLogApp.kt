@@ -127,7 +127,7 @@ fun MyInputLogTopAppBar(
 fun MyInputLogBottomNavBar(
     modifier: Modifier = Modifier,
     selectedScreen: Screen,
-    onBottomNavClicked: (String) -> Unit,
+    onBottomNavClicked: (Any) -> Unit,
     navigateToYouTubeVideoEntry: () -> Unit,
 ) {
     NavigationBar(

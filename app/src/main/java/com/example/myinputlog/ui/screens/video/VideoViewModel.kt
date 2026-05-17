@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.example.myinputlog.R
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.remote.toVideoMetadata
@@ -11,6 +12,7 @@ import com.example.myinputlog.data.repository.VideoDataRepository
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
+import com.example.myinputlog.ui.navigation.VideoRoute
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.UiText
 import com.example.myinputlog.ui.screens.utils.ext.extractYouTubeVideoId
@@ -47,13 +49,11 @@ class VideoViewModel @Inject constructor(
         object NavigateBack : VideoUiEvent()
     }
 
-    private val initialVideoId: String =
-        checkNotNull(savedStateHandle[VideoDestination.VIDEO_ID_ARG])
-    private val videoId = sanitizeInitialVideoId(initialVideoId)
-    private val defaultCourseId: String =
-        checkNotNull(savedStateHandle[VideoDestination.COURSE_ID_ARG])
-    private val initialVideoUrl: String =
-        checkNotNull(savedStateHandle[VideoDestination.VIDEO_URL_ARG])
+    private val videoRoute = savedStateHandle.toRoute<VideoRoute>()
+    private val defaultCourseId: String = videoRoute.courseId
+    private val initialVideoUrl: String = videoRoute.videoUrl ?: ""
+
+    private val videoId = sanitizeInitialVideoId(videoRoute.videoId)
 
     private val userIdFlow = accountService.currentUser.map { it.id }
 
