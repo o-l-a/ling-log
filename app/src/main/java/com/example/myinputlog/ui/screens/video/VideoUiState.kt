@@ -4,6 +4,7 @@ import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.ext.asStartOfDay
+import com.example.myinputlog.ui.screens.utils.ext.stripUrl
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
@@ -28,7 +29,7 @@ data class VideoMetadata(
 )
 
 data class VideoUserDraft(
-    val selectedCourseId: String = "",
+    val selectedCourse: UserCourse = UserCourse(),
     val speakersNationality: Country? = null,
     val videoUrl: String = "",
     val watchedOn: Date? = Date.from(
@@ -51,7 +52,9 @@ sealed interface VideoUiState {
         val videoLoadState: VideoLoadState = VideoLoadState.LoadingFromStorage,
         val userCourses: List<UserCourse> = listOf(),
         val videoUiFlags: VideoUiFlags = VideoUiFlags(),
-        val isFormValid: Boolean = false
+        val isFormValid: Boolean = false,
+        val isDeleteEnabled: Boolean = false,
+        val isCourseEditable: Boolean = false
     ) : VideoUiState
 }
 
@@ -65,8 +68,8 @@ fun YouTubeVideo.toVideoMetadata(): VideoMetadata = VideoMetadata(
     defaultAudioLanguage = defaultAudioLanguage
 )
 
-fun YouTubeVideo.toVideoUserDraft(selectedCourseId: String = ""): VideoUserDraft = VideoUserDraft(
-    selectedCourseId = selectedCourseId,
+fun YouTubeVideo.toVideoUserDraft(selectedCourse: UserCourse): VideoUserDraft = VideoUserDraft(
+    selectedCourse = selectedCourse,
     videoUrl = videoUrl,
     watchedOn = watchedOn,
     speakersNationality = speakersNationality
@@ -79,7 +82,7 @@ fun VideoUiState.Success.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
     title = videoMetadata.title,
     channel = videoMetadata.channel,
     durationInSeconds = videoMetadata.durationInSeconds,
-    videoUrl = videoUserDraft.videoUrl,
+    videoUrl = videoUserDraft.videoUrl.stripUrl(),
     thumbnailDefaultUrl = videoMetadata.thumbnailDefaultUrl,
     thumbnailMediumUrl = videoMetadata.thumbnailMediumUrl,
     thumbnailHighUrl = videoMetadata.thumbnailHighUrl,

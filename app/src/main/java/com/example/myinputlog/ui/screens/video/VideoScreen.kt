@@ -92,12 +92,19 @@ fun VideoScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
+    val isFormValid = remember(videoUiState) {
+        (videoUiState as? VideoUiState.Success)?.isFormValid ?: false
+    }
+
     LaunchedEffect(Unit) {
         videoViewModel.uiEvent.collect { event ->
             when (event) {
                 is VideoViewModel.VideoUiEvent.ShowSnackbar -> {
                     val message = event.message.asString(context)
                     snackbarHostState.showSnackbar(message)
+                }
+                VideoViewModel.VideoUiEvent.NavigateBack -> {
+                    navigateBack()
                 }
             }
         }
@@ -109,14 +116,11 @@ fun VideoScreen(
             title = "",
             canNavigateBack = true,
             navigateUp = onNavigateUp,
-            hasDeleteAction = successState?.id?.isNotBlank() ?: false,
+            hasDeleteAction = successState?.isDeleteEnabled ?: false,
             hasSaveAction = true,
-            isFormValid = successState?.isFormValid ?: false,
+            isFormValid = isFormValid,
             onDelete = { videoViewModel.toggleDeleteDialogVisibility(true) },
-            onSave = {
-                videoViewModel.persistVideo()
-                navigateBack()
-            },
+            onSave = videoViewModel::persistVideo,
             scrollBehavior = scrollBehavior
         )
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
@@ -188,14 +192,14 @@ fun VideoEditBody(
         verticalArrangement = Arrangement.Top,
         contentPadding = PaddingValues(MaterialTheme.spacing.medium)
     ) {
-        item {
-            MyInputLogDropdownField(value = videoUiState.userCourses.firstOrNull { userCourse ->
-                userCourse.id == videoUiState.videoUserDraft.selectedCourseId
-            } ?: UserCourse(),
+        item (key="course_input") {
+            MyInputLogDropdownField(
+                value = videoUiState.videoUserDraft.selectedCourse,
                 onValueChange = onCourseValueChange,
                 options = videoUiState.userCourses,
                 isInTopBar = false,
-                isEditable = videoUiState.id.isBlank())
+                isEditable = videoUiState.isCourseEditable
+            )
         }
 
         videoUrlSection(
@@ -214,7 +218,7 @@ fun VideoEditBody(
 
         videoMetadataSection(
             videoMetadata = videoUiState.videoMetadata,
-            isVisible = videoUiState.videoUserDraft.videoUrl.isNotBlank() && videoUiState.videoLoadState is VideoLoadState.Success
+            isVisible = videoUiState.isFormValid
         )
     }
 }
@@ -225,7 +229,7 @@ fun LazyListScope.videoUrlSection(
     onUrlClearClicked: () -> Unit,
     onUrlValueChange: (String) -> Unit
 ) {
-    item {
+    item (key="url_input") {
         val keyboardController = LocalSoftwareKeyboardController.current
         OutlinedTextField(
             modifier = modifier
@@ -263,7 +267,7 @@ fun LazyListScope.videoAttributesSection(
     onDateClearClicked: () -> Unit,
     onCountryValueChange: (Country?) -> Unit,
 ) {
-    item {
+    item (key="input_chips") {
         FlowRow(
             modifier
                 .fillMaxWidth(1f)
@@ -306,13 +310,13 @@ fun LazyListScope.videoMetadataSection(
     videoMetadata: VideoMetadata, isVisible: Boolean
 ) {
     if (isVisible) {
-        item {
+        item (key="video_thumbnail") {
             VideoThumbnail(
-                videoUrl = videoMetadata.thumbnailHighUrl,
+                videoUrl = videoMetadata.thumbnailMediumUrl,
                 duration = videoMetadata.durationInSeconds
             )
         }
-        item {
+        item (key="video_title") {
             Text(
                 modifier = Modifier.padding(top = MaterialTheme.spacing.small),
                 text = videoMetadata.title,
@@ -320,7 +324,7 @@ fun LazyListScope.videoMetadataSection(
                 textAlign = TextAlign.Left
             )
         }
-        item {
+        item (key="channel_info") {
             Text(
                 text = "${videoMetadata.channel} • ${getLanguageName(videoMetadata.defaultAudioLanguage)}",
                 style = MaterialTheme.typography.bodyMedium

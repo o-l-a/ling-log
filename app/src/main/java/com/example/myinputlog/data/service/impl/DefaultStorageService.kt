@@ -15,13 +15,15 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObject
 import com.google.firebase.perf.trace
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -35,11 +37,11 @@ class DefaultStorageService @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getUserCourses(userId: String): Flow<List<UserCourse>> =
         currentUserCourseCollection(userId).snapshots()
-            .map { snapshot -> snapshot.toObjects(UserCourse::class.java) }
+            .map { snapshot -> snapshot.toObjects(UserCourse::class.java) }.flowOn(Dispatchers.IO)
 
     override suspend fun videosByWatchedOnQuery(
         userId: String, courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long
-    ): Query {
+    ): Query = withContext(Dispatchers.IO) {
         var query = currentUserCourseCollection(userId).document(courseId)
             .collection(YOU_TUBE_VIDEO_COLLECTION).orderBy("watchedOn", Query.Direction.DESCENDING)
             .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -47,7 +49,7 @@ class DefaultStorageService @Inject constructor(
         if (lastVideo != null) {
             query = query.startAfter(lastVideo)
         }
-        return query.limit(limitSize)
+        return@withContext query.limit(limitSize)
     }
 
     private fun currentUserCourseCollection(uid: String): CollectionReference =
@@ -59,26 +61,34 @@ class DefaultStorageService @Inject constructor(
         currentUserCourseCollection(uid).document(courseId).collection(YOU_TUBE_VIDEO_COLLECTION)
 
     override suspend fun getUserCourse(currentUserId: String, userCourseId: String): UserCourse? =
-        currentUserCourseCollection(currentUserId).document(userCourseId).get().await().toObject()
+        withContext(Dispatchers.IO) {
+            currentUserCourseCollection(currentUserId).document(userCourseId).get().await()
+                .toObject()
+        }
 
     override suspend fun saveUserCourse(currentUserId: String, userCourse: UserCourse): String =
-        trace(USER_COURSE_SAVE_TRACE) {
-            currentUserCourseCollection(currentUserId).add(userCourse).await().id
+        withContext(Dispatchers.IO) {
+            trace(USER_COURSE_SAVE_TRACE) {
+                currentUserCourseCollection(currentUserId).add(userCourse).await().id
+            }
         }
 
     override suspend fun updateUserCourse(currentUserId: String, userCourse: UserCourse): Unit =
-        trace(USER_COURSE_UPDATE_TRACE) {
-            currentUserCourseCollection(currentUserId).document(userCourse.id).set(userCourse)
-                .await()
+        withContext(Dispatchers.IO) {
+            trace(USER_COURSE_UPDATE_TRACE) {
+                currentUserCourseCollection(currentUserId).document(userCourse.id).set(userCourse)
+                    .await()
+            }
         }
 
-    override suspend fun deleteUserCourse(currentUserId: String, userCourseId: String) {
-        currentUserCourseCollection(currentUserId).document(userCourseId).delete().await()
-    }
+    override suspend fun deleteUserCourse(currentUserId: String, userCourseId: String): Unit =
+        withContext(Dispatchers.IO) {
+            currentUserCourseCollection(currentUserId).document(userCourseId).delete().await()
+        }
 
     override suspend fun getCourseStatistics(
         currentUserId: String, userCourseId: String
-    ): CourseStatistics = coroutineScope {
+    ): CourseStatistics = withContext(Dispatchers.IO) {
         val aggregateField = AggregateField.sum("durationInSeconds")
         val collection = youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId)
 
@@ -102,7 +112,7 @@ class DefaultStorageService @Inject constructor(
 
     override suspend fun getMonthlyAggregateData(
         currentUserId: String, userCourseId: String, yearMonth: YearMonth
-    ): List<Long> = coroutineScope {
+    ): List<Long> = withContext(Dispatchers.IO) {
         val aggregateField = AggregateField.sum("durationInSeconds")
         val collection = youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId)
 
@@ -135,30 +145,35 @@ class DefaultStorageService @Inject constructor(
 
     override suspend fun getYouTubeVideo(
         currentUserId: String, userCourseId: String, youTubeVideoId: String
-    ): YouTubeVideo? =
+    ): YouTubeVideo? = withContext(Dispatchers.IO) {
         youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId).document(
             youTubeVideoId
         ).get().await().toObject()
+    }
 
     override suspend fun saveYouTubeVideo(
         currentUserId: String, userCourseId: String, youTubeVideo: YouTubeVideo
-    ): Unit = trace(YOU_TUBE_VIDEO_SAVE_TRACE) {
-        youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId).add(
-            youTubeVideo
-        ).await().id
+    ): Unit = withContext(Dispatchers.IO) {
+        trace(YOU_TUBE_VIDEO_SAVE_TRACE) {
+            youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId).add(
+                youTubeVideo
+            ).await().id
+        }
     }
 
     override suspend fun updateYouTubeVideo(
         currentUserId: String, userCourseId: String, youTubeVideo: YouTubeVideo
-    ): Unit = trace(YOU_TUBE_VIDEO_UPDATE_TRACE) {
-        youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId).document(
-            youTubeVideo.id
-        ).set(youTubeVideo).await()
+    ): Unit = withContext(Dispatchers.IO) {
+        trace(YOU_TUBE_VIDEO_UPDATE_TRACE) {
+            youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId).document(
+                youTubeVideo.id
+            ).set(youTubeVideo).await()
+        }
     }
 
     override suspend fun deleteYouTubeVideo(
         currentUserId: String, userCourseId: String, youTubeVideoId: String
-    ) {
+    ): Unit = withContext(Dispatchers.IO) {
         youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId).document(
             youTubeVideoId
         ).delete().await()

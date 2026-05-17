@@ -11,6 +11,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.myinputlog.R
@@ -34,6 +36,18 @@ fun VideoThumbnail(
     duration: Long,
     isListItemLeading: Boolean = false
 ) {
+    val context = LocalContext.current
+
+    val imageRequest = remember(videoUrl) {
+        if (videoUrl.isBlank()) null
+        else ImageRequest.Builder(context)
+            .size(Size.ORIGINAL)
+            .data(videoUrl)
+            .crossfade(true)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .build()
+    }
+
     Box(
         modifier = modifier
             .aspectRatio(16F / 9F)
@@ -53,11 +67,7 @@ fun VideoThumbnail(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(4F / 3F),
-            model = ImageRequest.Builder(context = LocalContext.current)
-                .size(Size.ORIGINAL)
-                .data(videoUrl)
-                .crossfade(true)
-                .build(),
+            model = imageRequest,
             error = painterResource(R.drawable.video_placeholder),
             placeholder = painterResource(R.drawable.loading_img),
             contentDescription = stringResource(R.string.video_thumbnail_content_description),

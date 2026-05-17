@@ -16,8 +16,10 @@ limitations under the License.
 
 package com.example.myinputlog.ui.screens.utils.ext
 
+import android.net.Uri
 import android.util.Patterns
 import java.util.regex.Pattern
+import androidx.core.net.toUri
 
 private const val MIN_PASS_LENGTH = 8
 
@@ -71,4 +73,8 @@ fun String.extractYouTubeVideoId(): String? {
     return if (matcher.find()) {
         matcher.group(1)
     } else null
+}
+
+fun String.stripUrl(): String {
+    return this.substringBefore('?')
 }

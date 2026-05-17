@@ -44,6 +44,7 @@ class VideoViewModel @Inject constructor(
 ) : ViewModel() {
     sealed class VideoUiEvent {
         data class ShowSnackbar(val message: UiText) : VideoUiEvent()
+        object NavigateBack : VideoUiEvent()
     }
 
     private val initialVideoId: String =
@@ -65,7 +66,7 @@ class VideoViewModel @Inject constructor(
         }
     }
 
-    private val _userDraft = MutableStateFlow(VideoUserDraft(selectedCourseId = defaultCourseId))
+    private val _userDraft = MutableStateFlow(VideoUserDraft())
     private val _videoMetadata = MutableStateFlow(VideoMetadata())
     private val _loadingState = MutableStateFlow<VideoLoadState>(VideoLoadState.LoadingFromStorage)
     private val _uiFlags = MutableStateFlow(VideoUiFlags())
@@ -88,7 +89,9 @@ class VideoViewModel @Inject constructor(
                 videoLoadState = loadState,
                 userCourses = courses,
                 videoUiFlags = flags,
-                isFormValid = draft.videoUrl.isNotBlank() && loadState is VideoLoadState.Success
+                isFormValid = draft.videoUrl.isNotBlank() && loadState is VideoLoadState.Success,
+                isDeleteEnabled = !isNewVideo(videoId),
+                isCourseEditable = isNewVideo(videoId)
             )
         }
     }.stateIn(
@@ -104,17 +107,20 @@ class VideoViewModel @Inject constructor(
     private fun loadVideoFromStorage() {
         viewModelScope.launch {
             val userId = accountService.currentUser.first().id
+            val selectedCourse = userCoursesFlow.first()?.firstOrNull { userCourse ->
+                userCourse.id == defaultCourseId
+            } ?: UserCourse()
             if (!isNewVideo(videoId)) {
                 val video = storageService.getYouTubeVideo(userId, defaultCourseId, videoId)
                 if (video != null) {
                     _videoMetadata.value = video.toVideoMetadata()
-                    _userDraft.value = video.toVideoUserDraft(defaultCourseId)
+                    _userDraft.value = video.toVideoUserDraft(selectedCourse)
                     _loadingState.value = VideoLoadState.Success
                 } else {
                     _loadingState.value = VideoLoadState.StorageError
                 }
             } else {
-                _userDraft.update { it.copy(selectedCourseId = defaultCourseId) }
+                _userDraft.update { it.copy(selectedCourse = selectedCourse) }
                 _loadingState.value = VideoLoadState.Success
             }
             if (initialVideoUrl.isNotBlank()) {
@@ -179,7 +185,7 @@ class VideoViewModel @Inject constructor(
     }
 
     fun updateUserCourse(newCourse: UserCourse) {
-        _userDraft.update { it.copy(selectedCourseId = newCourse.id) }
+        _userDraft.update { it.copy(selectedCourse = newCourse) }
     }
 
     fun updateVideoUrl(newUrl: String) {
@@ -214,11 +220,17 @@ class VideoViewModel @Inject constructor(
             if (currentState is VideoUiState.Success) {
                 val video = currentState.toYouTubeVideo()
                 val userId = accountService.currentUser.first().id
-                val selectedCourseId = currentState.videoUserDraft.selectedCourseId
-                if (isNewVideo(video.id)) {
-                    storageService.saveYouTubeVideo(userId, selectedCourseId, video)
-                } else {
-                    storageService.updateYouTubeVideo(userId, defaultCourseId, video)
+                val selectedCourseId = currentState.videoUserDraft.selectedCourse.id
+                try {
+                    if (isNewVideo(video.id)) {
+                        storageService.saveYouTubeVideo(userId, selectedCourseId, video)
+                    } else {
+                        storageService.updateYouTubeVideo(userId, defaultCourseId, video)
+                    }
+                    _uiEvent.send(VideoUiEvent.NavigateBack)
+                } catch (e: Exception) {
+                    Log.d(TAG, e.toString())
+                    _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.video_save_error)))
                 }
             }
         }

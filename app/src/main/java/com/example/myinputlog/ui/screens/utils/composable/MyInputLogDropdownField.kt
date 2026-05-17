@@ -3,10 +3,12 @@ package com.example.myinputlog.ui.screens.utils.composable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -41,7 +43,7 @@ fun MyInputLogDropdownField(
     ) {
         OutlinedTextField(
             modifier = modifier
-                .menuAnchor()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = isEditable)
                 .fillMaxWidth(),
             readOnly = true,
             value = value?.name ?: "",
