@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myinputlog.R
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.remote.toVideoMetadata
 import com.example.myinputlog.data.repository.VideoDataRepository
@@ -11,9 +12,13 @@ import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import com.example.myinputlog.ui.screens.utils.Country
+import com.example.myinputlog.ui.screens.utils.UiText
 import com.example.myinputlog.ui.screens.utils.ext.extractYouTubeVideoId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +28,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -36,7 +42,13 @@ class VideoViewModel @Inject constructor(
     private val videoDataRepository: VideoDataRepository,
     private val accountService: AccountService
 ) : ViewModel() {
-    private val videoId: String = checkNotNull(savedStateHandle[VideoDestination.VIDEO_ID_ARG])
+    sealed class VideoUiEvent {
+        data class ShowSnackbar(val message: UiText) : VideoUiEvent()
+    }
+
+    private val initialVideoId: String =
+        checkNotNull(savedStateHandle[VideoDestination.VIDEO_ID_ARG])
+    private val videoId = sanitizeInitialVideoId(initialVideoId)
     private val defaultCourseId: String =
         checkNotNull(savedStateHandle[VideoDestination.COURSE_ID_ARG])
     private val initialVideoUrl: String =
@@ -57,6 +69,11 @@ class VideoViewModel @Inject constructor(
     private val _videoMetadata = MutableStateFlow(VideoMetadata())
     private val _loadingState = MutableStateFlow<VideoLoadState>(VideoLoadState.LoadingFromStorage)
     private val _uiFlags = MutableStateFlow(VideoUiFlags())
+
+    private val _uiEvent = Channel<VideoUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
+    private var fetchJob: Job? = null
 
     val videoUiState: StateFlow<VideoUiState> = combine(
         userCoursesFlow, _userDraft, _videoMetadata, _loadingState, _uiFlags
@@ -87,7 +104,7 @@ class VideoViewModel @Inject constructor(
     private fun loadVideoFromStorage() {
         viewModelScope.launch {
             val userId = accountService.currentUser.first().id
-            if (videoId != DEFAULT_ID.toString()) {
+            if (!isNewVideo(videoId)) {
                 val video = storageService.getYouTubeVideo(userId, defaultCourseId, videoId)
                 if (video != null) {
                     _videoMetadata.value = video.toVideoMetadata()
@@ -101,59 +118,50 @@ class VideoViewModel @Inject constructor(
                 _loadingState.value = VideoLoadState.Success
             }
             if (initialVideoUrl.isNotBlank()) {
-                loadVideoMetadata { }
+                loadVideoMetadata()
             }
         }
     }
 
-    fun loadVideoMetadata(callback: (Int) -> Unit) {
-        viewModelScope.launch {
-            val videoId = _userDraft.value.videoUrl.extractYouTubeVideoId() ?: ""
-            try {
-                videoDataRepository.getVideoData(videoId).let {
-                    if (it.isSuccessful) {
-                        val videoData = it.body()
-                        Log.d(TAG, videoData.toString())
-                        val videoMetadata = videoData?.toVideoMetadata()
-                        if (videoMetadata != null) {
-                            Log.d(TAG, videoMetadata.toString())
-                            _videoMetadata.value = videoMetadata
-                            _loadingState.value = VideoLoadState.Success
-//                            _videoScreenState.update { videoUiState ->
-//                                videoData.toYouTubeVideo()?.toVideoUiState()?.copy(
-//                                    id = videoUiState.id,
-//                                    videoUrl = videoUiState.videoUrl,
-//                                    selectedCourseId = videoUiState.selectedCourseId,
-//                                    userCourses = videoUiState.userCourses,
-//
-//                                    speakersNationality = videoUiState.speakersNationality,
-//                                    isLoading = false,
-//                                    isEdit = videoUiState.isEdit,
-//                                    networkError = false
-//                                ) ?: videoUiState.copy()
-//                            }
-//                            validateForm()
-                            callback(0)
-                        } else {
-                            // network ok, data error
-                            _loadingState.value = VideoLoadState.MetadataError
-                            Log.d(TAG, "data sie zesrało")
-                            callback(1)
-                        }
+    private suspend fun loadVideoMetadata() {
+        val currentUrl = _userDraft.value.videoUrl
+
+        if (currentUrl.isBlank()) {
+            _loadingState.value = VideoLoadState.Success
+            return
+        }
+
+        val videoId = currentUrl.extractYouTubeVideoId() ?: ""
+        try {
+            videoDataRepository.getVideoData(videoId).let {
+                if (it.isSuccessful) {
+                    val videoData = it.body()
+                    Log.d(TAG, videoData.toString())
+                    val videoMetadata = videoData?.toVideoMetadata()
+                    if (videoMetadata != null) {
+                        Log.d(TAG, videoMetadata.toString())
+                        _videoMetadata.value = videoMetadata
+                        _loadingState.value = VideoLoadState.Success
+
                     } else {
-                        // actual network error
-                        _loadingState.value = VideoLoadState.NetworkError
-                        Log.d(TAG, "network sie zesrało")
-                        callback(2)
+                        // network ok, data error
+                        _loadingState.value = VideoLoadState.MetadataError
+                        _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.wrong_url_message)))
+                        Log.d(TAG, "Network ok, data error")
                     }
+                } else {
+                    // actual network error
+                    _loadingState.value = VideoLoadState.NetworkError
+                    _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.network_error)))
+                    Log.d(TAG, "Network error")
                 }
-            } catch (e: Exception) {
-                // some other error
-                e.message?.let { Log.d(TAG, it) }
-                Log.d(TAG, "coś innego sie zesrało")
-                _loadingState.value = VideoLoadState.NetworkError
-                callback(2)
             }
+        } catch (e: Exception) {
+            // some other error
+            e.message?.let { Log.d(TAG, it) }
+            Log.d(TAG, "Unexpected error")
+            _loadingState.value = VideoLoadState.NetworkError
+            _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.something_went_wrong)))
         }
     }
 
@@ -176,7 +184,12 @@ class VideoViewModel @Inject constructor(
 
     fun updateVideoUrl(newUrl: String) {
         _userDraft.update { it.copy(videoUrl = newUrl) }
-//        loadVideoMetadata { }
+        _videoMetadata.value = VideoMetadata()
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
+            delay(600) // Wait for user to stop typing
+            loadVideoMetadata()
+        }
     }
 
     fun updateLanguage(newLanguage: Country? = null) {
@@ -184,7 +197,7 @@ class VideoViewModel @Inject constructor(
     }
 
     fun updateWatchedOn(milliseconds: Long?) {
-        _userDraft.update { it.copy(watchedOn = milliseconds?.let { Date(it) }) }
+        _userDraft.update { it.copy(watchedOn = milliseconds?.let { date -> Date(date) }) }
     }
 
     fun deleteVideo() {
@@ -202,13 +215,25 @@ class VideoViewModel @Inject constructor(
                 val video = currentState.toYouTubeVideo()
                 val userId = accountService.currentUser.first().id
                 val selectedCourseId = currentState.videoUserDraft.selectedCourseId
-                if (video.id.isBlank()) {
+                if (isNewVideo(video.id)) {
                     storageService.saveYouTubeVideo(userId, selectedCourseId, video)
                 } else {
                     storageService.updateYouTubeVideo(userId, defaultCourseId, video)
                 }
             }
         }
+    }
+
+    private fun sanitizeInitialVideoId(id: String): String {
+        return if (id == DEFAULT_ID.toString()) {
+            ""
+        } else {
+            id
+        }
+    }
+
+    private fun isNewVideo(id: String): Boolean {
+        return id.isBlank()
     }
 
     companion object {

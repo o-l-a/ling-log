@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Event
@@ -36,17 +39,20 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
@@ -61,7 +67,6 @@ import com.example.myinputlog.ui.screens.utils.composable.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.dateFormatter
 import com.example.myinputlog.ui.screens.utils.getLanguageName
 import com.example.myinputlog.ui.theme.spacing
-import kotlinx.coroutines.launch
 import java.util.Date
 
 object VideoDestination : NavigationDestination {
@@ -85,9 +90,18 @@ fun VideoScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val datePickerState = rememberDatePickerState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarErrorMessage = stringResource(R.string.network_error)
-    val snackbarWrongUrlMessage = stringResource(R.string.wrong_url_message)
-    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        videoViewModel.uiEvent.collect { event ->
+            when (event) {
+                is VideoViewModel.VideoUiEvent.ShowSnackbar -> {
+                    val message = event.message.asString(context)
+                    snackbarHostState.showSnackbar(message)
+                }
+            }
+        }
+    }
 
     Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         val successState = videoUiState as? VideoUiState.Success
@@ -127,50 +141,30 @@ fun VideoScreen(
                     onDateClearClicked = { videoViewModel.updateWatchedOn(null) },
                     onCountryValueChange = videoViewModel::updateLanguage,
                     onUrlClearClicked = videoViewModel::deleteUrlAndUrlData,
-                    onUrlValueChange = {
-                        videoViewModel.updateVideoUrl(it)
-                        videoViewModel.loadVideoMetadata { returnCode ->
-                            when (returnCode) {
-                                0 -> Unit
-                                1 -> {
-                                    coroutineScope.launch {
-                                        snackbarHostState.showSnackbar(snackbarWrongUrlMessage)
-                                    }
-                                }
-
-                                else -> {
-                                    coroutineScope.launch {
-                                        snackbarHostState.showSnackbar(snackbarErrorMessage)
-                                    }
-                                }
-                            }
-                        }
-                    })
+                    onUrlValueChange = videoViewModel::updateVideoUrl
+                )
             }
         }
     }
     if (videoUiState is VideoUiState.Success) {
-        if ((videoUiState as VideoUiState.Success).videoUiFlags.isDeleteDialogVisible) {
-            ConfirmDeleteVideoDialog(
-                videoName = (videoUiState as VideoUiState.Success).videoMetadata.title,
-                onConfirm = {
-                    videoViewModel.deleteVideo()
-                    onNavigateUp()
-                },
-                onDismiss = {
-                    videoViewModel.toggleDeleteDialogVisibility(false)
-                })
-        }
-        if ((videoUiState as VideoUiState.Success).videoUiFlags.isDatePickerDialogVisible) {
-            MyDatePickerDialog(
-                onConfirm = {
+        VideoScreenDialogs(
+            onDeleteConfirm = {
+                videoViewModel.deleteVideo()
+                onNavigateUp()
+            },
+            onDeleteDismiss = {
+                videoViewModel.toggleDeleteDialogVisibility(false)
+            },
+            onDatePickerConfirm = {
                 videoViewModel.updateWatchedOn(datePickerState.selectedDateMillis)
                 videoViewModel.toggleDatePickerDialogVisibility(false)
-            }, onDismiss = {
+            },
+            onDatePickerDismiss = {
                 videoViewModel.toggleDatePickerDialogVisibility(false)
-            }, datePickerState = datePickerState
-            )
-        }
+            },
+            datePickerState = datePickerState,
+            videoUiState = videoUiState as VideoUiState.Success
+        )
     }
 }
 
@@ -188,8 +182,6 @@ fun VideoEditBody(
     onCountryValueChange: (Country?) -> Unit,
     onUrlValueChange: (String) -> Unit
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start,
@@ -205,89 +197,162 @@ fun VideoEditBody(
                 isInTopBar = false,
                 isEditable = videoUiState.id.isBlank())
         }
-        item {
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(
-                        top = MaterialTheme.spacing.small, bottom = MaterialTheme.spacing.small
+
+        videoUrlSection(
+            videoUrl = videoUiState.videoUserDraft.videoUrl,
+            onUrlClearClicked = onUrlClearClicked,
+            onUrlValueChange = onUrlValueChange
+        )
+
+        videoAttributesSection(
+            watchedOn = videoUiState.videoUserDraft.watchedOn,
+            speakersNationality = videoUiState.videoUserDraft.speakersNationality,
+            onDateChipClicked = onDateChipClicked,
+            onDateClearClicked = onDateClearClicked,
+            onCountryValueChange = onCountryValueChange
+        )
+
+        videoMetadataSection(
+            videoMetadata = videoUiState.videoMetadata,
+            isVisible = videoUiState.videoUserDraft.videoUrl.isNotBlank() && videoUiState.videoLoadState is VideoLoadState.Success
+        )
+    }
+}
+
+fun LazyListScope.videoUrlSection(
+    modifier: Modifier = Modifier,
+    videoUrl: String,
+    onUrlClearClicked: () -> Unit,
+    onUrlValueChange: (String) -> Unit
+) {
+    item {
+        val keyboardController = LocalSoftwareKeyboardController.current
+        OutlinedTextField(
+            modifier = modifier
+                .padding(
+                    top = MaterialTheme.spacing.small, bottom = MaterialTheme.spacing.small
+                )
+                .fillMaxWidth(),
+            label = { Text(stringResource(R.string.video_link_label)) },
+            trailingIcon = {
+                if (videoUrl.isNotBlank()) {
+                    Icon(
+                        modifier = Modifier.clickable(onClick = onUrlClearClicked),
+                        imageVector = Icons.Filled.Clear,
+                        contentDescription = null
                     )
-                    .fillMaxWidth(),
-                label = { Text(stringResource(R.string.video_link_label)) },
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = { keyboardController?.hide() }),
+            value = videoUrl,
+            onValueChange = onUrlValueChange,
+            singleLine = true
+        )
+    }
+}
+
+fun LazyListScope.videoAttributesSection(
+    modifier: Modifier = Modifier,
+    watchedOn: Date?,
+    speakersNationality: Country?,
+    onDateChipClicked: () -> Unit,
+    onDateClearClicked: () -> Unit,
+    onCountryValueChange: (Country?) -> Unit,
+) {
+    item {
+        FlowRow(
+            modifier
+                .fillMaxWidth(1f)
+                .wrapContentHeight(align = Alignment.Top),
+            horizontalArrangement = Arrangement.Start,
+        ) {
+            InputChip(
+                modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
+                onClick = onDateChipClicked,
+                label = {
+                    if (watchedOn != null && watchedOn != Date(
+                            0
+                        )
+                    ) {
+                        Text(dateFormatter.format(watchedOn))
+                    } else {
+                        Text(stringResource(R.string.video_watched_on_label))
+                    }
+                },
+                selected = watchedOn != null,
+                leadingIcon = { Icon(Icons.Filled.Event, contentDescription = null) },
                 trailingIcon = {
-                    if (videoUiState.videoUserDraft.videoUrl.isNotBlank()) {
+                    if (watchedOn != null) {
                         Icon(
-                            modifier = Modifier.clickable(onClick = onUrlClearClicked),
+                            modifier = Modifier.clickable(onClick = onDateClearClicked),
                             imageVector = Icons.Filled.Clear,
                             contentDescription = null
                         )
                     }
-                },
-                value = videoUiState.videoUserDraft.videoUrl,
-                onValueChange = { url: String ->
-                    keyboardController?.hide()
-                    onUrlValueChange(url)
-                },
-                singleLine = true
+                })
+            CountryChoiceDropdownField(
+                onCountryValueChange = onCountryValueChange,
+                speakersNationality = speakersNationality
+            )
+        }
+    }
+}
+
+fun LazyListScope.videoMetadataSection(
+    videoMetadata: VideoMetadata, isVisible: Boolean
+) {
+    if (isVisible) {
+        item {
+            VideoThumbnail(
+                videoUrl = videoMetadata.thumbnailHighUrl,
+                duration = videoMetadata.durationInSeconds
             )
         }
         item {
-            FlowRow(
-                Modifier
-                    .fillMaxWidth(1f)
-                    .wrapContentHeight(align = Alignment.Top),
-                horizontalArrangement = Arrangement.Start,
-            ) {
-                InputChip(
-                    modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
-                    onClick = onDateChipClicked,
-                    label = {
-                        if (videoUiState.videoUserDraft.watchedOn != null && videoUiState.videoUserDraft.watchedOn != Date(
-                                0
-                            )
-                        ) {
-                            Text(dateFormatter.format(videoUiState.videoUserDraft.watchedOn))
-                        } else {
-                            Text(stringResource(R.string.video_watched_on_label))
-                        }
-                    },
-                    selected = videoUiState.videoUserDraft.watchedOn != null,
-                    leadingIcon = { Icon(Icons.Filled.Event, contentDescription = null) },
-                    trailingIcon = {
-                        if (videoUiState.videoUserDraft.watchedOn != null) {
-                            Icon(
-                                modifier = Modifier.clickable(onClick = onDateClearClicked),
-                                imageVector = Icons.Filled.Clear,
-                                contentDescription = null
-                            )
-                        }
-                    })
-                CountryChoiceDropdownField(
-                    onCountryValueChange = onCountryValueChange, videoUiState = videoUiState
-                )
-            }
+            Text(
+                modifier = Modifier.padding(top = MaterialTheme.spacing.small),
+                text = videoMetadata.title,
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Left
+            )
         }
-        if (videoUiState.videoUserDraft.videoUrl.isNotBlank() && videoUiState.videoLoadState is VideoLoadState.Success) {
-            item {
-                VideoThumbnail(
-                    videoUrl = videoUiState.videoMetadata.thumbnailHighUrl,
-                    duration = videoUiState.videoMetadata.durationInSeconds
-                )
-            }
-            item {
-                Text(
-                    modifier = Modifier.padding(top = MaterialTheme.spacing.small),
-                    text = videoUiState.videoMetadata.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Left
-                )
-            }
-            item {
-                Text(
-                    text = "${videoUiState.videoMetadata.channel} • ${getLanguageName(videoUiState.videoMetadata.defaultAudioLanguage)}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+        item {
+            Text(
+                text = "${videoMetadata.channel} • ${getLanguageName(videoMetadata.defaultAudioLanguage)}",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
+    }
+}
+
+@Composable
+fun VideoScreenDialogs(
+    modifier: Modifier = Modifier,
+    videoUiState: VideoUiState.Success,
+    onDeleteConfirm: () -> Unit,
+    onDeleteDismiss: () -> Unit,
+    onDatePickerDismiss: () -> Unit,
+    onDatePickerConfirm: () -> Unit,
+    datePickerState: DatePickerState
+) {
+    if (videoUiState.videoUiFlags.isDeleteDialogVisible) {
+        ConfirmDeleteVideoDialog(
+            modifier = modifier,
+            videoName = videoUiState.videoMetadata.title,
+            onConfirm = onDeleteConfirm,
+            onDismiss = onDeleteDismiss
+        )
+    }
+    if (videoUiState.videoUiFlags.isDatePickerDialogVisible) {
+        MyDatePickerDialog(
+            onDismiss = onDatePickerDismiss,
+            onConfirm = onDatePickerConfirm,
+            datePickerState = datePickerState
+        )
     }
 }
 
@@ -341,7 +406,7 @@ fun MyDatePickerDialog(
 @Composable
 fun CountryChoiceDropdownField(
     modifier: Modifier = Modifier,
-    videoUiState: VideoUiState.Success,
+    speakersNationality: Country?,
     onCountryValueChange: (Country?) -> Unit,
     options: List<Country> = Country.entries,
 ) {
@@ -353,22 +418,22 @@ fun CountryChoiceDropdownField(
             modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
             onClick = { expanded = !expanded },
             label = {
-                if (videoUiState.videoUserDraft.speakersNationality != null) {
-                    Text(stringResource(videoUiState.videoUserDraft.speakersNationality.countryNameResId))
+                if (speakersNationality != null) {
+                    Text(stringResource(speakersNationality.countryNameResId))
                 } else {
                     Text(stringResource(R.string.video_country_label))
                 }
             },
-            selected = videoUiState.videoUserDraft.speakersNationality != null,
+            selected = speakersNationality != null,
             leadingIcon = {
-                if (videoUiState.videoUserDraft.speakersNationality != null) {
-                    Text(videoUiState.videoUserDraft.speakersNationality.flagEmoji)
+                if (speakersNationality != null) {
+                    Text(speakersNationality.flagEmoji)
                 } else {
                     Icon(Icons.Filled.Language, contentDescription = null)
                 }
             },
             trailingIcon = {
-                if (videoUiState.videoUserDraft.speakersNationality != null) {
+                if (speakersNationality != null) {
                     Icon(
                         contentDescription = null,
                         imageVector = Icons.Filled.Clear,
