@@ -24,7 +24,7 @@ fun mapToCourseUiModel(
     val progressValue = if (course.goalInHours != 0L) {
         totalHours.toFloat() / course.goalInHours.toFloat()
     } else {
-        0f
+        0F
     }
 
     return CourseHeaderUiModel(

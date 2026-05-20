@@ -1,6 +1,7 @@
 package com.example.myinputlog.data.remote
 
 import com.example.myinputlog.data.model.YouTubeVideo
+import com.example.myinputlog.ui.screens.video.ChannelMetadata
 import com.example.myinputlog.ui.screens.video.VideoMetadata
 import kotlinx.serialization.Serializable
 import java.time.Duration
@@ -14,24 +15,21 @@ data class VideoData(
 
 @Serializable
 data class VideoItem(
-    val id: String,
-    val snippet: VideoSnippet,
-    val contentDetails: VideoContentDetails
+    val id: String, val snippet: VideoSnippet, val contentDetails: VideoContentDetails
 )
 
 @Serializable
 data class VideoSnippet(
     val title: String,
     val thumbnails: VideoThumbnails,
+    val channelId: String,
     val channelTitle: String,
     val defaultAudioLanguage: String? = null
 )
 
 @Serializable
 data class VideoThumbnails(
-    val default: VideoThumbnail,
-    val medium: VideoThumbnail,
-    val high: VideoThumbnail
+    val default: VideoThumbnail, val medium: VideoThumbnail, val high: VideoThumbnail
 )
 
 @Serializable
@@ -54,6 +52,7 @@ fun VideoData.toYouTubeVideo(): YouTubeVideo? {
             thumbnailHighUrl = item.snippet.thumbnails.high.url,
             defaultAudioLanguage = item.snippet.defaultAudioLanguage ?: "",
             channel = item.snippet.channelTitle,
+            channelId = item.snippet.channelId,
             durationInSeconds = Duration.parse(item.contentDetails.duration).seconds,
             videoUrl = "$DEFAULT_YOUTUBE_URL${item.id}"
         )
@@ -61,7 +60,7 @@ fun VideoData.toYouTubeVideo(): YouTubeVideo? {
     return null
 }
 
-fun VideoData.toVideoMetadata() : VideoMetadata? {
+fun VideoData.toVideoMetadata(channelMetadata: ChannelMetadata): VideoMetadata? {
     if (items.isNotEmpty()) {
         val item = items[0]
         return VideoMetadata(
@@ -70,9 +69,17 @@ fun VideoData.toVideoMetadata() : VideoMetadata? {
             thumbnailMediumUrl = item.snippet.thumbnails.medium.url,
             thumbnailHighUrl = item.snippet.thumbnails.high.url,
             defaultAudioLanguage = item.snippet.defaultAudioLanguage ?: "",
-            channel = item.snippet.channelTitle,
+            channelMetadata = channelMetadata,
             durationInSeconds = Duration.parse(item.contentDetails.duration).seconds
         )
+    }
+    return null
+}
+
+fun VideoData.getChannelId(): String? {
+    if (items.isNotEmpty()) {
+        val item = items[0]
+        return item.snippet.channelId
     }
     return null
 }

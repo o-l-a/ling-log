@@ -65,7 +65,7 @@ class DefaultAccountService @Inject constructor(
                 Log.d(TAG, "updateProfile:success ${user.displayName}")
 
                 val firestoreTask =
-                    firestore.collection(DefaultStorageService.USER_COLLECTION).document(user.uid)
+                    firestore.collection(DefaultStorageService.USER_COLL).document(user.uid)
                         .set(hashMapOf<String, Any>())
                 firestoreTask.await()
                 Log.d(TAG, "createCollection:success")
@@ -84,7 +84,7 @@ class DefaultAccountService @Inject constructor(
         if (uid != null) {
             try {
                 deleteAllForUser(uid)
-                firestore.collection(DefaultStorageService.USER_COLLECTION).document(uid).delete()
+                firestore.collection(DefaultStorageService.USER_COLL).document(uid).delete()
                     .await()
                 auth.currentUser?.delete()?.await()
             } catch (e: Exception) {
@@ -96,9 +96,9 @@ class DefaultAccountService @Inject constructor(
 
     override suspend fun deleteAllForUser(userId: String) {
         val courseCollection = firestore
-            .collection(DefaultStorageService.USER_COLLECTION)
+            .collection(DefaultStorageService.USER_COLL)
             .document(userId)
-            .collection(DefaultStorageService.USER_COURSE_COLLECTION)
+            .collection(DefaultStorageService.USER_COURSE_COLL)
         val courses: List<UserCourse> = courseCollection
             .get()
             .await()
@@ -111,11 +111,11 @@ class DefaultAccountService @Inject constructor(
 
     override suspend fun deleteAllVideosForCourse(userId: String, userCourseId: String) {
         val videosCollection = firestore
-            .collection(DefaultStorageService.USER_COLLECTION)
+            .collection(DefaultStorageService.USER_COLL)
             .document(userId)
-            .collection(DefaultStorageService.USER_COURSE_COLLECTION)
+            .collection(DefaultStorageService.USER_COURSE_COLL)
             .document(userCourseId)
-            .collection(DefaultStorageService.YOU_TUBE_VIDEO_COLLECTION)
+            .collection(DefaultStorageService.YT_VIDEO_COLL)
         val videosForCourse: List<YouTubeVideo> = videosCollection
             .get()
             .await()

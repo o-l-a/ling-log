@@ -24,10 +24,10 @@ interface ApiService {
 
     @GET("channels")
     suspend fun getChannelData(
-        @Header("Authorization") token: String,
-        @Query("part") part: String = "contentDetails",
-        @Query("mine") mine: String = "true",
-        @Query("fields") fields: String = "items(contentDetails(relatedPlaylists(likes)))"
+        @Query("id") channelId: String,
+        @Query("key") apiKey: String = API_KEY,
+        @Query("part") part: String = "snippet",
+        @Query("fields") fields: String = "items(id,snippet)"
     ): Response<ChannelData>
 
     @GET("playlists")

@@ -25,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -63,7 +64,7 @@ fun VideoListScreen(
     val videoListUiState by videoListViewModel.videoListUiState.collectAsStateWithLifecycle()
     val currentCourseId by videoListViewModel.currentCourseId.collectAsStateWithLifecycle()
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val coroutineScope = rememberCoroutineScope()
 
     val lazyColumnListState = rememberLazyListState()

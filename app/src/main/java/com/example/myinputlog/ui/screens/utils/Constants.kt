@@ -7,7 +7,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
-import com.example.myinputlog.BuildConfig
 import com.example.myinputlog.R
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -26,29 +25,6 @@ val IME_ACTION_DONE = KeyboardOptions.Default.copy(
 
 @SuppressLint("SimpleDateFormat")
 val dateFormatter = SimpleDateFormat("dd/MM/yyyy")
-
-val languageMap = mapOf(
-    "en" to "English",
-    "es" to "Spanish",
-    "es-419" to "Spanish (Latin America)",
-    "pl" to "Polish",
-    "fr" to "French",
-    "de" to "German",
-    "it" to "Italian",
-    "pt" to "Portuguese",
-    "ru" to "Russian",
-    "zh" to "Chinese",
-    "ja" to "Japanese",
-    "ko" to "Korean",
-    "hi" to "Hindi",
-    "ar" to "Arabic",
-    "vi" to "Vietnamese",
-    "nl" to "Dutch"
-)
-
-fun getLanguageName(languageCode: String): String {
-    return languageMap[languageCode] ?: "Unknown Language"
-}
 
 fun formatDuration(duration: Long): String {
     val hours = TimeUnit.SECONDS.toHours(duration)

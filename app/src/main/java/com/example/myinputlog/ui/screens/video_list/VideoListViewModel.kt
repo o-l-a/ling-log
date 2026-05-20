@@ -67,7 +67,7 @@ class VideoListViewModel @Inject constructor(
         } else {
             Pager(config = pagingConfig) {
                 pagingSourceFactory.create(userId = uid, courseId = cid)
-            }.flow
+            }.flow.insertHeaderAndSeparators()
         }
     }.cachedIn(viewModelScope)
 
@@ -103,7 +103,7 @@ class VideoListViewModel @Inject constructor(
                     courseHeader = courseHeader,
                     userCourses = courses,
                     courseStatistics = courseStatistics,
-                    videos = videoFlow.insertHeaderAndSeparators()
+                    videos = videoFlow
                 )
             }
         }

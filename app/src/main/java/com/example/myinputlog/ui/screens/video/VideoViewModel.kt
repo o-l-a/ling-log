@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.myinputlog.R
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.model.YouTubeVideo
+import com.example.myinputlog.data.remote.getChannelId
+import com.example.myinputlog.data.remote.toChannelMetadata
 import com.example.myinputlog.data.remote.toVideoMetadata
 import com.example.myinputlog.data.repository.VideoDataRepository
 import com.example.myinputlog.data.service.AccountService
@@ -51,11 +54,9 @@ class VideoViewModel @Inject constructor(
 
     private val videoRoute = savedStateHandle.toRoute<VideoRoute>()
     private val defaultCourseId: String = videoRoute.courseId
-    private val initialVideoUrl: String = videoRoute.videoUrl ?: ""
-
     private val videoId = sanitizeInitialVideoId(videoRoute.videoId)
-
     private val userIdFlow = accountService.currentUser.map { it.id }
+    private var originalVideo: YouTubeVideo? = null
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val userCoursesFlow: Flow<List<UserCourse>?> = userIdFlow.flatMapLatest { id ->
@@ -106,25 +107,52 @@ class VideoViewModel @Inject constructor(
 
     private fun loadVideoFromStorage() {
         viewModelScope.launch {
-            val userId = accountService.currentUser.first().id
             val selectedCourse = userCoursesFlow.first()?.firstOrNull { userCourse ->
                 userCourse.id == defaultCourseId
             } ?: UserCourse()
             if (!isNewVideo(videoId)) {
-                val video = storageService.getYouTubeVideo(userId, defaultCourseId, videoId)
-                if (video != null) {
-                    _videoMetadata.value = video.toVideoMetadata()
-                    _userDraft.value = video.toVideoUserDraft(selectedCourse)
-                    _loadingState.value = VideoLoadState.Success
-                } else {
-                    _loadingState.value = VideoLoadState.StorageError
-                }
+                loadExistingVideo(selectedCourse)
             } else {
                 _userDraft.update { it.copy(selectedCourse = selectedCourse) }
                 _loadingState.value = VideoLoadState.Success
             }
-            if (initialVideoUrl.isNotBlank()) {
-                loadVideoMetadata()
+        }
+    }
+
+    private suspend fun loadExistingVideo(selectedCourse: UserCourse) {
+        val userId = accountService.currentUser.first().id
+        val video = storageService.getYouTubeVideo(userId, defaultCourseId, videoId)
+        originalVideo = video
+        if (video != null) {
+            val channelMetadata = loadChannel(userId, video.channelId)
+            if (channelMetadata == null) {
+                _loadingState.value = VideoLoadState.MetadataError
+                _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.wrong_url_message)))
+                return
+            }
+            _videoMetadata.value = video.toVideoMetadata(channelMetadata)
+            _userDraft.value = video.toVideoUserDraft(selectedCourse)
+            _loadingState.value = VideoLoadState.Success
+        } else {
+            _loadingState.value = VideoLoadState.StorageError
+        }
+    }
+
+    private suspend fun loadChannel(userId: String, channelId: String): ChannelMetadata? {
+        val channel = storageService.getYouTubeChannel(userId, defaultCourseId, channelId)
+        if (channel != null) {
+            Log.d(TAG, "Loaded channel ${channel.title} from storage")
+            return channel.toChannelMetadata()
+        } else {
+            videoDataRepository.getChannelData(channelId).let {
+                if (it.isSuccessful) {
+                    val channelData = it.body()
+                    val channelMetadata = channelData?.toChannelMetadata()
+                    Log.d(TAG, "Loaded channel ${channelMetadata?.title} from API")
+                    return channelMetadata
+                } else {
+                    return null
+                }
             }
         }
     }
@@ -142,13 +170,18 @@ class VideoViewModel @Inject constructor(
             videoDataRepository.getVideoData(videoId).let {
                 if (it.isSuccessful) {
                     val videoData = it.body()
-                    Log.d(TAG, videoData.toString())
-                    val videoMetadata = videoData?.toVideoMetadata()
+                    val userId = accountService.currentUser.first().id
+                    val channelMetadata = loadChannel(userId, videoData?.getChannelId() ?: "")
+                    if (channelMetadata == null) {
+                        _loadingState.value = VideoLoadState.MetadataError
+                        _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.wrong_url_message)))
+                        return
+                    }
+                    val videoMetadata = videoData?.toVideoMetadata(channelMetadata)
                     if (videoMetadata != null) {
                         Log.d(TAG, videoMetadata.toString())
                         _videoMetadata.value = videoMetadata
                         _loadingState.value = VideoLoadState.Success
-
                     } else {
                         // network ok, data error
                         _loadingState.value = VideoLoadState.MetadataError
@@ -209,8 +242,19 @@ class VideoViewModel @Inject constructor(
     fun deleteVideo() {
         toggleDeleteDialogVisibility(false)
         viewModelScope.launch {
-            val userId = accountService.currentUser.first().id
-            storageService.deleteYouTubeVideo(userId, defaultCourseId, videoId)
+            val currentState = videoUiState.value
+            if (currentState is VideoUiState.Success) {
+                val video = currentState.toYouTubeVideo()
+                val userId = accountService.currentUser.first().id
+                try {
+                    storageService.deleteYouTubeVideo(userId, defaultCourseId, video)
+                    _uiEvent.send(VideoUiEvent.NavigateBack)
+                } catch (e: Exception) {
+                    Log.d(TAG, e.toString())
+                    _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.video_delete_error)))
+                }
+            }
+
         }
     }
 
@@ -219,14 +263,13 @@ class VideoViewModel @Inject constructor(
             val currentState = videoUiState.value
             if (currentState is VideoUiState.Success) {
                 val video = currentState.toYouTubeVideo()
+                val channel = currentState.toYouTubeChannel()
                 val userId = accountService.currentUser.first().id
                 val selectedCourseId = currentState.videoUserDraft.selectedCourse.id
                 try {
-                    if (isNewVideo(video.id)) {
-                        storageService.saveYouTubeVideo(userId, selectedCourseId, video)
-                    } else {
-                        storageService.updateYouTubeVideo(userId, defaultCourseId, video)
-                    }
+                    storageService.saveYouTubeVideo(
+                        userId, selectedCourseId, video, originalVideo, channel
+                    )
                     _uiEvent.send(VideoUiEvent.NavigateBack)
                 } catch (e: Exception) {
                     Log.d(TAG, e.toString())

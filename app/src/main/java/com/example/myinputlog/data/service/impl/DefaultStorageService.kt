@@ -3,15 +3,25 @@ package com.example.myinputlog.data.service.impl
 import android.util.Log
 import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.service.StorageService
+import com.example.myinputlog.data.utils.DateUtils.getStartOfTodayTimestamp
+import com.example.myinputlog.data.utils.DateUtils.getStartOfTomorrowTimestamp
+import com.example.myinputlog.data.utils.DateUtils.toDayKey
+import com.example.myinputlog.data.utils.DateUtils.toMonthKey
+import com.example.myinputlog.data.utils.toFirestoreMap
 import com.google.firebase.firestore.AggregateField
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObject
 import com.google.firebase.perf.trace
@@ -24,7 +34,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import java.time.YearMonth
 import java.time.ZoneId
 import java.util.Date
@@ -34,6 +46,32 @@ class DefaultStorageService @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : StorageService {
 
+    companion object {
+        private const val TAG = "VideoStorageService"
+
+        // collections
+        const val USER_COLL = "users"
+        const val USER_COURSE_COLL = "userCourses"
+        const val YT_VIDEO_COLL = "youTubeVideos"
+        const val YT_CHANNEL_COLL = "youTubeChannels"
+        private const val USER_LABEL_COLL = "userLabels"
+        private const val USER_MONTHLY_STATS_COLL = "userMonthlyStats"
+        private const val LABEL_CHANNEL_STATS_COLL = "channelStats"
+
+        // field names
+        private const val KEY_DURATION = "totalTimeInSeconds"
+        private const val KEY_COUNT = "totalVideoCount"
+        private const val KEY_DAYS = "days"
+        private const val KEY_ID = "id"
+        private const val DAY_CHANNEL_MAP = "channelBreakdown"
+        private const val DAY_LABEL_MAP = "labelBreakdown"
+
+        // traces
+        private const val USER_COURSE_SAVE_TRACE = "saveUserCourse"
+        private const val USER_COURSE_UPDATE_TRACE = "updateUserCourse"
+    }
+
+
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getUserCourses(userId: String): Flow<List<UserCourse>> =
         currentUserCourseCollection(userId).snapshots()
@@ -41,50 +79,51 @@ class DefaultStorageService @Inject constructor(
 
     override suspend fun videosByWatchedOnQuery(
         userId: String, courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long
-    ): Query = withContext(Dispatchers.IO) {
-        var query = currentUserCourseCollection(userId).document(courseId)
-            .collection(YOU_TUBE_VIDEO_COLLECTION).orderBy("watchedOn", Query.Direction.DESCENDING)
+    ): Query {
+        var query = currentUserCourseCollection(userId).document(courseId).collection(YT_VIDEO_COLL)
+            .orderBy("watchedOn", Query.Direction.DESCENDING)
             .orderBy("timestamp", Query.Direction.DESCENDING)
 
         if (lastVideo != null) {
             query = query.startAfter(lastVideo)
         }
-        return@withContext query.limit(limitSize)
+        return query.limit(limitSize)
     }
 
     private fun currentUserCourseCollection(uid: String): CollectionReference =
-        firestore.collection(USER_COLLECTION).document(uid).collection(USER_COURSE_COLLECTION)
+        firestore.collection(USER_COLL).document(uid).collection(USER_COURSE_COLL)
 
     private fun youTubeVideoCollectionForCurrentUserCourse(
         uid: String, courseId: String
     ): CollectionReference =
-        currentUserCourseCollection(uid).document(courseId).collection(YOU_TUBE_VIDEO_COLLECTION)
+        currentUserCourseCollection(uid).document(courseId).collection(YT_VIDEO_COLL)
+
+    private fun youTubeChannelCollectionForCurrentUserCourse(
+        uid: String, courseId: String
+    ): CollectionReference =
+        currentUserCourseCollection(uid).document(courseId).collection(YT_CHANNEL_COLL)
 
     override suspend fun getUserCourse(currentUserId: String, userCourseId: String): UserCourse? =
-        withContext(Dispatchers.IO) {
-            currentUserCourseCollection(currentUserId).document(userCourseId).get().await()
-                .toObject()
-        }
+        currentUserCourseCollection(currentUserId).document(userCourseId).get().await().toObject()
+
 
     override suspend fun saveUserCourse(currentUserId: String, userCourse: UserCourse): String =
-        withContext(Dispatchers.IO) {
-            trace(USER_COURSE_SAVE_TRACE) {
-                currentUserCourseCollection(currentUserId).add(userCourse).await().id
-            }
+        trace(USER_COURSE_SAVE_TRACE) {
+            currentUserCourseCollection(currentUserId).add(userCourse).await().id
         }
+
 
     override suspend fun updateUserCourse(currentUserId: String, userCourse: UserCourse): Unit =
-        withContext(Dispatchers.IO) {
-            trace(USER_COURSE_UPDATE_TRACE) {
-                currentUserCourseCollection(currentUserId).document(userCourse.id).set(userCourse)
-                    .await()
-            }
+        trace(USER_COURSE_UPDATE_TRACE) {
+            currentUserCourseCollection(currentUserId).document(userCourse.id).set(userCourse)
+                .await()
         }
 
-    override suspend fun deleteUserCourse(currentUserId: String, userCourseId: String): Unit =
-        withContext(Dispatchers.IO) {
-            currentUserCourseCollection(currentUserId).document(userCourseId).delete().await()
-        }
+
+    override suspend fun deleteUserCourse(currentUserId: String, userCourseId: String): Unit {
+        currentUserCourseCollection(currentUserId).document(userCourseId).delete().await()
+    }
+
 
     override suspend fun getCourseStatistics(
         currentUserId: String, userCourseId: String
@@ -145,59 +184,182 @@ class DefaultStorageService @Inject constructor(
 
     override suspend fun getYouTubeVideo(
         currentUserId: String, userCourseId: String, youTubeVideoId: String
-    ): YouTubeVideo? = withContext(Dispatchers.IO) {
+    ): YouTubeVideo? =
         youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId).document(
             youTubeVideoId
         ).get().await().toObject()
-    }
+
+    override suspend fun getYouTubeChannel(
+        currentUserId: String, userCourseId: String, youTubeChannelId: String
+    ): YouTubeChannel? =
+        youTubeChannelCollectionForCurrentUserCourse(currentUserId, userCourseId).document(
+            youTubeChannelId
+        ).get().await().toObject()
 
     override suspend fun saveYouTubeVideo(
-        currentUserId: String, userCourseId: String, youTubeVideo: YouTubeVideo
-    ): Unit = withContext(Dispatchers.IO) {
-        trace(YOU_TUBE_VIDEO_SAVE_TRACE) {
-            youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId).add(
-                youTubeVideo
-            ).await().id
+        userId: String,
+        courseId: String,
+        newVideo: YouTubeVideo,
+        oldVideo: YouTubeVideo?,
+        channelMetadata: YouTubeChannel?,
+        channelExistsOnServer: Boolean
+    ) {
+        oldVideo?.let { old ->
+            require(old.channelId == newVideo.channelId) { "Cannot change channel on existing video." }
+            require(old.videoUrl == newVideo.videoUrl) { "Cannot change URL on existing video." }
         }
-    }
 
-    override suspend fun updateYouTubeVideo(
-        currentUserId: String, userCourseId: String, youTubeVideo: YouTubeVideo
-    ): Unit = withContext(Dispatchers.IO) {
-        trace(YOU_TUBE_VIDEO_UPDATE_TRACE) {
-            youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId).document(
-                youTubeVideo.id
-            ).set(youTubeVideo).await()
+        val batch = firestore.batch()
+        val acc = FirestoreAccumulator(batch)
+        val courseRef = currentUserCourseCollection(userId).document(courseId)
+
+        // stats down for the original copy
+        oldVideo?.let { applyStats(acc, courseRef, oldVideo, multiplier = -1L) }
+        // stats up for the new copy
+        applyStats(acc, courseRef, newVideo, multiplier = 1L)
+
+        if (!channelExistsOnServer && channelMetadata != null) {
+            // only save if this is a new channel
+            val channelRef = courseRef.collection(YT_CHANNEL_COLL).document(newVideo.channelId)
+            acc.setChannelMetadata(channelRef, channelMetadata)
         }
+
+        acc.applyToBatch()
+
+        val videoRef = if (oldVideo != null && newVideo.id.isNotBlank()) {
+            courseRef.collection(YT_VIDEO_COLL).document(newVideo.id)
+        } else {
+            courseRef.collection(YT_VIDEO_COLL).document()
+        }
+        batch.set(videoRef, newVideo.copy(id = videoRef.id))
+
+        batch.commit().await()
+
     }
 
     override suspend fun deleteYouTubeVideo(
-        currentUserId: String, userCourseId: String, youTubeVideoId: String
-    ): Unit = withContext(Dispatchers.IO) {
-        youTubeVideoCollectionForCurrentUserCourse(currentUserId, userCourseId).document(
-            youTubeVideoId
-        ).delete().await()
+        userId: String, courseId: String, video: YouTubeVideo
+    ) {
+        val batch = firestore.batch()
+        val acc = FirestoreAccumulator(batch)
+        val courseRef = currentUserCourseCollection(userId).document(courseId)
+
+        // stats down
+        applyStats(acc, courseRef, video, multiplier = -1L)
+        acc.applyToBatch()
+
+        // delete video
+        val videoRef = courseRef.collection(YT_VIDEO_COLL).document(video.id)
+        batch.delete(videoRef)
+
+        batch.commit().await()
     }
 
-    private fun getStartOfTodayTimestamp(): Date {
-        val startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()
-        return Date.from(startOfDay)
+    private fun applyStats(
+        acc: FirestoreAccumulator,
+        courseRef: DocumentReference,
+        video: YouTubeVideo,
+        multiplier: Long
+    ) {
+        val dur = video.durationInSeconds * multiplier
+        val count = 1L * multiplier
+        val channelId = video.channelId
+
+        // 1. Global & Channel Updates
+        val channelRef = courseRef.collection(YT_CHANNEL_COLL).document(channelId)
+        acc.increment(courseRef, KEY_DURATION, dur)
+        acc.increment(courseRef, KEY_COUNT, count)
+        acc.increment(channelRef, KEY_DURATION, dur)
+        acc.increment(channelRef, KEY_COUNT, count)
+
+        // 2. Monthly Updates
+        val monthKey = video.watchedOn.toMonthKey()
+        val dayKey = video.watchedOn.toDayKey()
+        val monthRef = courseRef.collection(USER_MONTHLY_STATS_COLL).document(monthKey)
+
+        acc.increment(monthRef, KEY_DURATION, dur)
+        acc.increment(monthRef, KEY_COUNT, count)
+        acc.increment(monthRef, "$KEY_DAYS.$dayKey.$KEY_DURATION", dur)
+        acc.increment(monthRef, "$KEY_DAYS.$dayKey.$KEY_COUNT", count)
+        acc.increment(monthRef, "$KEY_DAYS.$dayKey.$DAY_CHANNEL_MAP.$channelId", dur)
+
+        // 3. Label Updates
+        video.labelIds.forEach { labelId ->
+            val labelRef = courseRef.collection(USER_LABEL_COLL).document(labelId)
+            val intersectRef = labelRef.collection(LABEL_CHANNEL_STATS_COLL).document(channelId)
+
+            acc.increment(labelRef, KEY_DURATION, dur)
+            acc.increment(labelRef, KEY_COUNT, count)
+            acc.increment(intersectRef, KEY_DURATION, dur)
+            acc.increment(intersectRef, KEY_COUNT, count)
+
+            acc.increment(monthRef, "$KEY_DAYS.$dayKey.$DAY_LABEL_MAP.$labelId", dur)
+
+            if (multiplier == 1L) { // when updating, this should already be set
+                acc.setString(intersectRef, "channelTitle", video.channel)
+            }
+        }
     }
 
-    private fun getStartOfTomorrowTimestamp(): Date {
-        val startOfTomorrow =
-            LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
-        return Date.from(startOfTomorrow)
-    }
+    private class FirestoreAccumulator(private val batch: WriteBatch) {
+        private val increments = mutableMapOf<DocumentReference, MutableMap<String, Long>>()
+        private val strings = mutableMapOf<DocumentReference, MutableMap<String, String>>()
+        private val documentUpdates = mutableMapOf<DocumentReference, MutableMap<String, Any>>()
 
-    companion object {
-        private const val TAG = "VideoStorageService"
-        const val USER_COLLECTION = "users"
-        const val USER_COURSE_COLLECTION = "userCourses"
-        private const val USER_COURSE_SAVE_TRACE = "saveUserCourse"
-        private const val USER_COURSE_UPDATE_TRACE = "updateUserCourse"
-        const val YOU_TUBE_VIDEO_COLLECTION = "youTubeVideos"
-        private const val YOU_TUBE_VIDEO_SAVE_TRACE = "saveYouTubeVideo"
-        private const val YOU_TUBE_VIDEO_UPDATE_TRACE = "updateYouTubeVideo"
+        fun increment(ref: DocumentReference, field: String, amount: Long) {
+            if (amount == 0L) return
+            val docMap = increments.getOrPut(ref) { mutableMapOf() }
+            docMap[field] = (docMap[field] ?: 0L) + amount
+        }
+
+        fun setString(ref: DocumentReference, field: String, value: String) {
+            val docMap = strings.getOrPut(ref) { mutableMapOf() }
+            docMap[field] = value
+        }
+
+        fun setChannelMetadata(ref: DocumentReference, channel: YouTubeChannel) {
+            val updates = documentUpdates.getOrPut(ref) { mutableMapOf() }
+            val channelMap = Json.encodeToJsonElement(channel).jsonObject.toFirestoreMap()
+
+            channelMap.remove(KEY_DURATION)
+            channelMap.remove(KEY_COUNT)
+            channelMap.remove(KEY_ID)
+
+            updates.putAll(channelMap)
+        }
+
+        fun applyToBatch() {
+            val allRefs = increments.keys + strings.keys + documentUpdates.keys
+            for (ref in allRefs) {
+                val data = mutableMapOf<String, Any>()
+                strings[ref]?.forEach { (key, value) ->
+                    data.putPath(key, value)
+                }
+                increments[ref]?.forEach { (key, value) ->
+                    if (value != 0L) data.putPath(key, FieldValue.increment(value))
+                }
+                documentUpdates[ref]?.forEach { (key, value) ->
+                    data.putPath(key, value)
+                }
+                if (data.isNotEmpty()) {
+                    // only update if value actually changed
+                    batch.set(ref, data, SetOptions.merge())
+                }
+            }
+        }
+
+        /**
+         * Convert fields with dot notation into a map.
+         */
+        @Suppress("UNCHECKED_CAST")
+        private fun MutableMap<String, Any>.putPath(path: String, value: Any) {
+            val keys = path.split('.')
+            var current = this
+            for (i in 0 until keys.size - 1) {
+                current =
+                    current.getOrPut(keys[i]) { mutableMapOf<String, Any>() } as MutableMap<String, Any>
+            }
+            current[keys.last()] = value
+        }
     }
 }

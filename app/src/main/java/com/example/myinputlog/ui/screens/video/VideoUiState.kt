@@ -1,6 +1,7 @@
 package com.example.myinputlog.ui.screens.video
 
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.ext.asStartOfDay
@@ -20,12 +21,23 @@ sealed interface VideoLoadState {
 
 data class VideoMetadata(
     val title: String = "",
-    val channel: String = "",
+    val channelMetadata: ChannelMetadata = ChannelMetadata(),
     val durationInSeconds: Long = 0L,
     val thumbnailDefaultUrl: String = "",
     val thumbnailMediumUrl: String = "",
     val thumbnailHighUrl: String = "",
     val defaultAudioLanguage: String = ""
+)
+
+data class ChannelMetadata(
+    val id: String = "",
+    val title: String = "",
+    val customUrl: String? = "",
+    val country: String? = "",
+    val thumbnailDefaultUrl: String = "",
+    val thumbnailMediumUrl: String = "",
+    val thumbnailHighUrl: String = "",
+    val defaultLabelIds: List<String> = emptyList()
 )
 
 data class VideoUserDraft(
@@ -38,8 +50,7 @@ data class VideoUserDraft(
 )
 
 data class VideoUiFlags(
-    val isDeleteDialogVisible: Boolean = false,
-    val isDatePickerDialogVisible: Boolean = false
+    val isDeleteDialogVisible: Boolean = false, val isDatePickerDialogVisible: Boolean = false
 )
 
 sealed interface VideoUiState {
@@ -58,14 +69,25 @@ sealed interface VideoUiState {
     ) : VideoUiState
 }
 
-fun YouTubeVideo.toVideoMetadata(): VideoMetadata = VideoMetadata(
+fun YouTubeChannel.toChannelMetadata(): ChannelMetadata = ChannelMetadata(
+    id = id,
     title = title,
-    channel = channel,
+    customUrl = customUrl,
+    country = country,
+    thumbnailDefaultUrl = thumbnailDefaultUrl,
+    thumbnailMediumUrl = thumbnailMediumUrl,
+    thumbnailHighUrl = thumbnailHighUrl,
+    defaultLabelIds = defaultLabelIds
+)
+
+fun YouTubeVideo.toVideoMetadata(channelMetadata: ChannelMetadata): VideoMetadata = VideoMetadata(
+    title = title,
     durationInSeconds = durationInSeconds,
     thumbnailDefaultUrl = thumbnailDefaultUrl,
     thumbnailMediumUrl = thumbnailMediumUrl,
     thumbnailHighUrl = thumbnailHighUrl,
-    defaultAudioLanguage = defaultAudioLanguage
+    defaultAudioLanguage = defaultAudioLanguage,
+    channelMetadata = channelMetadata
 )
 
 fun YouTubeVideo.toVideoUserDraft(selectedCourse: UserCourse): VideoUserDraft = VideoUserDraft(
@@ -80,11 +102,22 @@ fun VideoUiState.Success.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
     watchedOn = videoUserDraft.watchedOn?.asStartOfDay() ?: Date(0),
     speakersNationality = videoUserDraft.speakersNationality,
     title = videoMetadata.title,
-    channel = videoMetadata.channel,
+    channel = videoMetadata.channelMetadata.title,
+    channelId = videoMetadata.channelMetadata.id,
     durationInSeconds = videoMetadata.durationInSeconds,
     videoUrl = videoUserDraft.videoUrl.stripUrl(),
     thumbnailDefaultUrl = videoMetadata.thumbnailDefaultUrl,
     thumbnailMediumUrl = videoMetadata.thumbnailMediumUrl,
     thumbnailHighUrl = videoMetadata.thumbnailHighUrl,
     defaultAudioLanguage = videoMetadata.defaultAudioLanguage
+)
+
+fun VideoUiState.Success.toYouTubeChannel(): YouTubeChannel = YouTubeChannel(
+    id = videoMetadata.channelMetadata.id,
+    title = videoMetadata.channelMetadata.title,
+    country = videoMetadata.channelMetadata.country,
+    customUrl = videoMetadata.channelMetadata.customUrl,
+    thumbnailHighUrl = videoMetadata.channelMetadata.thumbnailHighUrl,
+    thumbnailMediumUrl = videoMetadata.channelMetadata.thumbnailMediumUrl,
+    thumbnailDefaultUrl = videoMetadata.channelMetadata.thumbnailDefaultUrl
 )

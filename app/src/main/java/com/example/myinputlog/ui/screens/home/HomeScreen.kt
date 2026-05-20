@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,7 +72,7 @@ fun HomeScreen(
     val homeUiState by homeViewModel.homeUiState.collectAsStateWithLifecycle()
     val currentCourseId by homeViewModel.currentCourseId.collectAsStateWithLifecycle()
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -265,10 +266,9 @@ fun StatisticContainer(
             )
         )
     ) {
-        Box(
-            modifier = Modifier
-                .clickable(enabled = isClickable) { onClick() }
-                .fillMaxSize()) {
+        Box(modifier = Modifier
+            .clickable(enabled = isClickable) { onClick() }
+            .fillMaxSize()) {
             ListItem(
                 modifier = Modifier
                     .fillMaxWidth()

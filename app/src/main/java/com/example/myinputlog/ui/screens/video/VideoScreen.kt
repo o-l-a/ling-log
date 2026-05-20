@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,13 +59,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.utils.LanguageUtils.getLanguageDisplayName
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownField
 import com.example.myinputlog.ui.screens.utils.composable.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.dateFormatter
-import com.example.myinputlog.ui.screens.utils.getLanguageName
 import com.example.myinputlog.ui.theme.spacing
 import java.util.Date
 
@@ -77,7 +78,7 @@ fun VideoScreen(
     onNavigateUp: () -> Unit
 ) {
     val videoUiState by videoViewModel.videoUiState.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val datePickerState = rememberDatePickerState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -194,6 +195,7 @@ fun VideoEditBody(
 
         videoUrlSection(
             videoUrl = videoUiState.videoUserDraft.videoUrl,
+            isEditable = videoUiState.isCourseEditable,
             onUrlClearClicked = onUrlClearClicked,
             onUrlValueChange = onUrlValueChange
         )
@@ -216,6 +218,7 @@ fun VideoEditBody(
 fun LazyListScope.videoUrlSection(
     modifier: Modifier = Modifier,
     videoUrl: String,
+    isEditable: Boolean,
     onUrlClearClicked: () -> Unit,
     onUrlValueChange: (String) -> Unit
 ) {
@@ -227,9 +230,10 @@ fun LazyListScope.videoUrlSection(
                     top = MaterialTheme.spacing.small, bottom = MaterialTheme.spacing.small
                 )
                 .fillMaxWidth(),
+            enabled = isEditable,
             label = { Text(stringResource(R.string.video_link_label)) },
             trailingIcon = {
-                if (videoUrl.isNotBlank()) {
+                if (videoUrl.isNotBlank() && isEditable) {
                     Icon(
                         modifier = Modifier.clickable(onClick = onUrlClearClicked),
                         imageVector = Icons.Filled.Clear,
@@ -316,7 +320,7 @@ fun LazyListScope.videoMetadataSection(
         }
         item (key="channel_info") {
             Text(
-                text = "${videoMetadata.channel} • ${getLanguageName(videoMetadata.defaultAudioLanguage)}",
+                text = "${videoMetadata.channelMetadata.customUrl} • ${videoMetadata.channelMetadata.title} • ${getLanguageDisplayName(videoMetadata.defaultAudioLanguage) ?: stringResource(R.string.unknown_language)}",
                 style = MaterialTheme.typography.bodyMedium
             )
         }

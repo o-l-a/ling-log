@@ -213,7 +213,7 @@ fun CourseTopAppBar(
                 Text(
                     text = stringResource(
                         R.string.progress,
-                        "${courseHeader.progress}% (${courseHeader.totalHours}h/${courseHeader.goalInHours}h)"
+                        "${courseHeader.percentageText} (${courseHeader.totalHours}h/${courseHeader.goalInHours}h)"
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

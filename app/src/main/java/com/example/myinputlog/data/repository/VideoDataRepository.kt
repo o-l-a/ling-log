@@ -9,7 +9,7 @@ import retrofit2.Response
 interface VideoDataRepository {
     suspend fun getVideoData(videoId: String): Response<VideoData>
 
-    suspend fun getChannelData(token: String): Response<ChannelData>
+    suspend fun getChannelData(channelId: String): Response<ChannelData>
 
     suspend fun getPlaylistsData(token: String): Response<PlaylistsData>
 

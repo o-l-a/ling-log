@@ -12,4 +12,8 @@ data class UserCourse (
     val name: String = "",
     val goalInHours: Long = 0L,
     val otherSourceHours: Long = 0L,
+
+    // stats
+    val totalTimeInSeconds: Long = 0L,
+    val totalVideoCount: Long = 0L
 )

@@ -74,6 +74,8 @@
     <string name="empty_video_collection_body">Twoje filmy pojawią się tutaj, kiedy je dodasz.</string>
     <string name="empty_playlist">Wygląda na to, że ta playlista jest pusta.</string>
     <string name="video_save_error">Nie udało się zapisać filmu. Spróbuj ponownie później.</string>
+    <string name="video_delete_error">Nie udało się usunąć filmu. Spróbuj ponownie później.</string>
+    <string name="unknown_language">Nieznany język</string>
 
     <!--    deleting dialog   -->
     <string name="delete_dialog_title">Usuwanie \"%s\"</string>

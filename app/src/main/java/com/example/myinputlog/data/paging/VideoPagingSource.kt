@@ -15,7 +15,6 @@ import kotlinx.coroutines.tasks.await
 
 class VideoPagingSource @AssistedInject constructor(
     private val storageService: DefaultStorageService,
-    private val preferenceStorageService: DefaultPreferenceStorageService,
     @Assisted("userId") private val userId: String,
     @Assisted("courseId") private val courseId: String
 ) : PagingSource<DocumentSnapshot, YouTubeVideo>() {
@@ -42,7 +41,6 @@ class VideoPagingSource @AssistedInject constructor(
 
     override suspend fun load(params: LoadParams<DocumentSnapshot>): LoadResult<DocumentSnapshot, YouTubeVideo> {
         return try {
-            val courseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
             val querySnapshot = storageService.videosByWatchedOnQuery(
                 userId, courseId, params.key, params.loadSize.toLong()
             ).get().await()

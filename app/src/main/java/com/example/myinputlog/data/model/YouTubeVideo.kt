@@ -14,10 +14,12 @@ data class YouTubeVideo(
     val speakersNationality: Country? = null,
     val title: String = "",
     val channel: String = "",
+    val channelId: String = "",
     val durationInSeconds: Long = 0L,
     val videoUrl: String = "",
     val thumbnailDefaultUrl: String = "",
     val thumbnailMediumUrl: String = "",
     val thumbnailHighUrl: String = "",
-    val defaultAudioLanguage: String = ""
+    val defaultAudioLanguage: String = "",
+    val labelIds: List<String> = emptyList()
 )
