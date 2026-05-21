@@ -120,7 +120,7 @@ class DefaultStorageService @Inject constructor(
         }
 
 
-    override suspend fun deleteUserCourse(currentUserId: String, userCourseId: String): Unit {
+    override suspend fun deleteUserCourse(currentUserId: String, userCourseId: String) {
         currentUserCourseCollection(currentUserId).document(userCourseId).delete().await()
     }
 
@@ -207,6 +207,10 @@ class DefaultStorageService @Inject constructor(
         oldVideo?.let { old ->
             require(old.channelId == newVideo.channelId) { "Cannot change channel on existing video." }
             require(old.videoUrl == newVideo.videoUrl) { "Cannot change URL on existing video." }
+        }
+
+        if (newVideo == oldVideo) {
+            return
         }
 
         val batch = firestore.batch()

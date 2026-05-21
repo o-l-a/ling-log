@@ -1,22 +1,16 @@
 package com.example.myinputlog.data.repository
 
 import com.example.myinputlog.data.remote.ChannelData
-import com.example.myinputlog.data.remote.PlaylistItemsData
-import com.example.myinputlog.data.remote.PlaylistsData
 import com.example.myinputlog.data.remote.VideoData
-import retrofit2.Response
+
+sealed interface DataResult<out T> {
+    data class Success<T>(val data: T) : DataResult<T>
+    data class NetworkError(val message: String, val throwable: Throwable? = null) : DataResult<Nothing>
+    data class ApiError(val message: String, val throwable: Throwable? = null) : DataResult<Nothing>
+}
 
 interface VideoDataRepository {
-    suspend fun getVideoData(videoId: String): Response<VideoData>
+    suspend fun getVideoData(videoId: String): DataResult<VideoData>
 
-    suspend fun getChannelData(channelId: String): Response<ChannelData>
-
-    suspend fun getPlaylistsData(token: String): Response<PlaylistsData>
-
-    suspend fun getPlaylistItemsData(
-        token: String,
-        playlistId: String,
-        maxResults: Int,
-        pageToken: String?
-    ): Response<PlaylistItemsData>
+    suspend fun getChannelData(channelId: String): DataResult<ChannelData>
 }

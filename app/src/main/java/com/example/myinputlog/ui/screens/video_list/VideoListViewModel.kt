@@ -2,18 +2,13 @@ package com.example.myinputlog.ui.screens.video_list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
-import com.example.myinputlog.data.paging.VideoPagingSource
-import com.example.myinputlog.data.service.AccountService
-import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
-import com.example.myinputlog.data.service.impl.DefaultStorageService
+import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.mapToCourseUiModel
 import com.example.myinputlog.ui.screens.home.StatsResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -32,51 +26,26 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VideoListViewModel @Inject constructor(
-    accountService: AccountService,
-    private val storageService: DefaultStorageService,
-    private val preferenceStorageService: DefaultPreferenceStorageService,
-    private val pagingSourceFactory: VideoPagingSource.Factory,
-    private val pagingConfig: PagingConfig
+    private val repository: StorageDataRepository,
 ) : ViewModel() {
-    private val userIdFlow = accountService.currentUser.map { it.id }
-    private val currentIdFlow = preferenceStorageService.currentCourseId
-
-    private val sessionFlow = combine(
-        userIdFlow, currentIdFlow
-    ) { uid, cid -> uid to cid }
-
-    val currentCourseId: StateFlow<String> = preferenceStorageService.currentCourseId.stateIn(
+    val currentCourseId: StateFlow<String> = repository.currentCourseId.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = ""
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val userCoursesFlow: Flow<List<UserCourse>?> = userIdFlow.flatMapLatest { id ->
-        if (id.isEmpty()) {
-            flowOf(null)
-        } else {
-            storageService.getUserCourses(id)
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val videoFlow = sessionFlow.flatMapLatest { (uid, cid) ->
-        if (uid.isEmpty() || cid.isEmpty()) {
-            flowOf(PagingData.empty())
-        } else {
-            Pager(config = pagingConfig) {
-                pagingSourceFactory.create(userId = uid, courseId = cid)
-            }.flow.insertHeaderAndSeparators()
-        }
+    val videoFlow = currentCourseId.flatMapLatest { cid ->
+        repository.videoPagingFlow(cid)
+            .insertHeaderAndSeparators()
     }.cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val statsWorker = sessionFlow.flatMapLatest { (uid, cid) ->
+    private val statsWorker = currentCourseId.flatMapLatest { cid ->
         flow {
             emit(StatsResult.Loading)
             try {
-                val stats = storageService.getCourseStatistics(uid, cid)
+                val stats = repository.getCourseStatistics(cid)
                 emit(StatsResult.Success(stats))
             } catch (e: Exception) {
                 emit(StatsResult.Error(e))
@@ -85,7 +54,7 @@ class VideoListViewModel @Inject constructor(
     }
 
     val videoListUiState: StateFlow<VideoListUiState> = combine(
-        userCoursesFlow, currentIdFlow, statsWorker
+        repository.userCourses, currentCourseId, statsWorker
     ) { courses, id, statsRes ->
 
         when {
@@ -114,7 +83,7 @@ class VideoListViewModel @Inject constructor(
 
     fun changeCurrentCourseId(newCourse: UserCourse) {
         viewModelScope.launch {
-            preferenceStorageService.saveCurrentCourseId(newCourse.id)
+            repository.setCurrentCourse(newCourse.id)
         }
     }
 

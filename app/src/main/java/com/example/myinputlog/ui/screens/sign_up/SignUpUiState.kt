@@ -13,8 +13,8 @@ data class SignUpUiState(
     val isPasswordValid: Boolean = true,
     val isEmailValid: Boolean = true,
 
-    @StringRes val emailErrorMessage: Int = R.string.email_invalid,
-    @StringRes val generalErrorMessage: Int = R.string.something_went_wrong,
+    @get:StringRes val emailErrorMessage: Int = R.string.email_invalid,
+    @get:StringRes val generalErrorMessage: Int = R.string.something_went_wrong,
 
     val isPasswordVisible: Boolean = false,
     val isGeneralErrorVisible: Boolean = false

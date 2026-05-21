@@ -1,6 +1,8 @@
 package com.example.myinputlog.data.service.module
 
+import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.repository.VideoDataRepository
+import com.example.myinputlog.data.repository.impl.DefaultStorageDataRepository
 import com.example.myinputlog.data.repository.impl.DefaultVideoDataRepository
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.PreferenceStorageService
@@ -27,4 +29,7 @@ abstract class ServiceModule {
 
     @Binds
     abstract fun provideVideoDataRepository(impl: DefaultVideoDataRepository): VideoDataRepository
+
+    @Binds
+    abstract fun provideStorageDataRepository(impl: DefaultStorageDataRepository) : StorageDataRepository
 }
