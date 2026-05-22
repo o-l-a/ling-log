@@ -30,6 +30,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
@@ -63,6 +64,8 @@ class DefaultStorageService @Inject constructor(
         private const val KEY_COUNT = "totalVideoCount"
         private const val KEY_DAYS = "days"
         private const val KEY_ID = "id"
+        private const val KEY_WATCHED_ON = "watchedOn"
+        private const val KEY_TIMESTAMP = "timestamp"
         private const val DAY_CHANNEL_MAP = "channelBreakdown"
         private const val DAY_LABEL_MAP = "labelBreakdown"
 
@@ -79,15 +82,23 @@ class DefaultStorageService @Inject constructor(
 
     override suspend fun videosByWatchedOnQuery(
         userId: String, courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long
-    ): Query {
-        var query = currentUserCourseCollection(userId).document(courseId).collection(YT_VIDEO_COLL)
-            .orderBy("watchedOn", Query.Direction.DESCENDING)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-
-        if (lastVideo != null) {
-            query = query.startAfter(lastVideo)
+    ): Query = currentUserCourseCollection(userId).document(courseId).collection(YT_VIDEO_COLL)
+        .orderBy(KEY_WATCHED_ON, Query.Direction.DESCENDING)
+        .orderBy(KEY_TIMESTAMP, Query.Direction.DESCENDING).limit(limitSize).let { query ->
+            lastVideo?.let { query.startAfter(it) } ?: query
         }
-        return query.limit(limitSize)
+
+    override fun getVideosChangeSignal(
+        userId: String, courseId: String
+    ): Flow<Unit> {
+        return currentUserCourseCollection(userId).document(courseId).collection(YT_VIDEO_COLL)
+            .orderBy(KEY_TIMESTAMP, Query.Direction.DESCENDING).limit(1).snapshots()
+            .map { snapshot ->
+                val doc = snapshot.documents.firstOrNull()
+                val id = doc?.id ?: "empty"
+                val timestamp = doc?.get(KEY_TIMESTAMP)?.toString() ?: "0"
+                "$id-$timestamp"
+            }.distinctUntilChanged().map { }
     }
 
     private fun currentUserCourseCollection(uid: String): CollectionReference =

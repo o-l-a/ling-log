@@ -14,7 +14,7 @@ interface StorageService {
     suspend fun videosByWatchedOnQuery(
         userId: String, courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long
     ): Query
-
+    fun getVideosChangeSignal(userId: String, courseId: String): Flow<Unit>
     suspend fun getUserCourse(currentUserId: String, userCourseId: String): UserCourse?
     suspend fun saveUserCourse(currentUserId: String, userCourse: UserCourse): String
     suspend fun updateUserCourse(currentUserId: String, userCourse: UserCourse)

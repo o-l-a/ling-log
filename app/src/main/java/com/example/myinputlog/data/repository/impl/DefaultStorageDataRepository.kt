@@ -1,5 +1,7 @@
 package com.example.myinputlog.data.repository.impl
 
+import android.util.Log
+import androidx.paging.InvalidatingPagingSourceFactory
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -14,9 +16,13 @@ import com.example.myinputlog.data.service.PreferenceStorageService
 import com.example.myinputlog.data.service.StorageService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class DefaultStorageDataRepository @Inject constructor(
@@ -26,6 +32,10 @@ class DefaultStorageDataRepository @Inject constructor(
     private val preferenceStorageService: PreferenceStorageService,
     private val pagingConfig: PagingConfig
 ) : StorageDataRepository {
+    companion object {
+        private const val TAG = "StorageRepository"
+    }
+
     private val userId: Flow<String> = accountService.currentUser.map { it.id }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,14 +56,35 @@ class DefaultStorageDataRepository @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun videoPagingFlow(courseId: String): Flow<PagingData<YouTubeVideo>> {
         return userId.flatMapLatest { uid ->
-            if (uid.isEmpty() || courseId.isEmpty()) {
-                flowOf(PagingData.empty())
-            } else {
-                Pager(config = pagingConfig) {
-                    pagingSourceFactory.create(userId = uid, courseId = courseId)
-                }.flow
+            if (uid.isBlank() || courseId.isBlank()) {
+                return@flatMapLatest flowOf(PagingData.empty())
+            }
+            val invalidatingFactory = InvalidatingPagingSourceFactory {
+                pagingSourceFactory.create(uid, courseId)
+            }
+            val pagerFlow = Pager(
+                config = pagingConfig,
+                pagingSourceFactory = invalidatingFactory
+            ).flow
+            channelFlow {
+                launch {
+                    storageService.getVideosChangeSignal(uid, courseId)
+                        .drop(1)
+                        .collectLatest {
+                            Log.d(TAG, "External change detected. Invalidating source.")
+                            invalidatingFactory.invalidate()
+                        }
+                }
+
+                pagerFlow.collectLatest { pagingData ->
+                    send(pagingData)
+                }
             }
         }
+    }
+
+    override fun channelPagingFlow(courseId: String): Flow<PagingData<YouTubeChannel>> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun getYouTubeVideo(courseId: String, videoId: String): YouTubeVideo? {

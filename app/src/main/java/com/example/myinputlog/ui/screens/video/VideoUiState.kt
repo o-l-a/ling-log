@@ -109,7 +109,8 @@ fun VideoUiState.Success.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
     thumbnailDefaultUrl = videoMetadata.thumbnailDefaultUrl,
     thumbnailMediumUrl = videoMetadata.thumbnailMediumUrl,
     thumbnailHighUrl = videoMetadata.thumbnailHighUrl,
-    defaultAudioLanguage = videoMetadata.defaultAudioLanguage
+    defaultAudioLanguage = videoMetadata.defaultAudioLanguage,
+    timestamp = Date()
 )
 
 fun VideoUiState.Success.toYouTubeChannel(): YouTubeChannel = YouTubeChannel(

@@ -11,6 +11,7 @@ interface StorageDataRepository {
     val userCourses: Flow<List<UserCourse>?>
     val currentCourseId: Flow<String>
     fun videoPagingFlow(courseId: String): Flow<PagingData<YouTubeVideo>>
+    fun channelPagingFlow(courseId: String): Flow<PagingData<YouTubeChannel>>
     suspend fun getYouTubeVideo(courseId: String, videoId: String): YouTubeVideo?
     suspend fun getYouTubeChannel(courseId: String, channelId: String): YouTubeChannel?
     suspend fun getCourseStatistics(courseId: String): CourseStatistics
