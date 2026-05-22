@@ -1,7 +1,6 @@
 package com.example.myinputlog.ui.screens.video_list
 
 import androidx.paging.PagingData
-import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.ui.models.CourseHeaderUiModel
@@ -15,7 +14,6 @@ sealed interface VideoListUiState {
     data object NetworkError : VideoListUiState
     data class Success(
         val courseHeader: CourseHeaderUiModel = CourseHeaderUiModel(),
-        val courseStatistics: CourseStatistics = CourseStatistics(),
         val userCourses: List<UserCourse> = listOf(),
         val videos: Flow<PagingData<YouTubeVideo>> = emptyFlow(),
     ) : VideoListUiState

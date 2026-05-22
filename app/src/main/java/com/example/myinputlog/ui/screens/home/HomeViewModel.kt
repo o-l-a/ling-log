@@ -2,70 +2,42 @@ package com.example.myinputlog.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
-import com.example.myinputlog.data.service.AccountService
-import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
-import com.example.myinputlog.data.service.impl.DefaultStorageService
+import com.example.myinputlog.data.model.UserMonthlyStats
+import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.data.utils.DateUtils.toDayKey
 import com.example.myinputlog.ui.models.mapToCourseUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.YearMonth
+import java.util.Date
 import javax.inject.Inject
 
-sealed interface StatsResult {
-    data object Loading : StatsResult
-    data class Success(val stats: CourseStatistics) : StatsResult
-    data class Error(val e: Throwable) : StatsResult
-}
-
-sealed interface CalendarResult {
-    data object Loading : CalendarResult
-    data class Success(val data: List<Long>) : CalendarResult
-    data class Error(val e: Throwable) : CalendarResult
+sealed interface MonthlyStatsResult {
+    data object Loading : MonthlyStatsResult
+    data class Success(val data: UserMonthlyStats) : MonthlyStatsResult
+    data class Error(val e: Throwable) : MonthlyStatsResult
 }
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val storageService: DefaultStorageService,
-    private val preferenceStorageService: DefaultPreferenceStorageService,
-    accountService: AccountService
+    private val repository: StorageDataRepository
 ) : ViewModel() {
-    private val userIdFlow = accountService.currentUser.map { it.id }
-    private val currentIdFlow = preferenceStorageService.currentCourseId
     private val selectedYearMonth = MutableStateFlow(YearMonth.now())
     private val isParty = MutableStateFlow(false)
 
-    val currentCourseId: StateFlow<String> = preferenceStorageService.currentCourseId.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ""
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val userCoursesFlow: Flow<List<UserCourse>?> = userIdFlow.flatMapLatest { id ->
-        if (id.isEmpty()) {
-            flowOf(null)
-        } else {
-            storageService.getUserCourses(id)
-        }
-    }
-
-    private val sessionFlow = combine(userIdFlow, currentIdFlow) { uid, cid ->
-        uid to cid
-    }
+    val currentCourseId: StateFlow<String> = repository.currentCourseId.stateIn(
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = ""
+    )
 
     private val uiControlFlow = combine(
         selectedYearMonth, isParty
@@ -74,58 +46,51 @@ class HomeViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val statsWorker = sessionFlow.flatMapLatest { (uid, cid) ->
-        flow {
-            emit(StatsResult.Loading)
-            try {
-                val stats = storageService.getCourseStatistics(uid, cid)
-                emit(StatsResult.Success(stats))
-            } catch (e: Exception) {
-                emit(StatsResult.Error(e))
+    private val monthlyStats: StateFlow<MonthlyStatsResult> =
+        combine(currentCourseId, selectedYearMonth) { courseId, month ->
+            courseId to month
+        }.flatMapLatest { (courseId, month) ->
+            flow {
+                emit(MonthlyStatsResult.Loading)
+                try {
+                    val monthId = month.toString()
+                    val data = repository.getMonthlyStats(courseId, monthId)
+                        ?: UserMonthlyStats(id = monthId)
+                    emit(MonthlyStatsResult.Success(data))
+                } catch (e: Exception) {
+                    emit(MonthlyStatsResult.Error(e))
+                }
             }
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val calendarWorker = combine(sessionFlow, selectedYearMonth) { (uid, cid), month ->
-        Triple(uid, cid, month)
-    }.flatMapLatest { (uid, cid, month) ->
-        flow {
-            emit(CalendarResult.Loading)
-            try {
-                val data = storageService.getMonthlyAggregateData(uid, cid, month)
-                emit(CalendarResult.Success(data))
-            } catch (e: Exception) {
-                emit(CalendarResult.Error(e))
-            }
-        }
-    }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = MonthlyStatsResult.Loading
+        )
 
     val homeUiState: StateFlow<HomeUiState> = combine(
-        userCoursesFlow, currentIdFlow, statsWorker, calendarWorker, uiControlFlow
-    ) { courses, id, statsRes, calendarRes, controls ->
+        repository.userCourses, currentCourseId, monthlyStats, uiControlFlow
+    ) { courses, id, statsRes, controls ->
 
         val (month, party) = controls
         when {
             courses == null -> HomeUiState.Loading
             courses.isEmpty() -> HomeUiState.Empty
-            statsRes is StatsResult.Error -> HomeUiState.NetworkError
+            statsRes is MonthlyStatsResult.Error -> HomeUiState.NetworkError
 
             else -> {
                 val current = courses.find { it.id == id } ?: courses.first()
-                val courseStatistics =
-                    (statsRes as? StatsResult.Success)?.stats ?: CourseStatistics()
-                val courseHeader = mapToCourseUiModel(current, courseStatistics)
+                val monthlyStats = (statsRes as? MonthlyStatsResult.Success)?.data
+                val dayStats = monthlyStats?.days?.getOrDefault(Date().toDayKey(), null)
+                val courseHeader = mapToCourseUiModel(
+                    current, dayStats?.totalTimeInSeconds ?: 0L
+                )
 
                 HomeUiState.Success(
                     courseHeader = courseHeader,
                     userCourses = courses,
                     selectedYearMonth = month,
                     isParty = party,
-                    courseStatistics = courseStatistics,
-                    monthlyAggregateData = (calendarRes as? CalendarResult.Success)?.data
-                        ?: emptyList(),
-                    isCalendarLoading = calendarRes is CalendarResult.Loading
+                    monthlyStats = statsRes,
                 )
             }
         }
@@ -152,7 +117,7 @@ class HomeViewModel @Inject constructor(
 
     fun changeCurrentCourseId(newCourse: UserCourse) {
         viewModelScope.launch {
-            preferenceStorageService.saveCurrentCourseId(newCourse.id)
+            repository.setCurrentCourse(newCourse.id)
         }
     }
 }

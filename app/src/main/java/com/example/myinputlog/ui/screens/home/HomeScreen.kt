@@ -169,14 +169,14 @@ fun HomeBody(
             ) {
                 StatisticContainer(
                     modifier = Modifier.weight(1F),
-                    number = formatDurationAsText(homeUiState.courseStatistics.timeWatched),
+                    number = formatDurationAsText(homeUiState.courseHeader.totalTimeInSeconds),
                     label = stringResource(R.string.stats_hours_watched),
                     leadingContent = {
                         Icon(imageVector = Icons.Filled.Timer, contentDescription = null)
                     })
                 StatisticContainer(
                     modifier = Modifier.weight(1F),
-                    number = formatDurationAsText(homeUiState.courseStatistics.timeWatchedToday),
+                    number = formatDurationAsText(homeUiState.courseHeader.totalTimeInSecondsToday),
                     label = stringResource(R.string.stats_hours_watched_today),
                     leadingContent = {
                         Icon(imageVector = Icons.Filled.Today, contentDescription = null)
@@ -189,7 +189,7 @@ fun HomeBody(
             ) {
                 StatisticContainer(
                     modifier = Modifier.weight(1F),
-                    number = homeUiState.courseStatistics.videoCount.toString(),
+                    number = homeUiState.courseHeader.videoCount.toString(),
                     label = stringResource(R.string.stats_videos_watched),
                     leadingContent = {
                         Icon(imageVector = Icons.Filled.SmartDisplay, contentDescription = null)
@@ -209,16 +209,12 @@ fun HomeBody(
         item {
             MyInputLogCalendar(
                 yearMonth = homeUiState.selectedYearMonth,
-                dailyTotalTimes = homeUiState.monthlyAggregateData.map { durationInSeconds ->
-                    (durationInSeconds / 60).toInt()
-                },
-                isLoading = homeUiState.isCalendarLoading,
+                monthlyStatsResult = homeUiState.monthlyStats,
                 onForwardClicked = onCalendarForwardClicked,
                 onBackClicked = onCalendarBackClicked,
             )
         }
     }
-
 }
 
 @Composable

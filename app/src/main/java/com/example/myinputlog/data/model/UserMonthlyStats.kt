@@ -6,7 +6,7 @@ data class UserMonthlyStats(
     @DocumentId val id: String = "", // Format: "2024-05"
     val totalTimeInSeconds: Long = 0L,
     val totalVideoCount: Long = 0L,
-    val days: Map<String, DayAggregation> = emptyMap()
+    val days: Map<String, DayAggregation> = emptyMap() // Key format: day_10
 )
 
 data class DayAggregation(

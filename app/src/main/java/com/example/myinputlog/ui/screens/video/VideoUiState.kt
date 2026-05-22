@@ -120,5 +120,6 @@ fun VideoUiState.Success.toYouTubeChannel(): YouTubeChannel = YouTubeChannel(
     customUrl = videoMetadata.channelMetadata.customUrl,
     thumbnailHighUrl = videoMetadata.channelMetadata.thumbnailHighUrl,
     thumbnailMediumUrl = videoMetadata.channelMetadata.thumbnailMediumUrl,
-    thumbnailDefaultUrl = videoMetadata.channelMetadata.thumbnailDefaultUrl
+    thumbnailDefaultUrl = videoMetadata.channelMetadata.thumbnailDefaultUrl,
+    timestamp = Date()
 )

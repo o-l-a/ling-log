@@ -46,6 +46,7 @@ import com.example.myinputlog.ui.models.CourseHeaderUiModel
 import com.example.myinputlog.ui.navigation.MyInputLogNavHost
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.navigation.navigationItems
+import com.example.myinputlog.ui.screens.utils.formatDurationAsText
 import com.example.myinputlog.ui.theme.MyInputLogTheme
 import com.example.myinputlog.ui.theme.spacing
 
@@ -213,7 +214,7 @@ fun CourseTopAppBar(
                 Text(
                     text = stringResource(
                         R.string.progress,
-                        "${courseHeader.percentageText} (${courseHeader.totalHours}h/${courseHeader.goalInHours}h)"
+                        "${courseHeader.percentageText} (${formatDurationAsText(courseHeader.totalTimeInSeconds)}/${courseHeader.goalInHours}h)"
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

@@ -2,8 +2,8 @@ package com.example.myinputlog.data.repository.impl
 
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.paging.FirestorePagingSource
@@ -76,9 +76,12 @@ class DefaultStorageDataRepository @Inject constructor(
         return storageService.getYouTubeChannel(uid, courseId, channelId)
     }
 
-    override suspend fun getCourseStatistics(courseId: String): CourseStatistics {
+    override suspend fun getMonthlyStats(
+        courseId: String,
+        monthId: String
+    ): UserMonthlyStats? {
         val uid = accountService.currentUserId
-        return storageService.getCourseStatistics(uid, courseId)
+        return storageService.getMonthlyStats(uid, courseId, monthId)
     }
 
     override suspend fun saveVideo(

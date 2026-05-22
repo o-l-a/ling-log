@@ -1,7 +1,7 @@
 package com.example.myinputlog.data.service
 
-import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.google.firebase.firestore.DocumentSnapshot
@@ -19,7 +19,7 @@ interface StorageService {
     suspend fun saveUserCourse(currentUserId: String, userCourse: UserCourse): String
     suspend fun updateUserCourse(currentUserId: String, userCourse: UserCourse)
     suspend fun deleteUserCourse(currentUserId: String, userCourseId: String)
-    suspend fun getCourseStatistics(currentUserId: String, userCourseId: String): CourseStatistics
+    suspend fun getMonthlyStats(currentUserId: String, userCourseId: String, monthId: String): UserMonthlyStats?
     suspend fun getMonthlyAggregateData(
         currentUserId: String, userCourseId: String, yearMonth: YearMonth
     ): List<Long>

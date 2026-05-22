@@ -25,9 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.myinputlog.data.model.UserMonthlyStats
+import com.example.myinputlog.ui.screens.home.MonthlyStatsResult
 import com.example.myinputlog.ui.theme.MyInputLogTheme
 import com.example.myinputlog.ui.theme.spacing
 import java.time.DayOfWeek
@@ -36,18 +39,21 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
+data class CalendarDay(
+    val dayNumber: Int = 0, val totalMinutes: Long = 0L
+)
+
 @Composable
 fun MyInputLogCalendar(
     modifier: Modifier = Modifier,
     yearMonth: YearMonth,
-    dailyTotalTimes: List<Int>,
+    monthlyStatsResult: MonthlyStatsResult,
     onBackClicked: () -> Unit,
-    onForwardClicked: () -> Unit,
-    isLoading: Boolean = false
+    onForwardClicked: () -> Unit
 ) {
-    val daysOfWeek = DayOfWeek.values()
+    val daysOfWeek = DayOfWeek.entries.toTypedArray()
     val shortWeekdays = daysOfWeek.map {
-        it.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
+        it.getDisplayName(TextStyle.SHORT, LocalLocale.current.platformLocale).first().toString()
             .uppercase(Locale.ROOT)
     }
     val daysOfMonth = yearMonth.lengthOfMonth()
@@ -60,19 +66,20 @@ fun MyInputLogCalendar(
         0
     }
 
-    val dayItems = (0 until leadingEmptyDays).map { "" } +
-            (1..daysOfMonth).map { it.toString() } +
-            (0 until trailingEmptyDays).map { "" }
+    val monthlyMap = when (monthlyStatsResult) {
+        is MonthlyStatsResult.Success -> {
+            monthlyStatsResult.data.days
+        }
 
-    val calendarDailyTotalTimes = when (isLoading) {
-        false -> (0 until leadingEmptyDays).map { 0 } +
-                dailyTotalTimes +
-                (0 until trailingEmptyDays).map { 0 }
-
-        true -> List(dayItems.size) { 0 }
+        else -> emptyMap()
     }
 
-    val calendarItems = dayItems.zip(calendarDailyTotalTimes)
+    val calendarItems = (0 until leadingEmptyDays).map { CalendarDay() } + (1..daysOfMonth).map {
+        CalendarDay(
+            dayNumber = it, totalMinutes =
+                ((monthlyMap["day_${it}"]?.totalTimeInSeconds?.toFloat()?.div(60)) ?: 0F).toLong()
+        )
+    } + (0 until trailingEmptyDays).map { CalendarDay() }
 
     Column(
         modifier = modifier.padding(MaterialTheme.spacing.small)
@@ -84,13 +91,17 @@ fun MyInputLogCalendar(
         )
         CalendarWeekdays(shortWeekdays = shortWeekdays)
         Spacer(modifier = Modifier.height(4.dp))
-        if (isLoading) {
-            LoadingCalendarDays(calendarItems = calendarItems)
-        } else {
-            CalendarDays(
-                calendarItems = calendarItems,
-                today = if (yearMonth == YearMonth.now()) LocalDate.now().dayOfMonth else -1
-            )
+        when (monthlyStatsResult) {
+            is MonthlyStatsResult.Success -> {
+                CalendarDays(
+                    calendarItems = calendarItems,
+                    today = if (yearMonth == YearMonth.now()) LocalDate.now().dayOfMonth else -1
+                )
+            }
+
+            else -> {
+                LoadingCalendarDays(calendarItems = calendarItems)
+            }
         }
     }
 }
@@ -112,10 +123,9 @@ fun CalendarHeader(
         }
         Text(
             text = yearMonth.month.getDisplayName(
-                TextStyle.FULL_STANDALONE,
-                Locale.getDefault()
+                TextStyle.FULL_STANDALONE, LocalLocale.current.platformLocale
             ).replaceFirstChar {
-                it.titlecase(Locale.getDefault())
+                it.titlecase(LocalLocale.current.platformLocale)
             } + " " + yearMonth.year.toString(),
         )
         IconButton(onClick = onForwardClicked) {
@@ -126,8 +136,7 @@ fun CalendarHeader(
 
 @Composable
 fun CalendarWeekdays(
-    modifier: Modifier = Modifier,
-    shortWeekdays: List<String>
+    modifier: Modifier = Modifier, shortWeekdays: List<String>
 ) {
     Row(modifier = modifier.fillMaxWidth()) {
         shortWeekdays.forEach { day ->
@@ -144,9 +153,7 @@ fun CalendarWeekdays(
 
 @Composable
 fun CalendarDays(
-    modifier: Modifier = Modifier,
-    calendarItems: List<Pair<String, Int>>,
-    today: Int
+    modifier: Modifier = Modifier, calendarItems: List<CalendarDay>, today: Int
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -164,29 +171,28 @@ fun CalendarDays(
                             )
                             .clip(RoundedCornerShape(MaterialTheme.spacing.small))
                             .background(
-                                when (day.second) {
-                                    0 -> Color.Transparent
+                                when (day.totalMinutes) {
+                                    0L -> Color.Transparent
                                     else -> MaterialTheme.colorScheme.primaryContainer.copy(
-                                        alpha = (day.second.toFloat() / 90).coerceIn(0.2F, 1.0F)
+                                        alpha = (day.totalMinutes.toFloat() / 90).coerceIn(0.2F, 1.0F)
                                     )
                                 }
                             )
                             .border(
                                 width = MaterialTheme.spacing.tiny,
-                                color = if (day.first.toIntOrNull() == today) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                color = if (day.dayNumber == today) MaterialTheme.colorScheme.primary else Color.Transparent,
                                 shape = RoundedCornerShape(MaterialTheme.spacing.small)
                             )
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .weight(1f), horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
-                            text = day.first,
+                            text = day.dayNumber.toString(),
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
                             modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
-                            text = if (day.second > 0) "${day.second}m" else "",
+                            text = if (day.totalMinutes > 0) "${day.totalMinutes}m" else "",
                             style = MaterialTheme.typography.labelSmall
                         )
                     }
@@ -198,12 +204,10 @@ fun CalendarDays(
 
 @Composable
 fun LoadingCalendarDays(
-    modifier: Modifier = Modifier,
-    calendarItems: List<Pair<String, Int>>
+    modifier: Modifier = Modifier, calendarItems: List<CalendarDay>
 ) {
     Box(
-        modifier = modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
+        modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
@@ -227,7 +231,7 @@ fun LoadingCalendarDays(
                         ) {
                             Text(
                                 modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
-                                text = day.first,
+                                text = day.dayNumber.toString(),
                                 style = MaterialTheme.typography.labelLarge
                             )
                             Text(
@@ -252,10 +256,9 @@ fun PreviewMyInputLogCalendar() {
         Surface {
             MyInputLogCalendar(
                 yearMonth = currentYearMonth,
-                dailyTotalTimes = (0 until 30).map { (it * 4) }.shuffled(),
+                monthlyStatsResult = MonthlyStatsResult.Success(UserMonthlyStats()),
                 onBackClicked = {},
-                onForwardClicked = {}
-            )
+                onForwardClicked = {})
         }
     }
 }
