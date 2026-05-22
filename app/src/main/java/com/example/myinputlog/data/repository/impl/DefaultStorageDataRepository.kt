@@ -1,34 +1,27 @@
 package com.example.myinputlog.data.repository.impl
 
-import android.util.Log
-import androidx.paging.InvalidatingPagingSourceFactory
-import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.myinputlog.data.model.CourseStatistics
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
-import com.example.myinputlog.data.paging.VideoPagingSource
+import com.example.myinputlog.data.paging.FirestorePagingSource
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.PreferenceStorageService
 import com.example.myinputlog.data.service.StorageService
+import com.example.myinputlog.data.utils.createReactivePagingFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class DefaultStorageDataRepository @Inject constructor(
     private val storageService: StorageService,
     private val accountService: AccountService,
-    private val pagingSourceFactory: VideoPagingSource.Factory,
     private val preferenceStorageService: PreferenceStorageService,
     private val pagingConfig: PagingConfig
 ) : StorageDataRepository {
@@ -53,34 +46,17 @@ class DefaultStorageDataRepository @Inject constructor(
         preferenceStorageService.saveCurrentCourseId(courseId)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override fun videoPagingFlow(courseId: String): Flow<PagingData<YouTubeVideo>> {
-        return userId.flatMapLatest { uid ->
-            if (uid.isBlank() || courseId.isBlank()) {
-                return@flatMapLatest flowOf(PagingData.empty())
-            }
-            val invalidatingFactory = InvalidatingPagingSourceFactory {
-                pagingSourceFactory.create(uid, courseId)
-            }
-            val pagerFlow = Pager(
-                config = pagingConfig,
-                pagingSourceFactory = invalidatingFactory
-            ).flow
-            channelFlow {
-                launch {
-                    storageService.getVideosChangeSignal(uid, courseId)
-                        .drop(1)
-                        .collectLatest {
-                            Log.d(TAG, "External change detected. Invalidating source.")
-                            invalidatingFactory.invalidate()
-                        }
+        return userId.createReactivePagingFlow(
+            courseId = courseId,
+            changeSignal = { uid -> storageService.getVideosChangeSignal(uid, courseId) },
+            factoryProvider = { uid ->
+                FirestorePagingSource(YouTubeVideo::class.java) { key, loadSize ->
+                    storageService.videosByWatchedOnQuery(uid, courseId, key, loadSize)
                 }
-
-                pagerFlow.collectLatest { pagingData ->
-                    send(pagingData)
-                }
-            }
-        }
+            },
+            pagingConfig = pagingConfig
+        )
     }
 
     override fun channelPagingFlow(courseId: String): Flow<PagingData<YouTubeChannel>> {
