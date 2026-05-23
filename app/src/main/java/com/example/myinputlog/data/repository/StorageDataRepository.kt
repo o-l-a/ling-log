@@ -14,7 +14,8 @@ interface StorageDataRepository {
     fun channelPagingFlow(courseId: String): Flow<PagingData<YouTubeChannel>>
     suspend fun getYouTubeVideo(courseId: String, videoId: String): YouTubeVideo?
     suspend fun getYouTubeChannel(courseId: String, channelId: String): YouTubeChannel?
-    suspend fun getMonthlyStats(courseId: String, monthId: String): UserMonthlyStats?
+    fun getMonthlyStatsFlow(userCourseId: String, monthId: String): Flow<UserMonthlyStats?>
+
     suspend fun saveVideo(
         courseId: String,
         video: YouTubeVideo,

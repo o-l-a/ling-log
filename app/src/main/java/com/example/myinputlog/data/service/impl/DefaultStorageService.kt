@@ -110,22 +110,21 @@ class DefaultStorageService @Inject constructor(
             currentUserCourseColl(currentUserId).add(userCourse).await().id
         }
 
-
     override suspend fun updateUserCourse(currentUserId: String, userCourse: UserCourse): Unit =
         trace(USER_COURSE_UPDATE_TRACE) {
             currentUserCourseColl(currentUserId).document(userCourse.id).set(userCourse).await()
         }
 
-
     override suspend fun deleteUserCourse(currentUserId: String, userCourseId: String) {
         currentUserCourseColl(currentUserId).document(userCourseId).delete().await()
     }
 
-    override suspend fun getMonthlyStats(
+    override fun getMonthlyStatsFlow(
         currentUserId: String, userCourseId: String, monthId: String
-    ): UserMonthlyStats? =
-        monthlyStatsCollForCurrentCourse(currentUserId, userCourseId).document(monthId).get()
-            .await().toObject()
+    ): Flow<UserMonthlyStats?> {
+        return monthlyStatsCollForCurrentCourse(currentUserId, userCourseId).document(monthId)
+            .snapshots().map { snapshot -> snapshot.toObject<UserMonthlyStats>() }
+    }
 
     override suspend fun getYouTubeVideo(
         currentUserId: String, userCourseId: String, youTubeVideoId: String

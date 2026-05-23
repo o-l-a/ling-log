@@ -11,10 +11,6 @@ sealed interface HomeUiState {
     data object NetworkError : HomeUiState
     data class Success(
         val courseHeader: CourseHeaderUiModel = CourseHeaderUiModel(),
-
-        val selectedYearMonth: YearMonth = YearMonth.now(),
-        val calendarState: CalendarUiState = CalendarUiState(),
-
         val userCourses: List<UserCourse> = listOf(),
         val isParty: Boolean = false
     ) : HomeUiState

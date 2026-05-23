@@ -76,12 +76,11 @@ class DefaultStorageDataRepository @Inject constructor(
         return storageService.getYouTubeChannel(uid, courseId, channelId)
     }
 
-    override suspend fun getMonthlyStats(
-        courseId: String,
-        monthId: String
-    ): UserMonthlyStats? {
+    override fun getMonthlyStatsFlow(
+        userCourseId: String, monthId: String
+    ): Flow<UserMonthlyStats?> {
         val uid = accountService.currentUserId
-        return storageService.getMonthlyStats(uid, courseId, monthId)
+        return storageService.getMonthlyStatsFlow(uid, userCourseId, monthId)
     }
 
     override suspend fun saveVideo(

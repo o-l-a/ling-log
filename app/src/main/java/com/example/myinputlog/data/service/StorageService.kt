@@ -7,19 +7,21 @@ import com.example.myinputlog.data.model.YouTubeVideo
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
-import java.time.YearMonth
 
 interface StorageService {
     fun getUserCourses(userId: String): Flow<List<UserCourse>?>
     suspend fun videosByWatchedOnQuery(
         userId: String, courseId: String, lastVideo: DocumentSnapshot?, limitSize: Long
     ): Query
+
     fun getVideosChangeSignal(userId: String, courseId: String): Flow<Unit>
     suspend fun getUserCourse(currentUserId: String, userCourseId: String): UserCourse?
     suspend fun saveUserCourse(currentUserId: String, userCourse: UserCourse): String
     suspend fun updateUserCourse(currentUserId: String, userCourse: UserCourse)
     suspend fun deleteUserCourse(currentUserId: String, userCourseId: String)
-    suspend fun getMonthlyStats(currentUserId: String, userCourseId: String, monthId: String): UserMonthlyStats?
+    fun getMonthlyStatsFlow(
+        currentUserId: String, userCourseId: String, monthId: String
+    ): Flow<UserMonthlyStats?>
 
     suspend fun getYouTubeVideo(
         currentUserId: String, userCourseId: String, youTubeVideoId: String

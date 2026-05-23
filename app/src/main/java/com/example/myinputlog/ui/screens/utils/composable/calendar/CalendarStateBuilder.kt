@@ -1,6 +1,8 @@
-package com.example.myinputlog.ui.screens.home
+package com.example.myinputlog.ui.screens.utils.composable.calendar
 
 import com.example.myinputlog.data.model.DayAggregation
+import com.example.myinputlog.ui.screens.utils.composable.calendar.CalendarUiState
+import com.example.myinputlog.ui.screens.home.MonthlyStatsResult
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth

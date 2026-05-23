@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.home
+package com.example.myinputlog.ui.screens.utils.composable.calendar
 
 data class CalendarUiState(
     val monthName: String = "",

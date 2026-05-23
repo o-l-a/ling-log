@@ -77,6 +77,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(libs.androidx.compose.runtime)
     ksp(libs.hilt.compiler) // Switched from kapt to ksp
     implementation(libs.hilt.navigation.compose)
     ksp(libs.androidx.hilt.compiler)
@@ -122,6 +123,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation("com.google.android.play:integrity:1.6.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.11.0")
     implementation(kotlin("reflect"))
 }

@@ -31,7 +31,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,14 +43,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.CourseTopAppBar
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
+import com.example.myinputlog.data.utils.DateUtils.toDayKey
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.MyInputLogCalendar
+import com.example.myinputlog.ui.screens.utils.composable.calendar.SwipeableCalendar
 import com.example.myinputlog.ui.screens.utils.formatDurationAsText
 import com.example.myinputlog.ui.theme.MyInputLogTheme
 import com.example.myinputlog.ui.theme.spacing
-import kotlinx.coroutines.launch
 import nl.dionsegijn.konfetti.compose.KonfettiView
 import nl.dionsegijn.konfetti.compose.OnParticleSystemUpdateListener
 import nl.dionsegijn.konfetti.core.Angle
@@ -59,6 +59,8 @@ import nl.dionsegijn.konfetti.core.PartySystem
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.Spread
 import nl.dionsegijn.konfetti.core.emitter.Emitter
+import java.time.YearMonth
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,11 +72,11 @@ fun HomeScreen(
     navigateToYouTubeVideoEntry: (String) -> Unit,
 ) {
     val homeUiState by homeViewModel.homeUiState.collectAsStateWithLifecycle()
+    val monthlyStatsMap by homeViewModel.monthlyStatsMap.collectAsStateWithLifecycle()
     val currentCourseId by homeViewModel.currentCourseId.collectAsStateWithLifecycle()
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val scrollState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = modifier.fillMaxSize()) {
         Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
@@ -92,7 +94,7 @@ fun HomeScreen(
                 onBottomNavClicked = onBottomNavClicked,
                 navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
         }) { innerPadding ->
-            when (homeUiState) {
+            when (val state = homeUiState) {
                 is HomeUiState.Loading -> {
                     LoadingBox()
                 }
@@ -119,20 +121,21 @@ fun HomeScreen(
                 }
 
                 is HomeUiState.Success -> {
+                    val todaySeconds = remember(monthlyStatsMap) {
+                        val stats = (monthlyStatsMap[YearMonth.now()
+                            .toString()] as? MonthlyStatsResult.Success)?.data
+                        stats?.days?.get(Date().toDayKey())?.totalTimeInSeconds ?: 0L
+                    }
+                    val updatedSuccessState = state.copy(
+                        courseHeader = state.courseHeader.copy(totalTimeInSecondsToday = todaySeconds)
+                    )
                     HomeBody(
                         modifier = modifier.padding(innerPadding),
-                        homeUiState = homeUiState as HomeUiState.Success,
+                        homeUiState = updatedSuccessState,
+                        monthlyStatsMap = monthlyStatsMap,
                         listState = scrollState,
-                        onCalendarBackClicked = {
-                            homeViewModel.previousMonth()
-                            coroutineScope.launch { scrollState.animateScrollToItem(1) }
-                        },
-                        onCalendarForwardClicked = {
-                            homeViewModel.nextMonth()
-                            coroutineScope.launch { scrollState.animateScrollToItem(1) }
-                        },
+                        onMonthSettled = homeViewModel::onMonthSettled,
                         doParty = homeViewModel::confetti
-
                     )
                 }
             }
@@ -151,8 +154,8 @@ fun HomeBody(
     modifier: Modifier = Modifier,
     homeUiState: HomeUiState.Success,
     listState: LazyListState,
-    onCalendarBackClicked: () -> Unit,
-    onCalendarForwardClicked: () -> Unit,
+    monthlyStatsMap: Map<String, MonthlyStatsResult>,
+    onMonthSettled: (YearMonth) -> Unit,
     doParty: () -> Unit
 ) {
     LazyColumn(
@@ -207,10 +210,8 @@ fun HomeBody(
             }
         }
         item {
-            MyInputLogCalendar(
-                calendarUiState = homeUiState.calendarState,
-                onForwardClicked = onCalendarForwardClicked,
-                onBackClicked = onCalendarBackClicked,
+            SwipeableCalendar(
+                monthlyStatsMap = monthlyStatsMap, onMonthSettled = onMonthSettled
             )
         }
     }

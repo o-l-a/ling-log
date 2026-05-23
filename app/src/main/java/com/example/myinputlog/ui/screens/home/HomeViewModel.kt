@@ -1,27 +1,25 @@
 package com.example.myinputlog.ui.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.repository.StorageDataRepository
-import com.example.myinputlog.data.utils.DateUtils.toDayKey
 import com.example.myinputlog.ui.models.mapToCourseUiModel
-import com.example.myinputlog.ui.screens.home.CalendarStateBuilder.buildCalendarState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.YearMonth
-import java.util.Date
 import javax.inject.Inject
+import kotlin.math.abs
 
 sealed interface MonthlyStatsResult {
     data object Loading : MonthlyStatsResult
@@ -33,66 +31,33 @@ sealed interface MonthlyStatsResult {
 class HomeViewModel @Inject constructor(
     private val repository: StorageDataRepository
 ) : ViewModel() {
-    private val selectedYearMonth = MutableStateFlow(YearMonth.now())
     private val isParty = MutableStateFlow(false)
+
+    private val _monthlyStatsMap = MutableStateFlow<Map<String, MonthlyStatsResult>>(emptyMap())
+    val monthlyStatsMap: StateFlow<Map<String, MonthlyStatsResult>> = _monthlyStatsMap.asStateFlow()
+    private val activeJobMap = mutableMapOf<String, Job>()
 
     val currentCourseId: StateFlow<String> = repository.currentCourseId.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = ""
     )
 
-    private val uiControlFlow = combine(
-        selectedYearMonth, isParty
-    ) { month, party ->
-        month to party
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val monthlyStats: StateFlow<MonthlyStatsResult> =
-        combine(currentCourseId, selectedYearMonth) { courseId, month ->
-            courseId to month
-        }.flatMapLatest { (courseId, month) ->
-            flow {
-                emit(MonthlyStatsResult.Loading)
-                try {
-                    val monthId = month.toString()
-                    val data = repository.getMonthlyStats(courseId, monthId)
-                        ?: UserMonthlyStats(id = monthId)
-                    emit(MonthlyStatsResult.Success(data))
-                } catch (e: Exception) {
-                    emit(MonthlyStatsResult.Error(e))
-                }
-            }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = MonthlyStatsResult.Loading
-        )
-
     val homeUiState: StateFlow<HomeUiState> = combine(
-        repository.userCourses, currentCourseId, monthlyStats, uiControlFlow
-    ) { courses, id, statsRes, controls ->
+        repository.userCourses, currentCourseId, isParty
+    ) { courses, id, party ->
 
-        val (month, party) = controls
         when {
             courses == null -> HomeUiState.Loading
             courses.isEmpty() -> HomeUiState.Empty
-            statsRes is MonthlyStatsResult.Error -> HomeUiState.NetworkError
 
             else -> {
                 val current = courses.find { it.id == id } ?: courses.first()
-                val monthlyStats = (statsRes as? MonthlyStatsResult.Success)?.data
-                val dayStats = monthlyStats?.days?.getOrDefault(Date().toDayKey(), null)
-                val calendarUiState = buildCalendarState(month, statsRes)
                 val courseHeader = mapToCourseUiModel(
-                    current, dayStats?.totalTimeInSeconds ?: 0L
+                    current, 0L
                 )
-
                 HomeUiState.Success(
                     courseHeader = courseHeader,
                     userCourses = courses,
-                    selectedYearMonth = month,
                     isParty = party,
-                    calendarState = calendarUiState,
                 )
             }
         }
@@ -101,12 +66,51 @@ class HomeViewModel @Inject constructor(
         initialValue = HomeUiState.Loading
     )
 
-    fun nextMonth() {
-        selectedYearMonth.update { it.plusMonths(1) }
+    fun onMonthSettled(yearMonth: YearMonth) {
+        val monthId = yearMonth.toString()
+        val courseId = currentCourseId.value
+        if (courseId.isBlank()) return
+
+        val jobKey = "$courseId-$monthId"
+
+        if (activeJobMap.containsKey(jobKey)) {
+            cleanupDistancedListeners(yearMonth, courseId)
+            return
+        }
+
+        activeJobMap[jobKey] = viewModelScope.launch {
+            repository.getMonthlyStatsFlow(courseId, monthId).collect { stats ->
+                _monthlyStatsMap.update { currentMap ->
+                    currentMap + (monthId to MonthlyStatsResult.Success(
+                        stats ?: UserMonthlyStats(id = monthId)
+                    ))
+                }
+            }
+        }
+
+        cleanupDistancedListeners(yearMonth, courseId)
     }
 
-    fun previousMonth() {
-        selectedYearMonth.update { it.minusMonths(1) }
+    private fun cleanupDistancedListeners(currentMonth: YearMonth, courseId: String) {
+        val iterator = activeJobMap.entries.iterator()
+        while (iterator.hasNext()) {
+            val entry = iterator.next()
+            val entryKey = entry.key
+
+            if (entryKey.startsWith(courseId)) {
+                val entryMonthId = entryKey.removePrefix("$courseId-")
+                val entryYearMonth = YearMonth.parse(entryMonthId)
+
+                val monthsBetween =
+                    java.time.temporal.ChronoUnit.MONTHS.between(currentMonth, entryYearMonth)
+
+                if (abs(monthsBetween) > 2) {
+                    Log.d(TAG, "Stopping listener for ${entry.key}")
+                    entry.value.cancel()
+                    iterator.remove()
+                }
+            }
+        }
     }
 
     fun confetti() {
@@ -121,5 +125,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             repository.setCurrentCourse(newCourse.id)
         }
+    }
+
+    companion object {
+        private const val TAG = "HomeViewModel"
     }
 }
