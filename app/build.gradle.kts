@@ -105,12 +105,12 @@ dependencies {
     implementation(libs.openid.appauth)
     implementation("com.auth0.android:jwtdecode:2.0.2")
 
-    // Networking (Crucial for the "T" error in ApiModule)
+    // Networking
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.serialization)
     implementation(libs.okhttp.logging)
 
-    // Confetti (if you still use it)
+    // Confetti
     implementation("nl.dionsegijn:konfetti-compose:2.0.5")
 
     implementation(libs.androidx.material.icons.extended)
@@ -123,4 +123,5 @@ dependencies {
 
     implementation("com.google.android.play:integrity:1.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+    implementation(kotlin("reflect"))
 }

@@ -64,7 +64,9 @@ class VideoViewModel @Inject constructor(
     val videoUiState: StateFlow<VideoUiState> = combine(
         storageDataRepository.userCourses, _userDraft, _videoMetadata, _loadingState, _uiFlags
     ) { courses, draft, meta, loadState, flags ->
-        if (loadState is VideoLoadState.StorageError || courses == null) {
+        if (flags.isDeleting) {
+            VideoUiState.Loading
+        } else if (loadState is VideoLoadState.StorageError || courses == null) {
             VideoUiState.Error
         } else {
             VideoUiState.Success(
@@ -228,15 +230,16 @@ class VideoViewModel @Inject constructor(
             val currentState = videoUiState.value
             if (currentState is VideoUiState.Success) {
                 val video = currentState.toYouTubeVideo()
+                _uiFlags.update { it.copy(isDeleting = true) }
                 try {
                     storageDataRepository.deleteVideo(defaultCourseId, video)
                     _uiEvent.send(VideoUiEvent.NavigateBack)
                 } catch (e: Exception) {
                     Log.d(TAG, e.toString())
+                    _uiFlags.update { it.copy(isDeleting = false) }
                     _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.video_delete_error)))
                 }
             }
-
         }
     }
 

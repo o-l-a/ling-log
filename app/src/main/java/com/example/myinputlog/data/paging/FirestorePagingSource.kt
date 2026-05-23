@@ -7,7 +7,9 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.Source
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class FirestorePagingSource<T : Any>(
     private val modelClass: Class<T>,
@@ -23,26 +25,28 @@ class FirestorePagingSource<T : Any>(
     }
 
     override suspend fun load(params: LoadParams<DocumentSnapshot>): LoadResult<DocumentSnapshot, T> {
-        return try {
-            val query = queryProvider(
-                params.key, params.loadSize.toLong()
-            )
-            val querySnapshot = try {
-                Log.d(TAG, "Read the collection from cache (${modelClass.simpleName})")
-                query.get(Source.CACHE).await()
-            } catch (e: FirebaseFirestoreException) {
-                Log.d(TAG, "Read the collection from server (${modelClass.simpleName})", e)
-                query.get(Source.SERVER).await()
+        return withContext(Dispatchers.IO) {
+            try {
+                val query = queryProvider(
+                    params.key, params.loadSize.toLong()
+                )
+                val querySnapshot = try {
+                    Log.d(TAG, "Read the collection from cache (${modelClass.simpleName})")
+                    query.get(Source.CACHE).await()
+                } catch (e: FirebaseFirestoreException) {
+                    Log.d(TAG, "Read the collection from server (${modelClass.simpleName})", e)
+                    query.get(Source.SERVER).await()
+                }
+                val currentPage = querySnapshot.toObjects(modelClass)
+                val nextKey =
+                    if (currentPage.size < params.loadSize) null else querySnapshot.documents.lastOrNull()
+                LoadResult.Page(
+                    data = currentPage, prevKey = null, nextKey = nextKey
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load page for (${modelClass.simpleName})", e)
+                LoadResult.Error(e)
             }
-            val currentPage = querySnapshot.toObjects(modelClass)
-            val nextKey =
-                if (currentPage.size < params.loadSize) null else querySnapshot.documents.lastOrNull()
-            LoadResult.Page(
-                data = currentPage, prevKey = null, nextKey = nextKey
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to load page for (${modelClass.simpleName})", e)
-            LoadResult.Error(e)
         }
     }
 }

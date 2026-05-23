@@ -7,6 +7,7 @@ import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.utils.DateUtils.toDayKey
 import com.example.myinputlog.ui.models.mapToCourseUiModel
+import com.example.myinputlog.ui.screens.home.CalendarStateBuilder.buildCalendarState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,6 +82,7 @@ class HomeViewModel @Inject constructor(
                 val current = courses.find { it.id == id } ?: courses.first()
                 val monthlyStats = (statsRes as? MonthlyStatsResult.Success)?.data
                 val dayStats = monthlyStats?.days?.getOrDefault(Date().toDayKey(), null)
+                val calendarUiState = buildCalendarState(month, statsRes)
                 val courseHeader = mapToCourseUiModel(
                     current, dayStats?.totalTimeInSeconds ?: 0L
                 )
@@ -90,7 +92,7 @@ class HomeViewModel @Inject constructor(
                     userCourses = courses,
                     selectedYearMonth = month,
                     isParty = party,
-                    monthlyStats = statsRes,
+                    calendarState = calendarUiState,
                 )
             }
         }

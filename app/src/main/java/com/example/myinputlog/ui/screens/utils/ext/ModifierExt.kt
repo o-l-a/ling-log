@@ -5,6 +5,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,8 +41,20 @@ fun Modifier.shimmerEffect(): Modifier = composed {
             start = Offset(startOffsetX, 0f),
             end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat())
         )
-    )
-        .onGloballyPositioned {
+    ).onGloballyPositioned {
             size = it.size
         }
+}
+
+@Composable
+fun Modifier.conditional(
+    condition: Boolean,
+    ifTrue: @Composable Modifier.() -> Modifier,
+    ifFalse: @Composable Modifier.() -> Modifier = @Composable { this }
+): Modifier {
+    return if (condition) {
+        ifTrue(this)
+    } else {
+        ifFalse(this)
+    }
 }

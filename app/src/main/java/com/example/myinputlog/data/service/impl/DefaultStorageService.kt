@@ -9,14 +9,11 @@ import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.data.utils.DateUtils.toDayKey
 import com.example.myinputlog.data.utils.DateUtils.toMonthKey
 import com.example.myinputlog.data.utils.toFirestoreMap
-import com.google.firebase.firestore.AggregateField
-import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.WriteBatch
@@ -25,20 +22,12 @@ import com.google.firebase.firestore.toObject
 import com.google.firebase.perf.trace
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
-import kotlinx.serialization.json.jsonObject
-import java.time.YearMonth
-import java.time.ZoneId
-import java.util.Date
 import javax.inject.Inject
 
 class DefaultStorageService @Inject constructor(
@@ -64,6 +53,7 @@ class DefaultStorageService @Inject constructor(
         private const val KEY_ID = "id"
         private const val KEY_WATCHED_ON = "watchedOn"
         private const val KEY_TIMESTAMP = "timestamp"
+        private const val KEY_LAST_UPDATE = "lastUpdated"
         private const val DAY_CHANNEL_MAP = "channelBreakdown"
         private const val DAY_LABEL_MAP = "labelBreakdown"
 
@@ -89,14 +79,9 @@ class DefaultStorageService @Inject constructor(
     override fun getVideosChangeSignal(
         userId: String, courseId: String
     ): Flow<Unit> {
-        return currentUserCourseColl(userId).document(courseId).collection(YT_VIDEO_COLL)
-            .orderBy(KEY_TIMESTAMP, Query.Direction.DESCENDING).limit(1).snapshots()
-            .map { snapshot ->
-                val doc = snapshot.documents.firstOrNull()
-                val id = doc?.id ?: "empty"
-                val timestamp = doc?.get(KEY_TIMESTAMP)?.toString() ?: "0"
-                "$id-$timestamp"
-            }.distinctUntilChanged().map { }
+        return currentUserCourseColl(userId).document(courseId).snapshots().map { snapshot ->
+            snapshot.getTimestamp(KEY_LAST_UPDATE)?.seconds ?: 0L
+        }.distinctUntilChanged().map { }
     }
 
     private fun currentUserCourseColl(uid: String): CollectionReference =
@@ -142,39 +127,6 @@ class DefaultStorageService @Inject constructor(
         monthlyStatsCollForCurrentCourse(currentUserId, userCourseId).document(monthId).get()
             .await().toObject()
 
-    override suspend fun getMonthlyAggregateData(
-        currentUserId: String, userCourseId: String, yearMonth: YearMonth
-    ): List<Long> = withContext(Dispatchers.IO) {
-        val aggregateField = AggregateField.sum("durationInSeconds")
-        val collection = youTubeVideoCollForCurrentCourse(currentUserId, userCourseId)
-
-        val daysInMonth = yearMonth.lengthOfMonth()
-
-        val tasks = (1..daysInMonth).map { dayOfMonth ->
-            async {
-                val startOfDay = Date(
-                    yearMonth.atDay(dayOfMonth).atStartOfDay(ZoneId.systemDefault())
-                        .toEpochSecond() * 1000
-                )
-                val endOfDay = Date(
-                    yearMonth.atDay(dayOfMonth).plusDays(1).atStartOfDay(ZoneId.systemDefault())
-                        .toEpochSecond() * 1000
-                )
-                try {
-                    val todayTimeTask =
-                        collection.whereGreaterThanOrEqualTo("watchedOn", startOfDay)
-                            .whereLessThan("watchedOn", endOfDay).aggregate(aggregateField)
-                            .get(AggregateSource.SERVER).await()
-                    todayTimeTask.getLong(aggregateField) ?: 0L
-                } catch (e: FirebaseFirestoreException) {
-                    Log.d(TAG, "Error fetching data for day $dayOfMonth: ${e.message}")
-                    throw e
-                }
-            }
-        }
-        tasks.awaitAll()
-    }
-
     override suspend fun getYouTubeVideo(
         currentUserId: String, userCourseId: String, youTubeVideoId: String
     ): YouTubeVideo? = youTubeVideoCollForCurrentCourse(currentUserId, userCourseId).document(
@@ -196,6 +148,7 @@ class DefaultStorageService @Inject constructor(
         channelExistsOnServer: Boolean
     ) {
         withContext(Dispatchers.IO) {
+            Log.d(TAG, "Saving video ${newVideo.title}")
             oldVideo?.let { old ->
                 require(old.channelId == newVideo.channelId) { "Cannot change channel on existing video." }
                 require(old.videoUrl == newVideo.videoUrl) { "Cannot change URL on existing video." }
@@ -238,6 +191,7 @@ class DefaultStorageService @Inject constructor(
         userId: String, courseId: String, video: YouTubeVideo
     ) {
         withContext(Dispatchers.IO) {
+            Log.d(TAG, "Deleting video ${video.title}")
             val batch = firestore.batch()
             val acc = FirestoreAccumulator(batch)
             val courseRef = currentUserCourseColl(userId).document(courseId)
@@ -265,11 +219,14 @@ class DefaultStorageService @Inject constructor(
         val channelId = video.channelId
 
         // 1. Global & Channel Updates
-        val channelRef = courseRef.collection(YT_CHANNEL_COLL).document(channelId)
         acc.increment(courseRef, KEY_DURATION, dur)
         acc.increment(courseRef, KEY_COUNT, count)
+        acc.updateTimestamp(courseRef, KEY_LAST_UPDATE)
+
+        val channelRef = courseRef.collection(YT_CHANNEL_COLL).document(channelId)
         acc.increment(channelRef, KEY_DURATION, dur)
         acc.increment(channelRef, KEY_COUNT, count)
+        acc.updateTimestamp(channelRef)
 
         // 2. Monthly Updates
         val monthKey = video.watchedOn.toMonthKey()
@@ -319,13 +276,14 @@ class DefaultStorageService @Inject constructor(
 
         fun setChannelMetadata(ref: DocumentReference, channel: YouTubeChannel) {
             val updates = documentUpdates.getOrPut(ref) { mutableMapOf() }
-            val channelMap = Json.encodeToJsonElement(channel).jsonObject.toFirestoreMap()
-
-            channelMap.remove(KEY_DURATION)
-            channelMap.remove(KEY_COUNT)
-            channelMap.remove(KEY_ID)
-
+            val channelMap =
+                channel.toFirestoreMap(excludeFields = setOf(KEY_DURATION, KEY_COUNT, KEY_ID))
             updates.putAll(channelMap)
+        }
+
+        fun updateTimestamp(ref: DocumentReference, field: String = KEY_TIMESTAMP) {
+            val updates = documentUpdates.getOrPut(ref) { mutableMapOf() }
+            updates[field] = FieldValue.serverTimestamp()
         }
 
         fun applyToBatch() {

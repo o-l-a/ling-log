@@ -6,6 +6,7 @@ import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.ext.asStartOfDay
 import com.example.myinputlog.ui.screens.utils.ext.stripUrl
+import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
@@ -50,7 +51,9 @@ data class VideoUserDraft(
 )
 
 data class VideoUiFlags(
-    val isDeleteDialogVisible: Boolean = false, val isDatePickerDialogVisible: Boolean = false
+    val isDeleteDialogVisible: Boolean = false,
+    val isDatePickerDialogVisible: Boolean = false,
+    val isDeleting: Boolean = false
 )
 
 sealed interface VideoUiState {
@@ -121,5 +124,5 @@ fun VideoUiState.Success.toYouTubeChannel(): YouTubeChannel = YouTubeChannel(
     thumbnailHighUrl = videoMetadata.channelMetadata.thumbnailHighUrl,
     thumbnailMediumUrl = videoMetadata.channelMetadata.thumbnailMediumUrl,
     thumbnailDefaultUrl = videoMetadata.channelMetadata.thumbnailDefaultUrl,
-    timestamp = Date()
+    timestamp = Timestamp.now()
 )

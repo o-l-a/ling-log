@@ -1,22 +1,22 @@
 package com.example.myinputlog.data.utils
 
+import com.google.firebase.Timestamp
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.util.Date
 
-object DateSerializer : KSerializer<Date> {
+object TimestampSerializer : KSerializer<Timestamp> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("Date", PrimitiveKind.LONG)
+        PrimitiveSerialDescriptor("Timestamp", PrimitiveKind.LONG)
 
-    override fun serialize(encoder: Encoder, value: Date) {
-        encoder.encodeLong(value.time)
+    override fun serialize(encoder: Encoder, value: Timestamp) {
+        encoder.encodeLong(value.seconds)
     }
 
-    override fun deserialize(decoder: Decoder): Date {
-        return Date(decoder.decodeLong())
+    override fun deserialize(decoder: Decoder): Timestamp {
+        return Timestamp(decoder.decodeLong(), 0)
     }
 }

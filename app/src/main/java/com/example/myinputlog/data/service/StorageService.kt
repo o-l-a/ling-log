@@ -20,9 +20,6 @@ interface StorageService {
     suspend fun updateUserCourse(currentUserId: String, userCourse: UserCourse)
     suspend fun deleteUserCourse(currentUserId: String, userCourseId: String)
     suspend fun getMonthlyStats(currentUserId: String, userCourseId: String, monthId: String): UserMonthlyStats?
-    suspend fun getMonthlyAggregateData(
-        currentUserId: String, userCourseId: String, yearMonth: YearMonth
-    ): List<Long>
 
     suspend fun getYouTubeVideo(
         currentUserId: String, userCourseId: String, youTubeVideoId: String

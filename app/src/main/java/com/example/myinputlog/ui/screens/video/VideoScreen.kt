@@ -145,7 +145,6 @@ fun VideoScreen(
         VideoScreenDialogs(
             onDeleteConfirm = {
                 videoViewModel.deleteVideo()
-                onNavigateUp()
             },
             onDeleteDismiss = {
                 videoViewModel.toggleDeleteDialogVisibility(false)

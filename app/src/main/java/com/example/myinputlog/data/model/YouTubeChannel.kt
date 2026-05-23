@@ -1,18 +1,18 @@
 package com.example.myinputlog.data.model
 
-import com.example.myinputlog.data.utils.DateSerializer
+import com.example.myinputlog.data.utils.TimestampSerializer
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
 import kotlinx.serialization.Serializable
-import java.util.Date
 
 @Serializable
 data class YouTubeChannel(
     @DocumentId val id: String = "",
     val title: String = "",
-    @Serializable(with = DateSerializer::class)
+    @Serializable(with = TimestampSerializer::class)
     @ServerTimestamp
-    val timestamp: Date = Date(),
+    val timestamp: Timestamp = Timestamp.now(),
     val customUrl: String? = null,
     val country: String? = null,
     val thumbnailDefaultUrl: String = "",

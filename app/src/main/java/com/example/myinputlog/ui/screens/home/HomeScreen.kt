@@ -208,8 +208,7 @@ fun HomeBody(
         }
         item {
             MyInputLogCalendar(
-                yearMonth = homeUiState.selectedYearMonth,
-                monthlyStatsResult = homeUiState.monthlyStats,
+                calendarUiState = homeUiState.calendarState,
                 onForwardClicked = onCalendarForwardClicked,
                 onBackClicked = onCalendarBackClicked,
             )
