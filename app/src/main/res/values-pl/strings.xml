@@ -10,6 +10,7 @@
     <!--    screen titles    -->
     <string name="home_screen_title">Główna</string>
     <string name="video_list_screen_title">Filmy</string>
+    <string name="channel_list_screen_title">Kanały</string>
     <string name="video_screen_title">Film</string>
     <string name="course_screen_title">Kurs</string>
     <string name="profile_screen_title">Profil</string>
@@ -72,6 +73,7 @@
     <string name="empty_collection_headline">Trochę tu pusto.</string>
     <string name="empty_course_collection_body">Dodaj pierwszy kurs w zakładce "Profil".</string>
     <string name="empty_video_collection_body">Twoje filmy pojawią się tutaj, kiedy je dodasz.</string>
+    <string name="empty_channel_collection_body">Twoje kanały pojawią się tutaj, kiedy je dodasz.</string>
     <string name="empty_playlist">Wygląda na to, że ta playlista jest pusta.</string>
     <string name="video_save_error">Nie udało się zapisać filmu. Spróbuj ponownie później.</string>
     <string name="video_delete_error">Nie udało się usunąć filmu. Spróbuj ponownie później.</string>

@@ -31,8 +31,8 @@ import com.example.myinputlog.ui.screens.sign_up.SignUpScreen
 import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
 import com.example.myinputlog.ui.screens.video.VideoScreen
 import com.example.myinputlog.ui.screens.video.VideoViewModel
-import com.example.myinputlog.ui.screens.video_list.VideoListScreen
-import com.example.myinputlog.ui.screens.video_list.VideoListViewModel
+import com.example.myinputlog.ui.screens.media_list.MediaListScreen
+import com.example.myinputlog.ui.screens.media_list.MediaListViewModel
 import kotlinx.serialization.Serializable
 
 const val DEFAULT_ID = -1
@@ -41,7 +41,7 @@ const val DEFAULT_ID = -1
 object HomeGraph
 
 @Serializable
-object VideosGraph
+object MediaGraph
 
 @Serializable
 object AuthGraph
@@ -56,7 +56,7 @@ object LandingRoute
 object HomeRoute
 
 @Serializable
-object VideoListRoute
+object MediaListRoute
 
 @Serializable
 data class VideoRoute(val courseId: String, val videoId: String, val videoUrl: String? = null)
@@ -81,7 +81,7 @@ sealed class Screen(
 ) {
     object Home : Screen(HomeRoute, R.string.home_bottom_nav_description, Icons.Filled.Home)
     object Videos :
-        Screen(VideoListRoute, R.string.videos_bottom_nav_description, Icons.Filled.VideoLibrary)
+        Screen(MediaListRoute, R.string.videos_bottom_nav_description, Icons.Filled.VideoLibrary)
 
     object AddVideo : Screen("", null, Icons.Outlined.AddCircleOutline)
     object RecentlyWatched : Screen(
@@ -139,13 +139,13 @@ fun NavGraphBuilder.myInputLogHomeGraph(navController: NavHostController) {
 }
 
 fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
-    navigation<VideosGraph>(
-        startDestination = VideoListRoute,
+    navigation<MediaGraph>(
+        startDestination = MediaListRoute,
     ) {
-        composable<VideoListRoute> {
-            val videoListViewModel = hiltViewModel<VideoListViewModel>()
-            VideoListScreen(videoListViewModel = videoListViewModel, onBottomNavClicked = { route ->
-                navController.navigateWithPopUp(route, VideoListRoute)
+        composable<MediaListRoute> {
+            val mediaListViewModel = hiltViewModel<MediaListViewModel>()
+            MediaListScreen(mediaListViewModel = mediaListViewModel, onBottomNavClicked = { route ->
+                navController.navigateWithPopUp(route, MediaListRoute)
             }, navigateToYouTubeVideoEntry = { courseId ->
                 navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
             }, navigateToYouTubeVideo = { courseId, videoId ->

@@ -28,6 +28,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -193,13 +195,15 @@ fun CourseTopAppBar(
     courseHeader: CourseHeaderUiModel,
     onValueChange: (UserCourse) -> Unit,
     options: List<UserCourse>,
-    scrollBehavior: TopAppBarScrollBehavior? = null
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors()
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     TopAppBar(
         modifier = modifier,
         scrollBehavior = scrollBehavior,
+        colors = colors,
         title = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -260,7 +264,7 @@ fun BottomNavBarPreview() {
                 CourseTopAppBar(
                     courseHeader = CourseHeaderUiModel(name = "Test 123"),
                     onValueChange = {},
-                    options = emptyList()
+                    options = emptyList(),
                 )
             },
             bottomBar = {

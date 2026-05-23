@@ -9,6 +9,7 @@
     <!--    screen titles    -->
     <string name="home_screen_title">Home</string>
     <string name="video_list_screen_title">Videos</string>
+    <string name="channel_list_screen_title">Channels</string>
     <string name="video_screen_title">Video</string>
     <string name="course_screen_title">Course</string>
     <string name="profile_screen_title">Settings</string>
@@ -71,6 +72,7 @@
     <string name="empty_collection_headline">Nothing to see here.</string>
     <string name="empty_course_collection_body">Head over to the "Profile" tab and add your first course.</string>
     <string name="empty_video_collection_body">Your videos will appear here after you add them.</string>
+    <string name="empty_channel_collection_body">Your channels will appear here after you add them.</string>
     <string name="empty_playlist">This playlist seems to be empty.</string>
     <string name="video_save_error">Failed to save the video. Try again later.</string>
     <string name="video_delete_error">Failed to delete the video. Try again later.</string>

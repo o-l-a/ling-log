@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.video_list
+package com.example.myinputlog.ui.screens.media_list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class VideoListViewModel @Inject constructor(
+class MediaListViewModel @Inject constructor(
     private val repository: StorageDataRepository,
 ) : ViewModel() {
     val currentCourseId: StateFlow<String> = repository.currentCourseId.stateIn(
@@ -34,26 +34,34 @@ class VideoListViewModel @Inject constructor(
         repository.videoPagingFlow(cid).insertHeaderAndSeparators()
     }.cachedIn(viewModelScope)
 
-    val videoListUiState: StateFlow<VideoListUiState> = combine(
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val channelFlow = currentCourseId.flatMapLatest { cid ->
+        repository.channelPagingFlow(cid)
+    }.cachedIn(viewModelScope)
+
+    val mediaListUiState: StateFlow<MediaListUiState> = combine(
         repository.userCourses, currentCourseId
     ) { courses, id ->
 
         when {
-            courses == null -> VideoListUiState.Loading
-            courses.isEmpty() -> VideoListUiState.Empty
+            courses == null -> MediaListUiState.Loading
+            courses.isEmpty() -> MediaListUiState.Empty
 
             else -> {
                 val current = courses.find { it.id == id } ?: courses.first()
                 val courseHeader = mapToCourseUiModel(current)
 
-                VideoListUiState.Success(
-                    courseHeader = courseHeader, userCourses = courses, videos = videoFlow
+                MediaListUiState.Success(
+                    courseHeader = courseHeader,
+                    userCourses = courses,
+                    videos = videoFlow,
+                    channels = channelFlow
                 )
             }
         }
     }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), // Save battery
-        initialValue = VideoListUiState.Loading
+        initialValue = MediaListUiState.Loading
     )
 
     fun changeCurrentCourseId(newCourse: UserCourse) {

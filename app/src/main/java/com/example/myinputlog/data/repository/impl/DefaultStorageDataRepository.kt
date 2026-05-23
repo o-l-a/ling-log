@@ -60,7 +60,16 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     override fun channelPagingFlow(courseId: String): Flow<PagingData<YouTubeChannel>> {
-        TODO("Not yet implemented")
+        return userId.createReactivePagingFlow(
+            courseId = courseId,
+            changeSignal = { uid -> storageService.getVideosChangeSignal(uid, courseId) },
+            factoryProvider = { uid ->
+                FirestorePagingSource(YouTubeChannel::class.java) { key, loadSize ->
+                    storageService.channelsByVideoCount(uid, courseId, key, loadSize)
+                }
+            },
+            pagingConfig = pagingConfig
+        )
     }
 
     override suspend fun getYouTubeVideo(courseId: String, videoId: String): YouTubeVideo? {

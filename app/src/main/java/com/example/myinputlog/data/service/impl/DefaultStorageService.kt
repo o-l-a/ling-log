@@ -54,6 +54,7 @@ class DefaultStorageService @Inject constructor(
         private const val KEY_WATCHED_ON = "watchedOn"
         private const val KEY_TIMESTAMP = "timestamp"
         private const val KEY_LAST_UPDATE = "lastUpdated"
+        private const val KEY_TITLE = "title"
         private const val DAY_CHANNEL_MAP = "channelBreakdown"
         private const val DAY_LABEL_MAP = "labelBreakdown"
 
@@ -74,6 +75,14 @@ class DefaultStorageService @Inject constructor(
         .orderBy(KEY_WATCHED_ON, Query.Direction.DESCENDING)
         .orderBy(KEY_TIMESTAMP, Query.Direction.DESCENDING).limit(limitSize).let { query ->
             lastVideo?.let { query.startAfter(it) } ?: query
+        }
+
+    override suspend fun channelsByVideoCount(
+        userId: String, courseId: String, lastChannel: DocumentSnapshot?, limitSize: Long
+    ): Query = currentUserCourseColl(userId).document(courseId).collection(YT_CHANNEL_COLL)
+        .orderBy(KEY_COUNT, Query.Direction.DESCENDING)
+        .orderBy(KEY_TITLE, Query.Direction.ASCENDING).limit(limitSize).let { query ->
+            lastChannel?.let { query.startAfter(it) } ?: query
         }
 
     override fun getVideosChangeSignal(

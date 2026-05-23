@@ -87,7 +87,7 @@ fun HomeScreen(
                     courseHeader = (homeUiState as HomeUiState.Success).courseHeader,
                     onValueChange = homeViewModel::changeCurrentCourseId,
                     options = (homeUiState as HomeUiState.Success).userCourses,
-                    scrollBehavior = scrollBehavior
+                    scrollBehavior = scrollBehavior,
                 )
             }
         }, bottomBar = {
