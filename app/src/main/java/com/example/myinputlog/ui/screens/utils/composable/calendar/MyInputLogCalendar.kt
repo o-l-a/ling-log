@@ -26,15 +26,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.myinputlog.ui.screens.utils.composable.calendar.CalendarDay
-import com.example.myinputlog.ui.screens.utils.composable.calendar.CalendarUiState
 import com.example.myinputlog.ui.screens.utils.ext.conditional
 import com.example.myinputlog.ui.theme.MyInputLogTheme
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable
 fun MyInputLogCalendar(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     calendarUiState: CalendarUiState,
     onBackClicked: () -> Unit,
     onForwardClicked: () -> Unit
@@ -48,14 +46,14 @@ fun MyInputLogCalendar(
             onForwardClicked = onForwardClicked
         )
         CalendarWeekdays(shortWeekdays = calendarUiState.weekdays)
-        Spacer(modifier = Modifier.Companion.height(4.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         CalendarEntries(calendarUiState.isLoading, calendarUiState.calendarItems)
     }
 }
 
 @Composable
 fun CalendarHeader(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     monthName: String,
     onBackClicked: () -> Unit,
     onForwardClicked: () -> Unit
@@ -63,7 +61,7 @@ fun CalendarHeader(
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Companion.CenterVertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBackClicked) {
             Icon(imageVector = Icons.Filled.ChevronLeft, contentDescription = null)
@@ -79,14 +77,14 @@ fun CalendarHeader(
 
 @Composable
 fun CalendarWeekdays(
-    modifier: Modifier = Modifier.Companion, shortWeekdays: List<String>
+    modifier: Modifier = Modifier, shortWeekdays: List<String>
 ) {
     Row(modifier = modifier.fillMaxWidth()) {
         shortWeekdays.forEach { day ->
             Text(
                 text = day,
-                modifier = Modifier.Companion.weight(1f),
-                textAlign = TextAlign.Companion.Center,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleSmall
             )
@@ -100,11 +98,11 @@ fun CalendarEntries(
 ) {
     calendarItems.chunked(7).forEach { weekItems ->
         Row(
-            modifier = Modifier.Companion.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             weekItems.forEach { day ->
                 Column(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .padding(
                             horizontal = MaterialTheme.spacing.extraSmall,
                             vertical = MaterialTheme.spacing.small
@@ -113,7 +111,7 @@ fun CalendarEntries(
                         .conditional(!isLoading, {
                             background(
                                 when (day.totalMinutes) {
-                                    0L -> Color.Companion.Transparent
+                                    0L -> Color.Transparent
                                     else -> MaterialTheme.colorScheme.primaryContainer.copy(
                                         alpha = day.alpha
                                     )
@@ -123,21 +121,21 @@ fun CalendarEntries(
                         .conditional(!isLoading, {
                             border(
                                 width = MaterialTheme.spacing.tiny,
-                                color = if (day.isToday) MaterialTheme.colorScheme.primary else Color.Companion.Transparent,
+                                color = if (day.isToday) MaterialTheme.colorScheme.primary else Color.Transparent,
                                 shape = androidx.compose.foundation.shape.RoundedCornerShape(
                                     MaterialTheme.spacing.small
                                 )
                             )
                         })
-                        .weight(1f), horizontalAlignment = Alignment.Companion.CenterHorizontally
+                        .weight(1f), horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        modifier = Modifier.Companion.padding(MaterialTheme.spacing.extraExtraSmall),
+                        modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
                         text = day.dayNumber,
                         style = MaterialTheme.typography.labelLarge
                     )
                     Text(
-                        modifier = Modifier.Companion.padding(MaterialTheme.spacing.extraExtraSmall),
+                        modifier = Modifier.padding(MaterialTheme.spacing.extraExtraSmall),
                         text = day.text,
                         style = MaterialTheme.typography.labelSmall
                     )
@@ -154,13 +152,13 @@ fun PreviewMyInputLogCalendar() {
         Surface {
             MyInputLogCalendar(
                 calendarUiState = CalendarUiState(
-                    monthName = "April 2026",
-                    weekdays = listOf(),
-                    calendarItems = listOf(),
-                    loadingCalendarItems = listOf(),
-                    today = 18,
-                    isLoading = false
-                ), onBackClicked = {}, onForwardClicked = {})
+                monthName = "April 2026",
+                weekdays = listOf(),
+                calendarItems = listOf(),
+                loadingCalendarItems = listOf(),
+                today = 18,
+                isLoading = false
+            ), onBackClicked = {}, onForwardClicked = {})
         }
     }
 }
