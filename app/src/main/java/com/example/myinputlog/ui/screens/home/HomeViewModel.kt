@@ -113,6 +113,15 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun cleanupAllListeners() {
+        activeJobMap.forEach { (key, job) ->
+            job.cancel()
+            Log.d(TAG, "Cancelling listener $key")
+        }
+        activeJobMap.clear()
+        _monthlyStatsMap.value = emptyMap()
+    }
+
     fun confetti() {
         isParty.value = true
     }
@@ -122,6 +131,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun changeCurrentCourseId(newCourse: UserCourse) {
+        cleanupAllListeners()
         viewModelScope.launch {
             repository.setCurrentCourse(newCourse.id)
         }

@@ -50,11 +50,23 @@ object CalendarStateBuilder {
         val firstDayOfWeek = monthOnDisplay.atDay(1).dayOfWeek.value
         val leadingEmptyDays = (firstDayOfWeek - 1 + 7) % 7
 
-        val trailingEmptyDays = if ((leadingEmptyDays + daysOfMonth) % 7 != 0) {
-            7 - ((leadingEmptyDays + daysOfMonth) % 7)
+        var daysSoFar = leadingEmptyDays + daysOfMonth
+
+        val trailingEmptyDaysWithinWeek = if (daysSoFar % 7 != 0) {
+            7 - (daysSoFar % 7)
         } else {
             0
         }
+
+        daysSoFar += trailingEmptyDaysWithinWeek
+
+        val trailingEmptyDaysWithinMonth = if (daysSoFar / 7 < 6) {
+            7 * (6 - daysSoFar / 7)
+        } else {
+            0
+        }
+
+        val trailingEmptyDays = trailingEmptyDaysWithinWeek + trailingEmptyDaysWithinMonth
 
         val monthlyMap = when (monthlyStatsResult) {
             is MonthlyStatsResult.Success -> {

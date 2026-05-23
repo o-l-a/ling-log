@@ -19,6 +19,7 @@ private const val PAGE_COUNT = 100000
 @Composable
 fun SwipeableCalendar(
     modifier: Modifier = Modifier,
+    selectedCourseId: String,
     monthlyStatsMap: Map<String, MonthlyStatsResult>,
     onMonthSettled: (YearMonth) -> Unit
 ) {
@@ -26,7 +27,7 @@ fun SwipeableCalendar(
         initialPage = INITIAL_PAGE_INDEX, pageCount = { PAGE_COUNT })
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(pagerState.settledPage) {
+    LaunchedEffect(pagerState.settledPage, selectedCourseId) {
         val offset = pagerState.settledPage - INITIAL_PAGE_INDEX
         val settledMonth = YearMonth.now().plusMonths(offset.toLong())
         onMonthSettled(settledMonth)
