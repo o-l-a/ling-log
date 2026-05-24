@@ -64,7 +64,7 @@ import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownField
-import com.example.myinputlog.ui.screens.utils.composable.VideoThumbnail
+import com.example.myinputlog.ui.screens.utils.composable.video.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.dateFormatter
 import com.example.myinputlog.ui.theme.spacing
 import java.util.Date
@@ -305,7 +305,7 @@ fun LazyListScope.videoMetadataSection(
     if (isVisible) {
         item (key="video_thumbnail") {
             VideoThumbnail(
-                videoUrl = videoMetadata.thumbnailMediumUrl,
+                videoThumbnailUrl = videoMetadata.thumbnailMediumUrl,
                 duration = videoMetadata.durationInSeconds
             )
         }

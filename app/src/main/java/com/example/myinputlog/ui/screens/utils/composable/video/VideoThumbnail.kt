@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.utils.composable
+package com.example.myinputlog.ui.screens.utils.composable.video
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -32,20 +32,16 @@ import com.example.myinputlog.ui.theme.spacing
 @Composable
 fun VideoThumbnail(
     modifier: Modifier = Modifier,
-    videoUrl: String,
+    videoThumbnailUrl: String,
     duration: Long,
     isListItemLeading: Boolean = false
 ) {
     val context = LocalContext.current
 
-    val imageRequest = remember(videoUrl) {
-        if (videoUrl.isBlank()) null
-        else ImageRequest.Builder(context)
-            .size(Size.ORIGINAL)
-            .data(videoUrl)
-            .crossfade(true)
-            .diskCachePolicy(CachePolicy.ENABLED)
-            .build()
+    val imageRequest = remember(videoThumbnailUrl) {
+        if (videoThumbnailUrl.isBlank()) null
+        else ImageRequest.Builder(context).size(Size.ORIGINAL).data(videoThumbnailUrl)
+            .crossfade(true).diskCachePolicy(CachePolicy.ENABLED).build()
     }
 
     Box(
@@ -56,12 +52,10 @@ fun VideoThumbnail(
                 shape = RoundedCornerShape(
                     if (isListItemLeading) {
                         MaterialTheme.spacing.small
-                    } else
-                        MaterialTheme.spacing.medium
+                    } else MaterialTheme.spacing.medium
                 )
             )
-            .background(Color.Gray),
-        contentAlignment = Alignment.BottomEnd
+            .background(Color.Gray), contentAlignment = Alignment.BottomEnd
     ) {
         AsyncImage(
             modifier = Modifier
@@ -79,16 +73,13 @@ fun VideoThumbnail(
 
 @Composable
 fun VideoDurationContainer(
-    modifier: Modifier = Modifier,
-    duration: Long = 0L,
-    isListItemLeading: Boolean = false
+    modifier: Modifier = Modifier, duration: Long = 0L, isListItemLeading: Boolean = false
 ) {
     Card(
         modifier = modifier.padding(
             if (isListItemLeading) {
                 MaterialTheme.spacing.extraSmall
-            } else
-                MaterialTheme.spacing.small
+            } else MaterialTheme.spacing.small
         ),
         shape = RoundedCornerShape(MaterialTheme.spacing.extraSmall),
         colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f))

@@ -25,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -50,7 +51,7 @@ import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.ui.models.CourseHeaderUiModel
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.ListItemPlaceholder
+import com.example.myinputlog.ui.screens.utils.composable.video.VideoListItemPlaceholder
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
 
@@ -131,7 +132,7 @@ fun MediaListScreen(
                     contentPadding = PaddingValues(MaterialTheme.spacing.extraExtraSmall),
                 ) {
                     items(10) {
-                        ListItemPlaceholder()
+                        VideoListItemPlaceholder()
                     }
                 }
             }
@@ -227,16 +228,19 @@ fun MediaListHeader(
                 )
             )
             PrimaryTabRow(
-                selectedTabIndex = pagerState.currentPage, containerColor = Color.Transparent
-            ) {
-                tabs.forEachIndexed { index, tab ->
-                    Tab(
-                        selected = pagerState.currentPage == index,
-                        onClick = {
-                            coroutineScope.launch { pagerState.animateScrollToPage(index) }
-                        },
-                        text = { Text(stringResource(tab.resourceId)) }
+                selectedTabIndex = pagerState.currentPage,
+                containerColor = Color.Transparent,
+                indicator = {
+                    TabRowDefaults.PrimaryIndicator(
+                        modifier = Modifier.tabIndicatorOffset(
+                            selectedTabIndex = pagerState.currentPage, matchContentSize = false
+                        ), width = MaterialTheme.spacing.extraLarge + MaterialTheme.spacing.large
                     )
+                }) {
+                tabs.forEachIndexed { index, tab ->
+                    Tab(selected = pagerState.currentPage == index, onClick = {
+                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
+                    }, text = { Text(stringResource(tab.resourceId)) })
                 }
             }
         }

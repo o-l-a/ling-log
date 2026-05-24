@@ -12,8 +12,9 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-const val PAGE_SIZE = 10
+const val PAGE_SIZE = 8
 const val MAX_PAGE_SIZE = 1024
+const val DEFAULT_INITIAL_PAGE_MULTIPLIER = 1.5
 
 val IME_ACTION_NEXT = KeyboardOptions.Default.copy(
     imeAction = ImeAction.Next

@@ -4,9 +4,7 @@ import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.Source
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -30,13 +28,10 @@ class FirestorePagingSource<T : Any>(
                 val query = queryProvider(
                     params.key, params.loadSize.toLong()
                 )
-                val querySnapshot = try {
-                    Log.d(TAG, "Read the collection from cache (${modelClass.simpleName})")
-                    query.get(Source.CACHE).await()
-                } catch (e: FirebaseFirestoreException) {
-                    Log.d(TAG, "Read the collection from server (${modelClass.simpleName})", e)
-                    query.get(Source.SERVER).await()
-                }
+                val querySnapshot = query.get().await()
+                val querySource = if (querySnapshot.metadata.isFromCache) "CACHE" else "SERVER"
+                val readCount = querySnapshot.size()
+                Log.d(TAG, "Read $readCount ${modelClass.simpleName}(s) from $querySource")
                 val currentPage = querySnapshot.toObjects(modelClass)
                 val nextKey =
                     if (currentPage.size < params.loadSize) null else querySnapshot.documents.lastOrNull()

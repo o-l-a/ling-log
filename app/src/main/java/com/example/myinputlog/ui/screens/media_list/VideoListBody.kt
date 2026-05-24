@@ -3,8 +3,8 @@ package com.example.myinputlog.ui.screens.media_list
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ListItem
@@ -19,9 +19,9 @@ import androidx.paging.compose.itemKey
 import com.example.myinputlog.R
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.ListItemPlaceholder
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.VideoThumbnail
+import com.example.myinputlog.ui.screens.utils.composable.video.VideoListItemPlaceholder
+import com.example.myinputlog.ui.screens.utils.composable.video.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.ext.formatAsListHeader
 import com.example.myinputlog.ui.theme.spacing
 
@@ -33,9 +33,6 @@ fun VideoListBody(
     navigateToYouTubeVideo: (String, String) -> Unit,
     lazyColumnListState: LazyListState
 ) {
-    if (videos.loadState.refresh is LoadState.Loading) {
-        LoadingBox()
-    }
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
@@ -74,7 +71,7 @@ fun VideoListBody(
             }
         } else if (videos.loadState.refresh is LoadState.Loading) {
             items(10) {
-                ListItemPlaceholder()
+                VideoListItemPlaceholder()
             }
         } else {
             item {
@@ -114,8 +111,8 @@ fun VideoContainer(
             )
         }, leadingContent = {
             VideoThumbnail(
-                modifier = Modifier.width(MaterialTheme.spacing.doubleExtraLarge),
-                videoUrl = video.thumbnailMediumUrl,
+                modifier = Modifier.height(MaterialTheme.spacing.extraLarge + MaterialTheme.spacing.small),
+                videoThumbnailUrl = video.thumbnailMediumUrl,
                 duration = video.durationInSeconds,
                 isListItemLeading = true
             )

@@ -5,7 +5,8 @@
 
     <!--    content descriptions    -->
     <string name="back_button_content_description">Powrót</string>
-    <string name="video_thumbnail_content_description">Thumbnail</string>
+    <string name="video_thumbnail_content_description">Thumbnail (film)</string>
+    <string name="channel_thumbnail_content_description">Thumbnail (kanał)</string>
 
     <!--    screen titles    -->
     <string name="home_screen_title">Główna</string>
@@ -103,6 +104,9 @@
     <string name="video_channel_label">Kanał</string>
     <string name="video_duration_label">Długość</string>
     <string name="video_link_label">URL filmu</string>
+
+    <!--    channel    -->
+    <string name="channel_video_count">Filmy</string>
 
     <!-- Spanish-speaking countries -->
     <string name="country_spain">Hiszpania</string>
