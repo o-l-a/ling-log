@@ -30,6 +30,8 @@ import com.example.myinputlog.ui.theme.spacing
 fun ChannelListBody(
     modifier: Modifier = Modifier,
     channels: LazyPagingItems<YouTubeChannel>,
+    navigateToYouTubeChannel: (String, String) -> Unit,
+    currentCourseId: String,
     lazyColumnListState: LazyListState
 ) {
     LazyColumn(
@@ -49,7 +51,8 @@ fun ChannelListBody(
             ) { index ->
                 channels[index]?.let { channel ->
                     ChannelContainer(
-                        channel = channel
+                        channel = channel,
+                        onChannelClicked = { navigateToYouTubeChannel(currentCourseId, channel.id) }
                     )
                 }
             }

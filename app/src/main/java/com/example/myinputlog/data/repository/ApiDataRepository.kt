@@ -9,7 +9,7 @@ sealed interface DataResult<out T> {
     data class ApiError(val message: String, val throwable: Throwable? = null) : DataResult<Nothing>
 }
 
-interface VideoDataRepository {
+interface ApiDataRepository {
     suspend fun getVideoData(videoId: String): DataResult<VideoData>
 
     suspend fun getChannelData(channelId: String): DataResult<ChannelData>

@@ -1,14 +1,5 @@
 package com.example.myinputlog.data.paging
 
-import android.accounts.NetworkErrorException
-import android.util.Log
-import androidx.paging.PagingSource
-import androidx.paging.PagingState
-import com.example.myinputlog.data.model.YouTubeVideo
-import com.example.myinputlog.data.remote.toYouTubeVideo
-import com.example.myinputlog.data.repository.impl.DefaultVideoDataRepository
-import java.lang.reflect.InvocationTargetException
-
 //class PlaylistItemsPagingSource(
 //    private val token: String,
 //    private val playlistId: String,

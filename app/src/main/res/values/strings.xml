@@ -9,6 +9,7 @@
 
     <!--    screen titles    -->
     <string name="home_screen_title">Home</string>
+    <string name="media_list_screen_title">Media</string>
     <string name="video_list_screen_title">Videos</string>
     <string name="channel_list_screen_title">Channels</string>
     <string name="video_screen_title">Video</string>
@@ -18,7 +19,7 @@
 
     <!--    bottom nav descriptions    -->
     <string name="home_bottom_nav_description">Home</string>
-    <string name="videos_bottom_nav_description">Videos</string>
+    <string name="media_bottom_nav_description">Media</string>
     <string name="profile_bottom_nav_description">Profile</string>
     <string name="suggested_bottom_nav_description">Playlists</string>
 

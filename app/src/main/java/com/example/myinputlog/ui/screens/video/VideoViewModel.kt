@@ -13,7 +13,7 @@ import com.example.myinputlog.data.remote.toChannelMetadata
 import com.example.myinputlog.data.remote.toVideoMetadata
 import com.example.myinputlog.data.repository.DataResult
 import com.example.myinputlog.data.repository.StorageDataRepository
-import com.example.myinputlog.data.repository.VideoDataRepository
+import com.example.myinputlog.data.repository.ApiDataRepository
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import com.example.myinputlog.ui.navigation.VideoRoute
 import com.example.myinputlog.ui.screens.utils.Country
@@ -38,7 +38,7 @@ import javax.inject.Inject
 @HiltViewModel
 class VideoViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val videoDataRepository: VideoDataRepository,
+    private val apiDataRepository: ApiDataRepository,
     private val storageDataRepository: StorageDataRepository
 ) : ViewModel() {
     sealed class VideoUiEvent {
@@ -130,7 +130,7 @@ class VideoViewModel @Inject constructor(
             Log.d(TAG, "Loaded channel ${channel.title} from storage")
             return channel.toChannelMetadata()
         } else {
-            when (val result = videoDataRepository.getChannelData(channelId)) {
+            when (val result = apiDataRepository.getChannelData(channelId)) {
                 is DataResult.Success -> {
                     val channelData = result.data
                     val channelMetadata = channelData.toChannelMetadata()
@@ -154,7 +154,7 @@ class VideoViewModel @Inject constructor(
         }
 
         val videoId = currentUrl.extractYouTubeVideoId() ?: ""
-        when (val result = videoDataRepository.getVideoData(videoId)) {
+        when (val result = apiDataRepository.getVideoData(videoId)) {
             is DataResult.Success -> {
                 val videoData = result.data
                 val channelMetadata = loadChannel(videoData.getChannelId() ?: "")

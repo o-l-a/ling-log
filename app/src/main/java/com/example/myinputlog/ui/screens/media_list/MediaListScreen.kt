@@ -71,7 +71,8 @@ fun MediaListScreen(
     mediaListViewModel: MediaListViewModel,
     onBottomNavClicked: (Any) -> Unit,
     navigateToYouTubeVideoEntry: (String) -> Unit,
-    navigateToYouTubeVideo: (String, String) -> Unit
+    navigateToYouTubeVideo: (String, String) -> Unit,
+    navigateToYouTubeChannel: (String, String) -> Unit
 ) {
     val videoListUiState by mediaListViewModel.mediaListUiState.collectAsStateWithLifecycle()
     val currentCourseId by mediaListViewModel.currentCourseId.collectAsStateWithLifecycle()
@@ -183,7 +184,10 @@ fun MediaListScreen(
                         )
 
                         1 -> ChannelListBody(
-                            lazyColumnListState = channelLazyListState, channels = channels
+                            currentCourseId = currentState.courseHeader.id,
+                            navigateToYouTubeChannel = navigateToYouTubeChannel,
+                            lazyColumnListState = channelLazyListState,
+                            channels = channels
                         )
                     }
                 }

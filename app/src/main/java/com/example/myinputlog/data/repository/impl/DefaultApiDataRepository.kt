@@ -3,12 +3,12 @@ package com.example.myinputlog.data.repository.impl
 import com.example.myinputlog.data.remote.ChannelData
 import com.example.myinputlog.data.remote.VideoData
 import com.example.myinputlog.data.repository.DataResult
-import com.example.myinputlog.data.repository.VideoDataRepository
+import com.example.myinputlog.data.repository.ApiDataRepository
 import com.example.myinputlog.data.service.ApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class DefaultVideoDataRepository(private val apiService: ApiService) : VideoDataRepository {
+class DefaultApiDataRepository(private val apiService: ApiService) : ApiDataRepository {
     override suspend fun getVideoData(videoId: String): DataResult<VideoData> = withContext(
         Dispatchers.IO
     ) {

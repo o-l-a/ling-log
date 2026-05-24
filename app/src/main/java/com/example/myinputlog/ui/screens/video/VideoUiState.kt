@@ -10,6 +10,7 @@ import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
+import kotlin.Long
 
 
 sealed interface VideoLoadState {
@@ -38,7 +39,9 @@ data class ChannelMetadata(
     val thumbnailDefaultUrl: String = "",
     val thumbnailMediumUrl: String = "",
     val thumbnailHighUrl: String = "",
-    val defaultLabelIds: List<String> = emptyList()
+    val defaultLabelIds: List<String> = emptyList(),
+    val totalTimeInSeconds: Long = 0L,
+    val totalVideoCount: Long = 0L
 )
 
 data class VideoUserDraft(
@@ -80,7 +83,9 @@ fun YouTubeChannel.toChannelMetadata(): ChannelMetadata = ChannelMetadata(
     thumbnailDefaultUrl = thumbnailDefaultUrl,
     thumbnailMediumUrl = thumbnailMediumUrl,
     thumbnailHighUrl = thumbnailHighUrl,
-    defaultLabelIds = defaultLabelIds
+    defaultLabelIds = defaultLabelIds,
+    totalTimeInSeconds = totalTimeInSeconds,
+    totalVideoCount = totalVideoCount
 )
 
 fun YouTubeVideo.toVideoMetadata(channelMetadata: ChannelMetadata): VideoMetadata = VideoMetadata(

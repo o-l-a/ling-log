@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -41,6 +42,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -176,10 +178,17 @@ fun VideoEditBody(
     onCountryValueChange: (Country?) -> Unit,
     onUrlValueChange: (String) -> Unit
 ) {
+    val scrollState = rememberLazyListState()
+    val isScrollEnabled by remember {
+        derivedStateOf {
+            scrollState.canScrollForward || scrollState.canScrollBackward
+        }
+    }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top,
+        userScrollEnabled = isScrollEnabled,
         contentPadding = PaddingValues(MaterialTheme.spacing.medium)
     ) {
         item (key="course_input") {
@@ -305,7 +314,7 @@ fun LazyListScope.videoMetadataSection(
     if (isVisible) {
         item (key="video_thumbnail") {
             VideoThumbnail(
-                videoThumbnailUrl = videoMetadata.thumbnailMediumUrl,
+                videoThumbnailUrl = videoMetadata.thumbnailHighUrl,
                 duration = videoMetadata.durationInSeconds
             )
         }

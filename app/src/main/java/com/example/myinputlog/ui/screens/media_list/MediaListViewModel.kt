@@ -71,7 +71,7 @@ class MediaListViewModel @Inject constructor(
     }
 
     companion object {
-        private const val TAG = "VideoListViewModel"
+        private const val TAG = "MediaListViewModel"
     }
 }
 

@@ -2,9 +2,9 @@ package com.example.myinputlog.ui.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.StackedBarChart
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.runtime.Composable
@@ -17,6 +17,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.example.myinputlog.R
+import com.example.myinputlog.ui.screens.channel.ChannelScreen
+import com.example.myinputlog.ui.screens.channel.ChannelViewModel
 import com.example.myinputlog.ui.screens.course.CourseScreen
 import com.example.myinputlog.ui.screens.course.CourseViewModel
 import com.example.myinputlog.ui.screens.home.HomeScreen
@@ -25,14 +27,14 @@ import com.example.myinputlog.ui.screens.landing.LandingScreen
 import com.example.myinputlog.ui.screens.landing.LandingViewModel
 import com.example.myinputlog.ui.screens.login.LoginScreen
 import com.example.myinputlog.ui.screens.login.LoginViewModel
+import com.example.myinputlog.ui.screens.media_list.MediaListScreen
+import com.example.myinputlog.ui.screens.media_list.MediaListViewModel
 import com.example.myinputlog.ui.screens.profile.ProfileScreen
 import com.example.myinputlog.ui.screens.profile.ProfileViewModel
 import com.example.myinputlog.ui.screens.sign_up.SignUpScreen
 import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
 import com.example.myinputlog.ui.screens.video.VideoScreen
 import com.example.myinputlog.ui.screens.video.VideoViewModel
-import com.example.myinputlog.ui.screens.media_list.MediaListScreen
-import com.example.myinputlog.ui.screens.media_list.MediaListViewModel
 import kotlinx.serialization.Serializable
 
 const val DEFAULT_ID = -1
@@ -62,6 +64,9 @@ object MediaListRoute
 data class VideoRoute(val courseId: String, val videoId: String, val videoUrl: String? = null)
 
 @Serializable
+data class ChannelRoute(val courseId: String, val channelId: String)
+
+@Serializable
 object PlaylistsRoute
 
 @Serializable
@@ -81,13 +86,13 @@ sealed class Screen(
 ) {
     object Home : Screen(HomeRoute, R.string.home_bottom_nav_description, Icons.Filled.Home)
     object Videos :
-        Screen(MediaListRoute, R.string.videos_bottom_nav_description, Icons.Filled.VideoLibrary)
+        Screen(MediaListRoute, R.string.media_bottom_nav_description, Icons.Filled.VideoLibrary)
 
     object AddVideo : Screen("", null, Icons.Outlined.AddCircleOutline)
     object RecentlyWatched : Screen(
         PlaylistsRoute,
         R.string.suggested_bottom_nav_description,
-        Icons.AutoMirrored.Filled.PlaylistPlay
+        Icons.Filled.StackedBarChart
     )
 
     object Profile :
@@ -150,12 +155,21 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
                 navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
             }, navigateToYouTubeVideo = { courseId, videoId ->
                 navController.navigate(VideoRoute(courseId, videoId))
+            }, navigateToYouTubeChannel = { courseId, channelId ->
+                navController.navigate(ChannelRoute(courseId, channelId))
             })
         }
         composable<VideoRoute> {
             val videoViewModel = hiltViewModel<VideoViewModel>()
             VideoScreen(
                 videoViewModel = videoViewModel,
+                navigateBack = { navController.popBackStack() },
+                onNavigateUp = { navController.navigateUp() })
+        }
+        composable<ChannelRoute> {
+            val channelViewModel = hiltViewModel<ChannelViewModel>()
+            ChannelScreen(
+                channelViewModel = channelViewModel,
                 navigateBack = { navController.popBackStack() },
                 onNavigateUp = { navController.navigateUp() })
         }
