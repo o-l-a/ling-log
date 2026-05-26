@@ -1,11 +1,13 @@
 package com.example.myinputlog.ui.screens.channel
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -25,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -131,14 +134,22 @@ fun ChannelBody(
                     number = channelUiState.channelMetadata.totalVideoCount.toString(),
                     label = stringResource(R.string.stats_videos_watched),
                     leadingContent = {
-                        Icon(imageVector = Icons.Filled.SmartDisplay, contentDescription = null)
+                        Image(
+                            painter = painterResource(R.drawable.img_emoji_clapper),
+                            contentDescription = "Clapper",
+                            modifier = Modifier.size(MaterialTheme.spacing.statIconSize)
+                        )
                     })
                 StatisticContainer(
                     modifier = Modifier.weight(1F),
                     number = formatDurationAsText(channelUiState.channelMetadata.totalTimeInSeconds),
                     label = stringResource(R.string.stats_hours_watched),
                     leadingContent = {
-                        Icon(imageVector = Icons.Filled.Timelapse, contentDescription = null)
+                        Image(
+                            painter = painterResource(R.drawable.img_emoji_clock),
+                            contentDescription = "Clock",
+                            modifier = Modifier.size(MaterialTheme.spacing.statIconSize)
+                        )
                     })
             }
         }

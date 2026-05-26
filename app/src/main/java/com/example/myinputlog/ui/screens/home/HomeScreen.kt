@@ -171,14 +171,22 @@ fun HomeBody(
                     number = formatDurationAsText(homeUiState.courseHeader.totalTimeInSeconds),
                     label = stringResource(R.string.stats_hours_watched),
                     leadingContent = {
-                        Icon(imageVector = Icons.Filled.Timelapse, contentDescription = null)
+                        Image(
+                            painter = painterResource(R.drawable.img_emoji_clock),
+                            contentDescription = "Clock",
+                            modifier = Modifier.size(MaterialTheme.spacing.statIconSize)
+                        )
                     })
                 StatisticContainer(
                     modifier = Modifier.weight(1F),
                     number = formatDurationAsText(homeUiState.courseHeader.totalTimeInSecondsToday),
                     label = stringResource(R.string.stats_hours_watched_today),
                     leadingContent = {
-                        Icon(imageVector = Icons.Filled.Today, contentDescription = null)
+                        Image(
+                            painter = painterResource(R.drawable.img_emoji_calendar),
+                            contentDescription = "Calendar",
+                            modifier = Modifier.size(MaterialTheme.spacing.statIconSize)
+                        )
                     })
             }
             Row(
@@ -191,7 +199,11 @@ fun HomeBody(
                     number = homeUiState.courseHeader.videoCount.toString(),
                     label = stringResource(R.string.stats_videos_watched),
                     leadingContent = {
-                        Icon(imageVector = Icons.Filled.SmartDisplay, contentDescription = null)
+                        Image(
+                            painter = painterResource(R.drawable.img_emoji_clapper),
+                            contentDescription = "Clapper",
+                            modifier = Modifier.size(MaterialTheme.spacing.statIconSize)
+                        )
                     })
                 StatisticContainer(
                     modifier = Modifier.weight(1F),

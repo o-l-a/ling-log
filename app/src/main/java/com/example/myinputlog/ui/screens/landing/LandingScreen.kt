@@ -17,9 +17,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
-import kotlinx.coroutines.delay
-
-private const val LANDING_TIMEOUT = 2L
 
 @Composable
 fun LandingScreen(
@@ -41,7 +38,6 @@ fun LandingScreen(
             style = MaterialTheme.typography.headlineMedium
         )
         LaunchedEffect(true) {
-            delay(LANDING_TIMEOUT)
             viewModel.onAppStart(navigateWithPopUp)
         }
     }

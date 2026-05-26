@@ -28,7 +28,7 @@ abstract class ServiceModule {
     abstract fun providePreferenceStorageService(impl: DefaultPreferenceStorageService): PreferenceStorageService
 
     @Binds
-    abstract fun provideVideoDataRepository(impl: DefaultApiDataRepository): ApiDataRepository
+    abstract fun provideApiDataRepository(impl: DefaultApiDataRepository): ApiDataRepository
 
     @Binds
     abstract fun provideStorageDataRepository(impl: DefaultStorageDataRepository) : StorageDataRepository

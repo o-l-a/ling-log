@@ -110,7 +110,7 @@ fun ChannelContainer(
         )
     }, leadingContent = {
         ChannelThumbnail(
-            modifier = Modifier.height(MaterialTheme.spacing.extraLarge + MaterialTheme.spacing.small),
+            modifier = Modifier.height(MaterialTheme.spacing.extraLarge),
             channelThumbnailUrl = channel.thumbnailMediumUrl
         )
     })
