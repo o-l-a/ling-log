@@ -16,7 +16,6 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
-import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObject
 import com.google.firebase.perf.trace
@@ -55,6 +54,7 @@ class DefaultStorageService @Inject constructor(
         private const val KEY_TIMESTAMP = "timestamp"
         private const val KEY_LAST_UPDATE = "lastUpdated"
         private const val KEY_TITLE = "title"
+        private const val KEY_TOTAL_ACTIVE_DAYS = "totalActiveDays"
         private const val DAY_CHANNEL_MAP = "channelBreakdown"
         private const val DAY_LABEL_MAP = "labelBreakdown"
 
@@ -166,32 +166,38 @@ class DefaultStorageService @Inject constructor(
                 return@withContext
             }
 
-            val batch = firestore.batch()
-            val acc = FirestoreAccumulator(batch)
             val courseRef = currentUserCourseColl(userId).document(courseId)
 
-            // stats down for the original copy
-            oldVideo?.let { applyStats(acc, courseRef, oldVideo, multiplier = -1L) }
-            // stats up for the new copy
-            applyStats(acc, courseRef, newVideo, multiplier = 1L)
+            firestore.runTransaction { tx ->
+                val acc = FirestoreAccumulator(tx)
 
-            if (!channelExistsOnServer && channelMetadata != null) {
-                // only save if this is a new channel
-                val channelRef = courseRef.collection(YT_CHANNEL_COLL).document(newVideo.channelId)
-                acc.setChannelMetadata(channelRef, channelMetadata)
-            }
+                val activeDaysDelta = calculateActiveDaysDelta(tx, courseRef, newVideo, oldVideo)
+                if (activeDaysDelta != 0L) {
+                    acc.increment(courseRef, KEY_TOTAL_ACTIVE_DAYS, activeDaysDelta)
+                    Log.d(TAG, "Active day increment: $activeDaysDelta")
+                }
 
-            acc.applyToBatch()
+                // stats down for the original copy
+                oldVideo?.let { applyStats(acc, courseRef, oldVideo, multiplier = -1L) }
+                // stats up for the new copy
+                applyStats(acc, courseRef, newVideo, multiplier = 1L)
 
-            val videoRef = if (oldVideo != null && newVideo.id.isNotBlank()) {
-                courseRef.collection(YT_VIDEO_COLL).document(newVideo.id)
-            } else {
-                courseRef.collection(YT_VIDEO_COLL).document()
-            }
-            batch.set(videoRef, newVideo.copy(id = videoRef.id))
+                if (!channelExistsOnServer && channelMetadata != null) {
+                    // only save if this is a new channel
+                    val channelRef =
+                        courseRef.collection(YT_CHANNEL_COLL).document(newVideo.channelId)
+                    acc.setChannelMetadata(channelRef, channelMetadata)
+                }
 
-            batch.commit().await()
+                acc.applyToTransaction()
 
+                val videoRef = if (oldVideo != null && newVideo.id.isNotBlank()) {
+                    courseRef.collection(YT_VIDEO_COLL).document(newVideo.id)
+                } else {
+                    courseRef.collection(YT_VIDEO_COLL).document()
+                }
+                tx.set(videoRef, newVideo.copy(id = videoRef.id))
+            }.await()
         }
     }
 
@@ -200,20 +206,54 @@ class DefaultStorageService @Inject constructor(
     ) {
         withContext(Dispatchers.IO) {
             Log.d(TAG, "Deleting video ${video.title}")
-            val batch = firestore.batch()
-            val acc = FirestoreAccumulator(batch)
             val courseRef = currentUserCourseColl(userId).document(courseId)
 
-            // stats down
-            applyStats(acc, courseRef, video, multiplier = -1L)
-            acc.applyToBatch()
+            firestore.runTransaction { tx ->
+                val acc = FirestoreAccumulator(tx)
+                val activeDaysDelta =
+                    calculateActiveDaysDelta(tx, courseRef, newVideo = null, oldVideo = video)
+                if (activeDaysDelta != 0L) {
+                    acc.increment(courseRef, KEY_TOTAL_ACTIVE_DAYS, activeDaysDelta)
+                    Log.d(TAG, "Active day increment: $activeDaysDelta")
+                }
 
-            // delete video
-            val videoRef = courseRef.collection(YT_VIDEO_COLL).document(video.id)
-            batch.delete(videoRef)
+                // stats down
+                applyStats(acc, courseRef, video, multiplier = -1L)
+                acc.applyToTransaction()
 
-            batch.commit().await()
+                // delete video
+                val videoRef = courseRef.collection(YT_VIDEO_COLL).document(video.id)
+                tx.delete(videoRef)
+            }.await()
         }
+    }
+
+    private fun calculateActiveDaysDelta(
+        tx: com.google.firebase.firestore.Transaction,
+        courseRef: DocumentReference,
+        newVideo: YouTubeVideo?,
+        oldVideo: YouTubeVideo?
+    ): Long {
+        if (newVideo != null && oldVideo != null && newVideo.watchedOn.toDayKey() == oldVideo.watchedOn.toDayKey()) {
+            return 0L
+        }
+        var delta = 0L
+        // lose the day when deleting the only video from it
+        oldVideo?.let { if (getVideoDayCount(tx, courseRef, it) == 1L) delta -= 1L }
+        // win a day when adding the first video to it
+        newVideo?.let { if (getVideoDayCount(tx, courseRef, it) == 0L) delta += 1L }
+        return delta
+    }
+
+    private fun getVideoDayCount(
+        tx: com.google.firebase.firestore.Transaction,
+        courseRef: DocumentReference,
+        video: YouTubeVideo
+    ): Long {
+        val monthRef =
+            courseRef.collection(USER_MONTHLY_STATS_COLL).document(video.watchedOn.toMonthKey())
+        val snapshot = tx.get(monthRef)
+        return snapshot.getLong("$KEY_DAYS.${video.watchedOn.toDayKey()}.$KEY_COUNT") ?: 0L
     }
 
     private fun applyStats(
@@ -266,7 +306,7 @@ class DefaultStorageService @Inject constructor(
     }
 
 
-    private class FirestoreAccumulator(private val batch: WriteBatch) {
+    private class FirestoreAccumulator(private val tx: com.google.firebase.firestore.Transaction) {
         private val increments = mutableMapOf<DocumentReference, MutableMap<String, Long>>()
         private val strings = mutableMapOf<DocumentReference, MutableMap<String, String>>()
         private val documentUpdates = mutableMapOf<DocumentReference, MutableMap<String, Any>>()
@@ -294,7 +334,7 @@ class DefaultStorageService @Inject constructor(
             updates[field] = FieldValue.serverTimestamp()
         }
 
-        fun applyToBatch() {
+        fun applyToTransaction() {
             val allRefs = increments.keys + strings.keys + documentUpdates.keys
             for (ref in allRefs) {
                 val data = mutableMapOf<String, Any>()
@@ -309,7 +349,7 @@ class DefaultStorageService @Inject constructor(
                 }
                 if (data.isNotEmpty()) {
                     // only update if value actually changed
-                    batch.set(ref, data, SetOptions.merge())
+                    tx.set(ref, data, SetOptions.merge())
                 }
             }
         }

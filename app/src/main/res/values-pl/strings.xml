@@ -137,7 +137,7 @@
 
     <!--    stats labels    -->
     <string name="stats_hours_watched">łączny czas</string>
-    <string name="stats_hours_watched_today">czas dzisiaj</string>
+    <string name="stats_total_days">dni oglądania</string>
     <string name="stats_videos_watched">liczba filmów</string>
     <string name="yay">Yay!</string>
     <string name="good_job">Dobra robota.</string>

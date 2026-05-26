@@ -11,6 +11,7 @@ data class CourseHeaderUiModel(
     val progress: Float = 0F,
     val totalTimeInSeconds: Long = 0L,
     val totalTimeInSecondsToday: Long = 0L,
+    val totalActiveDays: String = "",
     val videoCount: Long = 0L,
     val percentageText: String = ""
 )
@@ -34,6 +35,7 @@ fun mapToCourseUiModel(
         progress = progressValue,
         totalTimeInSeconds = totalTimeInSeconds,
         totalTimeInSecondsToday = totalTimeInSecondsToday,
+        totalActiveDays = course.totalActiveDays.toString(),
         videoCount = course.totalVideoCount,
         percentageText = "${(progressValue * 100).toInt()}%"
     )

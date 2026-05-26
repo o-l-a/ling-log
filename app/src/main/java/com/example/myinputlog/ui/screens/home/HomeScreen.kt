@@ -11,12 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SmartDisplay
-import androidx.compose.material.icons.filled.Timelapse
-import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
@@ -27,6 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -168,23 +165,25 @@ fun HomeBody(
             ) {
                 StatisticContainer(
                     modifier = Modifier.weight(1F),
+                    number = homeUiState.courseHeader.totalActiveDays,
+                    label = stringResource(R.string.stats_total_days),
+                    leadingContent = {
+                        Image(
+                            painter = painterResource(R.drawable.img_emoji_fire),
+                            contentDescription = "Calendar",
+                            modifier = Modifier.size(MaterialTheme.spacing.statIconSize),
+                            colorFilter = if (homeUiState.courseHeader.totalTimeInSecondsToday == 0L) ColorFilter.colorMatrix(
+                                ColorMatrix().apply { setToSaturation(0f) }) else null
+                        )
+                    })
+                StatisticContainer(
+                    modifier = Modifier.weight(1F),
                     number = formatDurationAsText(homeUiState.courseHeader.totalTimeInSeconds),
                     label = stringResource(R.string.stats_hours_watched),
                     leadingContent = {
                         Image(
                             painter = painterResource(R.drawable.img_emoji_clock),
                             contentDescription = "Clock",
-                            modifier = Modifier.size(MaterialTheme.spacing.statIconSize)
-                        )
-                    })
-                StatisticContainer(
-                    modifier = Modifier.weight(1F),
-                    number = formatDurationAsText(homeUiState.courseHeader.totalTimeInSecondsToday),
-                    label = stringResource(R.string.stats_hours_watched_today),
-                    leadingContent = {
-                        Image(
-                            painter = painterResource(R.drawable.img_emoji_calendar),
-                            contentDescription = "Calendar",
                             modifier = Modifier.size(MaterialTheme.spacing.statIconSize)
                         )
                     })

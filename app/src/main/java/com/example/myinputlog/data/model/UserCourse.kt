@@ -21,5 +21,6 @@ data class UserCourse (
 
     // stats
     val totalTimeInSeconds: Long = 0L,
-    val totalVideoCount: Long = 0L
+    val totalVideoCount: Long = 0L,
+    val totalActiveDays: Long = 0L
 )
