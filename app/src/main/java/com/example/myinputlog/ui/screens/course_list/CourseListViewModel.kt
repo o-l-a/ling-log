@@ -11,21 +11,20 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class CourseListViewModel @Inject constructor(private val repository: StorageDataRepository) :
-    ViewModel() {
+class CourseListViewModel @Inject constructor(repository: StorageDataRepository) : ViewModel() {
     val courseListUiState: StateFlow<CourseListUiState> = repository.userCourses.map { courses ->
-            when {
-                courses == null -> CourseListUiState.Loading
-                courses.isEmpty() -> CourseListUiState.Empty
+        when {
+            courses == null -> CourseListUiState.Loading
+            courses.isEmpty() -> CourseListUiState.Empty
 
-                else -> {
-                    CourseListUiState.Success(courses)
-                }
+            else -> {
+                CourseListUiState.Success(courses)
             }
+        }
 
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = CourseListUiState.Loading
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = CourseListUiState.Loading
+    )
 }

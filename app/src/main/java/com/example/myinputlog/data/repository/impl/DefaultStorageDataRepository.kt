@@ -85,6 +85,26 @@ class DefaultStorageDataRepository @Inject constructor(
         return storageService.getYouTubeChannel(uid, courseId, channelId)
     }
 
+    override suspend fun getUserCourse(courseId: String): UserCourse? {
+        val uid = accountService.currentUserId
+        return storageService.getUserCourse(uid, courseId)
+    }
+
+    override suspend fun saveUserCourse(course: UserCourse): String {
+        val uid = accountService.currentUserId
+        return storageService.saveUserCourse(uid, course)
+    }
+
+    override suspend fun updateUserCourse(course: UserCourse) {
+        val uid = accountService.currentUserId
+        storageService.updateUserCourse(uid, course)
+    }
+
+    override suspend fun deleteUserCourse(courseId: String) {
+        val uid = accountService.currentUserId
+        storageService.deleteUserCourse(uid, courseId)
+    }
+
     override fun getMonthlyStatsFlow(
         userCourseId: String, monthId: String
     ): Flow<UserMonthlyStats?> {

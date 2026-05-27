@@ -16,6 +16,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
+import com.example.myinputlog.ui.screens.course.CourseViewModel.CourseUiEvent
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_NEXT
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
@@ -41,6 +43,16 @@ fun CourseScreen(
     val courseUiState by courseViewModel.courseUiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
+    LaunchedEffect(Unit) {
+        courseViewModel.uiEvent.collect { event ->
+            when (event) {
+                is CourseUiEvent.NavigateBack -> {
+                    onNavigateUp()
+                }
+            }
+        }
+    }
+
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
             val successState = courseUiState as? CourseUiState.Success
@@ -52,10 +64,7 @@ fun CourseScreen(
                 hasSaveAction = true,
                 isFormValid = successState?.isFormValid ?: false,
                 onDelete = { courseViewModel.toggleDialogVisibility(true) },
-                onSave = {
-                    courseViewModel.persistCourse()
-                    onNavigateUp()
-                },
+                onSave = courseViewModel::persistCourse,
                 scrollBehavior = scrollBehavior
             )
         }) { innerPadding ->
@@ -78,18 +87,13 @@ fun CourseScreen(
                     onNameChange = courseViewModel::updateName,
                     onGoalChange = courseViewModel::updateGoal,
                     onOtherHoursChange = courseViewModel::updateOtherHours,
-                    onDone = {
-                        courseViewModel.persistCourse()
-                        onNavigateUp()
-                    })
+                    onDone = courseViewModel::persistCourse
+                )
 
                 if ((courseUiState as CourseUiState.Success).isDialogVisible) {
                     ConfirmDeleteCourseDialog(
                         courseName = (courseUiState as CourseUiState.Success).courseFields.name,
-                        onConfirm = {
-                            courseViewModel.deleteCourse()
-                            onNavigateUp()
-                        },
+                        onConfirm = courseViewModel::deleteCourse,
                         onDismiss = {
                             courseViewModel.toggleDialogVisibility(false)
                         })

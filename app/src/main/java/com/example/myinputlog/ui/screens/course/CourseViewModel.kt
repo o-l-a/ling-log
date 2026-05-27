@@ -4,19 +4,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.example.myinputlog.data.service.AccountService
-import com.example.myinputlog.data.service.PreferenceStorageService
-import com.example.myinputlog.data.service.StorageService
+import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.navigation.CourseRoute
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,16 +23,20 @@ import javax.inject.Inject
 @HiltViewModel
 class CourseViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val storageService: StorageService,
-    private val preferenceStorageService: PreferenceStorageService,
-    accountService: AccountService
+    private val storageDataRepository: StorageDataRepository
 ) : ViewModel() {
+    sealed class CourseUiEvent {
+        object NavigateBack : CourseUiEvent()
+    }
+
     private val courseRoute = savedStateHandle.toRoute<CourseRoute>()
-    private val courseId: String = courseRoute.courseId
-    private val userIdFlow = accountService.currentUser.map { it.id }
+    private val courseId: String = sanitizeInitialCourseId(courseRoute.courseId)
     private val _fields = MutableStateFlow(CourseFields())
     private val _isLoading = MutableStateFlow(true)
     private val _isDialogVisible = MutableStateFlow(false)
+
+    private val _uiEvent = Channel<CourseUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     val courseUiState: StateFlow<CourseUiState> = combine(
         _fields, _isLoading, _isDialogVisible
@@ -60,9 +62,8 @@ class CourseViewModel @Inject constructor(
 
     private fun loadCourse() {
         viewModelScope.launch {
-            val userId = userIdFlow.first()
-            if (courseId != DEFAULT_ID.toString()) {
-                val course = storageService.getUserCourse(userId, courseId)
+            if (courseId.isNotBlank()) {
+                val course = storageDataRepository.getUserCourse(courseId)
                 if (course != null) {
                     _fields.value = CourseFields(
                         name = course.name,
@@ -101,28 +102,36 @@ class CourseViewModel @Inject constructor(
     fun deleteCourse() {
         toggleDialogVisibility(false)
         viewModelScope.launch {
-            val userId = userIdFlow.first()
-            storageService.deleteUserCourse(userId, courseId)
-            val currentCourseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
+            storageDataRepository.deleteUserCourse(courseId)
+            val currentCourseId = storageDataRepository.currentCourseId.firstOrNull() ?: ""
             if (currentCourseId == courseId) {
                 val firstAvailable =
-                    storageService.getUserCourses(userId).firstOrNull()?.getOrNull(0)
-                firstAvailable?.let { preferenceStorageService.saveCurrentCourseId(it.id) }
+                    storageDataRepository.userCourses.firstOrNull()?.getOrNull(0)
+                firstAvailable?.let { storageDataRepository.setCurrentCourse(it.id) }
             }
+            _uiEvent.send(CourseUiEvent.NavigateBack)
         }
     }
 
     fun persistCourse() {
         viewModelScope.launch {
             val currentFields = _fields.value
-            val userId = userIdFlow.first()
             val course = currentFields.toUserCourse(id = courseId)
             if (course.id.isBlank()) {
-                val newCourseId = storageService.saveUserCourse(userId, course)
-                preferenceStorageService.saveCurrentCourseId(newCourseId)
+                val newCourseId = storageDataRepository.saveUserCourse(course)
+                storageDataRepository.setCurrentCourse(newCourseId)
             } else {
-                storageService.updateUserCourse(userId, course)
+                storageDataRepository.updateUserCourse(course)
             }
+            _uiEvent.send(CourseUiEvent.NavigateBack)
+        }
+    }
+
+    private fun sanitizeInitialCourseId(id: String): String {
+        return if (id == DEFAULT_ID.toString()) {
+            ""
+        } else {
+            id
         }
     }
 }
