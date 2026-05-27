@@ -17,6 +17,7 @@
     <string name="course_screen_title">Kurs</string>
     <string name="profile_screen_title">Profil</string>
     <string name="recently_watched_screen_title">Ostatnio obejrzane</string>
+    <string name="settings_screen_title">Ustawienia</string>
 
     <!--    bottom nav descriptions    -->
     <string name="home_bottom_nav_description">Główna</string>
@@ -24,11 +25,18 @@
     <string name="profile_bottom_nav_description">Profil</string>
     <string name="suggested_bottom_nav_description">Playlisty</string>
 
+    <!--    settings nav descriptions    -->
+    <string name="course_list_nav_description">Kursy</string>
+    <string name="label_list_nav_description">Tagi</string>
+    <string name="ui_settings_nav_description">Wygląd</string>
+    <string name="account_nav_description">Konto</string>
+
     <!--    common labels    -->
     <string name="search_text">Szukaj…</string>
     <string name="clear_text">Wyczyść</string>
     <string name="cancel_text">Anuluj</string>
     <string name="save_text">Zapisz</string>
+    <string name="add_text">Dodaj</string>
     <string name="log_out">Wyloguj się</string>
     <string name="delete_account">Usuń konto</string>
     <string name="more_text">Więcej</string>
@@ -73,7 +81,8 @@
     <string name="wrong_url_message">Nie udało się pobrać danych.</string>
     <string name="something_went_wrong">Coś poszło nie tak. Spróbuj ponownie później.</string>
     <string name="empty_collection_headline">Trochę tu pusto.</string>
-    <string name="empty_course_collection_body">Dodaj pierwszy kurs w zakładce "Profil".</string>
+    <string name="empty_course_collection_body_course_tab">Dodaj pierwszy kurs.</string>
+    <string name="empty_course_collection_body_other_tabs">Dodaj pierwszy kurs w zakładce Profil.</string>
     <string name="empty_video_collection_body">Twoje filmy pojawią się tutaj, kiedy je dodasz.</string>
     <string name="empty_channel_collection_body">Twoje kanały pojawią się tutaj, kiedy je dodasz.</string>
     <string name="empty_playlist">Wygląda na to, że ta playlista jest pusta.</string>
@@ -137,6 +146,7 @@
 
     <!--    stats labels    -->
     <string name="stats_hours_watched">łączny czas</string>
+    <string name="stats_daily_average">średnio dziennie</string>
     <string name="stats_total_days">dni oglądania</string>
     <string name="stats_videos_watched">liczba filmów</string>
     <string name="yay">Yay!</string>

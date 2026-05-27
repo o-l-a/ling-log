@@ -90,7 +90,7 @@ fun HomeScreen(
                 is HomeUiState.Empty -> {
                     EmptyCollectionBox(
                         modifier = modifier.padding(MaterialTheme.spacing.medium),
-                        bodyMessage = R.string.empty_course_collection_body
+                        bodyMessage = R.string.empty_course_collection_body_other_tabs
                     )
                 }
 
@@ -178,8 +178,8 @@ fun HomeBody(
                     })
                 StatisticContainer(
                     modifier = Modifier.weight(1F),
-                    number = formatDurationAsText(homeUiState.courseHeader.totalTimeInSeconds),
-                    label = stringResource(R.string.stats_hours_watched),
+                    number = formatDurationAsText(homeUiState.courseHeader.dailyAverageSeconds),
+                    label = stringResource(R.string.stats_daily_average),
                     leadingContent = {
                         Image(
                             painter = painterResource(R.drawable.img_emoji_clock),

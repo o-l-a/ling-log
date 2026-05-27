@@ -16,6 +16,7 @@
     <string name="course_screen_title">Course</string>
     <string name="profile_screen_title">Settings</string>
     <string name="recently_watched_screen_title">Recently watched</string>
+    <string name="settings_screen_title">App settings</string>
 
     <!--    bottom nav descriptions    -->
     <string name="home_bottom_nav_description">Home</string>
@@ -23,11 +24,18 @@
     <string name="profile_bottom_nav_description">Profile</string>
     <string name="suggested_bottom_nav_description">Playlists</string>
 
+    <!--    settings nav descriptions    -->
+    <string name="course_list_nav_description">Courses</string>
+    <string name="label_list_nav_description">Labels</string>
+    <string name="ui_settings_nav_description">UI Settings</string>
+    <string name="account_nav_description">Account</string>
+
     <!--    common labels    -->
     <string name="search_text">Search…</string>
     <string name="clear_text">Clear</string>
     <string name="cancel_text">Cancel</string>
     <string name="save_text">Save</string>
+    <string name="add_text">Add</string>
     <string name="log_out">Log out</string>
     <string name="delete_account">Delete account</string>
     <string name="more_text">More</string>
@@ -72,7 +80,8 @@
     <string name="wrong_url_message">Data could not be retrieved.</string>
     <string name="something_went_wrong">Something went wrong. Try again later.</string>
     <string name="empty_collection_headline">Nothing to see here.</string>
-    <string name="empty_course_collection_body">Head over to the "Profile" tab and add your first course.</string>
+    <string name="empty_course_collection_body_other_tabs">Head over to the "Profile" tab and add your first course.</string>
+    <string name="empty_course_collection_body_course_tab">Add your first course.</string>
     <string name="empty_video_collection_body">Your videos will appear here after you add them.</string>
     <string name="empty_channel_collection_body">Your channels will appear here after you add them.</string>
     <string name="empty_playlist">This playlist seems to be empty.</string>
@@ -136,6 +145,7 @@
 
     <!--    stats labels    -->
     <string name="stats_hours_watched">time spent</string>
+    <string name="stats_daily_average">daily average</string>
     <string name="stats_total_days">days of watching</string>
     <string name="stats_videos_watched">videos watched</string>
     <string name="yay">Yay!</string>

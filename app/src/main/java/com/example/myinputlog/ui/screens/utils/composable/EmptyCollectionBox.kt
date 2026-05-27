@@ -20,7 +20,7 @@ import com.example.myinputlog.ui.theme.spacing
 fun EmptyCollectionBox(
     modifier: Modifier = Modifier,
     isFullSize: Boolean = true,
-    @StringRes bodyMessage: Int = R.string.empty_course_collection_body
+    @StringRes bodyMessage: Int = R.string.empty_course_collection_body_other_tabs
 ) {
     Column(
         modifier = if (isFullSize) modifier.fillMaxSize() else modifier.fillMaxWidth(),

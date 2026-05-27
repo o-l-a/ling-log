@@ -146,7 +146,7 @@ fun MediaListScreen(
                 ) {
                     EmptyCollectionBox(
                         modifier = modifier.padding(MaterialTheme.spacing.medium),
-                        bodyMessage = R.string.empty_course_collection_body
+                        bodyMessage = R.string.empty_course_collection_body_other_tabs
                     )
                 }
             }

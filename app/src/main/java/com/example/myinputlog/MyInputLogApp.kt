@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Delete
@@ -71,55 +72,54 @@ fun MyInputLogTopAppBar(
     canNavigateBack: Boolean,
     hasSaveAction: Boolean = false,
     hasDeleteAction: Boolean = false,
+    hasAddAction: Boolean = false,
     isFormValid: Boolean = false,
     onDelete: () -> Unit = {},
     onSave: () -> Unit = {},
+    onAdd: () -> Unit = {},
     navigateUp: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     if (canNavigateBack) {
-        TopAppBar(
-            modifier = modifier,
-            title = {
-                Text(
-                    title,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+        TopAppBar(modifier = modifier, title = {
+            Text(
+                title, maxLines = 1, overflow = TextOverflow.Ellipsis
+            )
+        }, navigationIcon = {
+            IconButton(onClick = navigateUp) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back_button_content_description)
                 )
-            },
-            navigationIcon = {
-                IconButton(onClick = navigateUp) {
+            }
+        }, scrollBehavior = scrollBehavior, actions = {
+            if (hasDeleteAction) {
+                IconButton(onClick = onDelete) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back_button_content_description)
+                        Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.delete_text)
                     )
                 }
-            },
-            scrollBehavior = scrollBehavior,
-            actions = {
-                if (hasDeleteAction) {
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.delete_text)
-                        )
-                    }
-                }
-                if (hasSaveAction) {
-                    IconButton(onClick = onSave, enabled = isFormValid) {
-                        Icon(
-                            Icons.Filled.Done,
-                            contentDescription = stringResource(R.string.save_text)
-                        )
-                    }
+            }
+            if (hasSaveAction) {
+                IconButton(onClick = onSave, enabled = isFormValid) {
+                    Icon(
+                        Icons.Filled.Done,
+                        contentDescription = stringResource(R.string.save_text)
+                    )
                 }
             }
-        )
+            if (hasAddAction) {
+                IconButton(onClick = onAdd) {
+                    Icon(
+                        Icons.Filled.Add, contentDescription = stringResource(R.string.add_text)
+                    )
+                }
+            }
+        })
     } else {
         TopAppBar(
-            modifier = modifier,
-            title = { Text(title) }
-        )
+            modifier = modifier, title = { Text(title) })
     }
 }
 
@@ -134,8 +134,7 @@ fun MyInputLogBottomNavBar(
     navigateToYouTubeVideoEntry: () -> Unit,
 ) {
     NavigationBar(
-        modifier = modifier,
-        windowInsets = WindowInsets(
+        modifier = modifier, windowInsets = WindowInsets(
             left = MaterialTheme.spacing.extraSmall,
             right = MaterialTheme.spacing.extraSmall,
         )
@@ -149,8 +148,7 @@ fun MyInputLogBottomNavBar(
                 ) {
                     Row {
                         NavigationBarItem(
-                            onClick = navigateToYouTubeVideoEntry,
-                            icon = {
+                            onClick = navigateToYouTubeVideoEntry, icon = {
                                 Icon(
                                     modifier = Modifier
                                         .padding(MaterialTheme.spacing.default)
@@ -158,8 +156,7 @@ fun MyInputLogBottomNavBar(
                                     imageVector = screen.icon,
                                     contentDescription = null
                                 )
-                            },
-                            selected = false
+                            }, selected = false
                         )
                     }
                 }
@@ -181,8 +178,7 @@ fun MyInputLogBottomNavBar(
                         )
                     },
                     selected = selectedScreen.route == screen.route,
-                    onClick = { if (selectedScreen.route != screen.route) onBottomNavClicked(screen.route) }
-                )
+                    onClick = { if (selectedScreen.route != screen.route) onBottomNavClicked(screen.route) })
             }
         }
     }
@@ -200,58 +196,50 @@ fun CourseTopAppBar(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    TopAppBar(
-        modifier = modifier,
-        scrollBehavior = scrollBehavior,
-        colors = colors,
-        title = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = courseHeader.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = stringResource(
-                        R.string.progress,
-                        "${courseHeader.percentageText} (${formatDurationAsText(courseHeader.totalTimeInSeconds)}/${courseHeader.goalInHours}h)"
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
-        actions = {
-            Box(
-                modifier = Modifier.wrapContentSize(Alignment.TopStart)
-            ) {
-                IconButton(onClick = { expanded = true }) {
-                    if (expanded) {
-                        Icon(imageVector = Icons.Filled.ArrowDropUp, contentDescription = null)
-                    } else {
-                        Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = null)
-                    }
-                }
-                DropdownMenu(expanded = expanded, onDismissRequest = {
-                    expanded = false
-                }) {
-                    options.forEach { selectionOption ->
-                        DropdownMenuItem(
-                            text = { Text(selectionOption.name) },
-                            onClick = {
-                                onValueChange(selectionOption)
-                                expanded = false
-                            },
-                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                        )
-                    }
+    TopAppBar(modifier = modifier, scrollBehavior = scrollBehavior, colors = colors, title = {
+        Column(
+            modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = courseHeader.name,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = stringResource(
+                    R.string.progress,
+                    "${courseHeader.percentageText} (${formatDurationAsText(courseHeader.totalTimeInSeconds)}/${courseHeader.goalInHours}h)"
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }, actions = {
+        Box(
+            modifier = Modifier.wrapContentSize(Alignment.TopStart)
+        ) {
+            IconButton(onClick = { expanded = true }) {
+                if (expanded) {
+                    Icon(imageVector = Icons.Filled.ArrowDropUp, contentDescription = null)
+                } else {
+                    Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = null)
                 }
             }
-        })
+            DropdownMenu(expanded = expanded, onDismissRequest = {
+                expanded = false
+            }) {
+                options.forEach { selectionOption ->
+                    DropdownMenuItem(
+                        text = { Text(selectionOption.name) }, onClick = {
+                            onValueChange(selectionOption)
+                            expanded = false
+                        }, contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    )
+                }
+            }
+        }
+    })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -259,22 +247,18 @@ fun CourseTopAppBar(
 @Composable
 fun BottomNavBarPreview() {
     MyInputLogTheme {
-        Scaffold(
-            topBar = {
-                CourseTopAppBar(
-                    courseHeader = CourseHeaderUiModel(name = "Test 123"),
-                    onValueChange = {},
-                    options = emptyList(),
-                )
-            },
-            bottomBar = {
-                MyInputLogBottomNavBar(
-                    selectedScreen = Screen.Home,
-                    onBottomNavClicked = {},
-                    navigateToYouTubeVideoEntry = {}
-                )
-            }
-        ) {
+        Scaffold(topBar = {
+            CourseTopAppBar(
+                courseHeader = CourseHeaderUiModel(name = "Test 123"),
+                onValueChange = {},
+                options = emptyList(),
+            )
+        }, bottomBar = {
+            MyInputLogBottomNavBar(
+                selectedScreen = Screen.Home,
+                onBottomNavClicked = {},
+                navigateToYouTubeVideoEntry = {})
+        }) {
             Text(modifier = Modifier.padding(paddingValues = it), text = "Hey")
         }
     }

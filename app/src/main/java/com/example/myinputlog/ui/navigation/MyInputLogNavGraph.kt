@@ -2,11 +2,11 @@ package com.example.myinputlog.ui.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.StackedBarChart
 import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -21,6 +21,8 @@ import com.example.myinputlog.ui.screens.channel.ChannelScreen
 import com.example.myinputlog.ui.screens.channel.ChannelViewModel
 import com.example.myinputlog.ui.screens.course.CourseScreen
 import com.example.myinputlog.ui.screens.course.CourseViewModel
+import com.example.myinputlog.ui.screens.course_list.CourseListScreen
+import com.example.myinputlog.ui.screens.course_list.CourseListViewModel
 import com.example.myinputlog.ui.screens.home.HomeScreen
 import com.example.myinputlog.ui.screens.home.HomeViewModel
 import com.example.myinputlog.ui.screens.landing.LandingScreen
@@ -35,51 +37,8 @@ import com.example.myinputlog.ui.screens.sign_up.SignUpScreen
 import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
 import com.example.myinputlog.ui.screens.video.VideoScreen
 import com.example.myinputlog.ui.screens.video.VideoViewModel
-import kotlinx.serialization.Serializable
 
 const val DEFAULT_ID = -1
-
-@Serializable
-object HomeGraph
-
-@Serializable
-object MediaGraph
-
-@Serializable
-object AuthGraph
-
-@Serializable
-object ProfileGraph
-
-@Serializable
-object LandingRoute
-
-@Serializable
-object HomeRoute
-
-@Serializable
-object MediaListRoute
-
-@Serializable
-data class VideoRoute(val courseId: String, val videoId: String, val videoUrl: String? = null)
-
-@Serializable
-data class ChannelRoute(val courseId: String, val channelId: String)
-
-@Serializable
-object PlaylistsRoute
-
-@Serializable
-object ProfileRoute
-
-@Serializable
-data class CourseRoute(val courseId: String)
-
-@Serializable
-object LoginRoute
-
-@Serializable
-object SignUpRoute
 
 sealed class Screen(
     val route: Any, @get:StringRes val resourceId: Int?, val icon: ImageVector
@@ -88,16 +47,24 @@ sealed class Screen(
     object Videos :
         Screen(MediaListRoute, R.string.media_bottom_nav_description, Icons.Filled.VideoLibrary)
 
-    object AddVideo : Screen("", null, Icons.Outlined.AddCircleOutline)
+    object AddVideo : Screen("", null, Icons.Filled.Add)
     object RecentlyWatched : Screen(
-        PlaylistsRoute,
-        R.string.suggested_bottom_nav_description,
-        Icons.Filled.StackedBarChart
+        PlaylistsRoute, R.string.suggested_bottom_nav_description, Icons.Filled.StackedBarChart
     )
 
     object Profile :
         Screen(ProfileRoute, R.string.profile_bottom_nav_description, Icons.Filled.Person)
 }
+
+sealed class SettingsScreen(
+    val route: Any, @get:StringRes val resourceId: Int
+) {
+    object Account : SettingsScreen(AccountRoute, R.string.account_nav_description)
+    object Labels : SettingsScreen(LabelListRoute, R.string.label_list_nav_description)
+    object UiSettings : SettingsScreen(UiSettingsRoute, R.string.ui_settings_nav_description)
+    object Courses : SettingsScreen(CourseListRoute, R.string.course_list_nav_description)
+}
+
 
 val navigationItems = listOf(
     Screen.Home,
@@ -117,7 +84,8 @@ fun MyInputLogNavHost(
         composable<LandingRoute> {
             val landingViewModel = hiltViewModel<LandingViewModel>()
             LandingScreen(
-                navigateWithPopUp = { navController.navigateWithPopUp(HomeGraph, LandingRoute) },
+                // TODO(change back to home graph)
+                navigateWithPopUp = { navController.navigateWithPopUp(ProfileGraph, LandingRoute) },
                 viewModel = landingViewModel
             )
         }
@@ -187,17 +155,32 @@ fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
                 onBottomNavClicked = { route ->
                     navController.navigateWithPopUp(route, ProfileRoute)
                 },
+//                navigateToUserCourseEntry = { navController.navigate(CourseRoute(DEFAULT_ID.toString())) },
+//                navigateToUserCourse = { courseId ->
+//                    navController.navigate(CourseRoute(courseId))
+//                },
+//                navigateWithPopUp = {
+//                    navController.navigateWithPopUp(
+//                        LoginRoute, HomeRoute
+//                    )
+//                },
+                navigationItems = mapOf(
+                    SettingsScreen.Courses to { navController.navigate(CourseListRoute) },
+                    SettingsScreen.Labels to { navController.navigate(LabelListRoute) },
+                    SettingsScreen.UiSettings to { navController.navigate(UiSettingsRoute) },
+                    SettingsScreen.Account to { navController.navigate(AccountRoute) }),
+                navigateToYouTubeVideoEntry = { courseId ->
+                    navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
+                })
+        }
+        composable<CourseListRoute> {
+            val courseListViewModel = hiltViewModel<CourseListViewModel>()
+            CourseListScreen(
+                courseListViewModel = courseListViewModel,
+                onNavigateUp = { navController.navigateUp() },
                 navigateToUserCourseEntry = { navController.navigate(CourseRoute(DEFAULT_ID.toString())) },
                 navigateToUserCourse = { courseId ->
                     navController.navigate(CourseRoute(courseId))
-                },
-                navigateWithPopUp = {
-                    navController.navigateWithPopUp(
-                        LoginRoute, HomeRoute
-                    )
-                },
-                navigateToYouTubeVideoEntry = { courseId ->
-                    navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
                 })
         }
         composable<CourseRoute> {
