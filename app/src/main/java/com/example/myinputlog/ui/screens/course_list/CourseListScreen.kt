@@ -2,17 +2,11 @@ package com.example.myinputlog.ui.screens.course_list
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +25,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.composable.SettingsCard
 import com.example.myinputlog.ui.theme.spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,9 +72,7 @@ fun CourseListScreen(
             is CourseListUiState.Success -> CourseListBody(
                 modifier = Modifier.padding(
                     innerPadding
-                ),
-                courses = currentState.userCourses,
-                onCourseClicked = navigateToUserCourse
+                ), courses = currentState.userCourses, onCourseClicked = navigateToUserCourse
             )
         }
     }
@@ -97,52 +90,21 @@ private fun CourseListBody(
     }
     LazyColumn(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
         contentPadding = PaddingValues(
-            end = MaterialTheme.spacing.extraExtraSmall
+            MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
         ),
         state = scrollState,
         userScrollEnabled = isScrollEnabled
     ) {
         items(items = courses, key = { it.id }) { course ->
-            CourseContainer(
-                course = course, onCourseClicked = onCourseClicked
-            )
+            SettingsCard(headlineContent = { Text(course.name) }, supportingContent = {
+                Text(
+                    text = stringResource(
+                        R.string.course_goal_card_text, course.goalInHours
+                    ), style = MaterialTheme.typography.bodyMedium
+                )
+            }, onClick = { onCourseClicked(course.id) })
         }
     }
-}
-
-
-@Composable
-private fun CourseContainer(
-    modifier: Modifier = Modifier, course: UserCourse, onCourseClicked: (String) -> Unit
-) {
-    ListItem(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(start = MaterialTheme.spacing.small),
-        headlineContent = {
-            Text(
-                text = course.name, style = MaterialTheme.typography.bodyLarge
-            )
-        },
-        supportingContent = {
-            Text(
-                text = stringResource(R.string.course_goal_card_text, course.goalInHours),
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = stringResource(
-                    R.string.course_other_source_hours_card_text, course.otherSourceHours
-                ), style = MaterialTheme.typography.bodyMedium
-            )
-        },
-        trailingContent = {
-            IconButton(onClick = { onCourseClicked(course.id) }) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = stringResource(R.string.edit_text)
-                )
-            }
-        })
 }

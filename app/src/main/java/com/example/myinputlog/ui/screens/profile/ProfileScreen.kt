@@ -3,7 +3,6 @@ package com.example.myinputlog.ui.screens.profile
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,10 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -48,6 +43,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.navigation.SettingsScreen
 import com.example.myinputlog.ui.screens.utils.composable.LeadingIconWithText
+import com.example.myinputlog.ui.screens.utils.composable.SettingsCard
 import com.example.myinputlog.ui.screens.utils.ext.hideEmail
 import com.example.myinputlog.ui.theme.spacing
 
@@ -112,43 +108,13 @@ fun ProfileBody(
         items(
             items = items, key = { (screen, _) -> screen.route.hashCode() }) { (screen, onClick) ->
             SettingsCard(
-                label = stringResource(id = screen.resourceId), onClick = onClick
+                headlineContent = { Text(stringResource(id = screen.resourceId)) },
+                onClick = onClick
             )
         }
     }
 }
 
-
-@Composable
-private fun SettingsCard(
-    label: String, onClick: () -> Unit, modifier: Modifier = Modifier
-) {
-    Card (
-        onClick = onClick, modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
-                alpha = 0.6f
-            )
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(MaterialTheme.spacing.medium)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = label, style = MaterialTheme.typography.titleMedium
-            )
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
