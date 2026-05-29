@@ -3,6 +3,7 @@ package com.example.myinputlog.data.repository.impl
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
@@ -38,6 +39,19 @@ class DefaultStorageDataRepository @Inject constructor(
         } else {
             storageService.getUserCourses(id)
         }
+    }
+
+    override val currentUser: Flow<UserData> = accountService.currentUser
+    override suspend fun changeUsername(newUsername: String) {
+        accountService.changeUsername(newUsername)
+    }
+
+    override suspend fun signOut() {
+        accountService.signOut()
+    }
+
+    override suspend fun deleteAccount() {
+        accountService.deleteAccount()
     }
 
     override val currentCourseId: Flow<String> = preferenceStorageService.currentCourseId

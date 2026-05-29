@@ -139,11 +139,6 @@ fun ProfileTopAppBar(
             Text(
                 text = profileName, style = MaterialTheme.typography.bodyLarge
             )
-        }, supportingContent = {
-            Text(
-                text = if (hideEmail) profileEmail.hideEmail() else profileEmail,
-                style = MaterialTheme.typography.bodyMedium
-            )
         })
     }, actions = {
         Box(

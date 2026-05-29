@@ -1,6 +1,7 @@
 package com.example.myinputlog.ui.screens.video
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -51,7 +52,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -96,6 +99,7 @@ fun VideoScreen(
                     val message = event.message.asString(context)
                     snackbarHostState.showSnackbar(message)
                 }
+
                 VideoViewModel.VideoUiEvent.NavigateBack -> {
                     navigateBack()
                 }
@@ -184,14 +188,22 @@ fun VideoEditBody(
             scrollState.canScrollForward || scrollState.canScrollBackward
         }
     }
+    val focusManager = LocalFocusManager.current
+
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            },
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top,
         userScrollEnabled = isScrollEnabled,
         contentPadding = PaddingValues(MaterialTheme.spacing.medium)
     ) {
-        item (key="course_input") {
+        item(key = "course_input") {
             MyInputLogDropdownField(
                 value = videoUiState.videoUserDraft.selectedCourse,
                 onValueChange = onCourseValueChange,
@@ -230,7 +242,7 @@ fun LazyListScope.videoUrlSection(
     onUrlClearClicked: () -> Unit,
     onUrlValueChange: (String) -> Unit
 ) {
-    item (key="url_input") {
+    item(key = "url_input") {
         val keyboardController = LocalSoftwareKeyboardController.current
         OutlinedTextField(
             modifier = modifier
@@ -269,7 +281,7 @@ fun LazyListScope.videoAttributesSection(
     onDateClearClicked: () -> Unit,
     onCountryValueChange: (Country?) -> Unit,
 ) {
-    item (key="input_chips") {
+    item(key = "input_chips") {
         FlowRow(
             modifier
                 .fillMaxWidth(1f)
@@ -312,13 +324,13 @@ fun LazyListScope.videoMetadataSection(
     videoMetadata: VideoMetadata, isVisible: Boolean
 ) {
     if (isVisible) {
-        item (key="video_thumbnail") {
+        item(key = "video_thumbnail") {
             VideoThumbnail(
                 videoThumbnailUrl = videoMetadata.thumbnailHighUrl,
                 duration = videoMetadata.durationInSeconds
             )
         }
-        item (key="video_title") {
+        item(key = "video_title") {
             Text(
                 modifier = Modifier.padding(top = MaterialTheme.spacing.small),
                 text = videoMetadata.title,
@@ -326,9 +338,13 @@ fun LazyListScope.videoMetadataSection(
                 textAlign = TextAlign.Left
             )
         }
-        item (key="channel_info") {
+        item(key = "channel_info") {
             Text(
-                text = "${videoMetadata.channelMetadata.customUrl} • ${videoMetadata.channelMetadata.title} • ${getLanguageDisplayName(videoMetadata.defaultAudioLanguage) ?: stringResource(R.string.unknown_language)}",
+                text = "${videoMetadata.channelMetadata.customUrl} • ${videoMetadata.channelMetadata.title} • ${
+                    getLanguageDisplayName(
+                        videoMetadata.defaultAudioLanguage
+                    ) ?: stringResource(R.string.unknown_language)
+                }",
                 style = MaterialTheme.typography.bodyMedium
             )
         }

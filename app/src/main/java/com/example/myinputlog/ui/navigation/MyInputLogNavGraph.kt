@@ -17,6 +17,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.example.myinputlog.R
+import com.example.myinputlog.ui.screens.account.AccountScreen
+import com.example.myinputlog.ui.screens.account.AccountViewModel
 import com.example.myinputlog.ui.screens.channel.ChannelScreen
 import com.example.myinputlog.ui.screens.channel.ChannelViewModel
 import com.example.myinputlog.ui.screens.course.CourseScreen
@@ -84,9 +86,11 @@ fun MyInputLogNavHost(
         composable<LandingRoute> {
             val landingViewModel = hiltViewModel<LandingViewModel>()
             LandingScreen(
-                // TODO(change back to home graph)
-                navigateWithPopUp = { navController.navigateWithPopUp(ProfileGraph, LandingRoute) },
-                viewModel = landingViewModel
+                navigateWithPopUp = { route ->
+                    navController.navigateWithPopUp(
+                        route, LandingRoute
+                    )
+                }, viewModel = landingViewModel
             )
         }
         myInputLogHomeGraph(navController)
@@ -155,15 +159,6 @@ fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
                 onBottomNavClicked = { route ->
                     navController.navigateWithPopUp(route, ProfileRoute)
                 },
-//                navigateToUserCourseEntry = { navController.navigate(CourseRoute(DEFAULT_ID.toString())) },
-//                navigateToUserCourse = { courseId ->
-//                    navController.navigate(CourseRoute(courseId))
-//                },
-//                navigateWithPopUp = {
-//                    navController.navigateWithPopUp(
-//                        LoginRoute, HomeRoute
-//                    )
-//                },
                 navigationItems = mapOf(
                     SettingsScreen.Courses to { navController.navigate(CourseListRoute) },
                     SettingsScreen.Labels to { navController.navigate(LabelListRoute) },
@@ -187,6 +182,20 @@ fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
             val courseViewModel = hiltViewModel<CourseViewModel>()
             CourseScreen(
                 courseViewModel = courseViewModel, onNavigateUp = { navController.navigateUp() })
+        }
+        composable<AccountRoute> {
+            val accountViewModel = hiltViewModel<AccountViewModel>()
+            AccountScreen(
+                accountViewModel = accountViewModel,
+                onNavigateUp = { navController.navigateUp() },
+                navigateWithPopUp = {
+                    navController.navigate(LoginRoute) {
+                        popUpTo(navController.graph.id) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                })
         }
     }
 }
