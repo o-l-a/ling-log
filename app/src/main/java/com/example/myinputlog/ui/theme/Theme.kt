@@ -36,12 +36,22 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+enum class AppTheme {
+    LIGHT, DARK, SYSTEM
+}
+
 @Composable
 fun MyInputLogTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
+    appTheme: AppTheme = AppTheme.SYSTEM,
     dynamicColor: Boolean = true, content: @Composable () -> Unit
 ) {
+
+    val darkTheme = when (appTheme) {
+        AppTheme.LIGHT -> false
+        AppTheme.DARK -> true
+        AppTheme.SYSTEM -> isSystemInDarkTheme()
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
@@ -59,12 +69,13 @@ fun MyInputLogTheme(
         LaunchedEffect(colorScheme, darkTheme) {
             context.enableEdgeToEdge(
                 statusBarStyle = SystemBarStyle.auto(
-                lightScrim = colorScheme.primary.toArgb(),
-                darkScrim = colorScheme.primary.toArgb(),
-                detectDarkMode = { darkTheme }), navigationBarStyle = SystemBarStyle.auto(
-                lightScrim = navBarColor.toArgb(),
-                darkScrim = navBarColor.toArgb(),
-                detectDarkMode = { darkTheme }))
+                    lightScrim = colorScheme.primary.toArgb(),
+                    darkScrim = colorScheme.primary.toArgb(),
+                    detectDarkMode = { darkTheme }), navigationBarStyle = SystemBarStyle.auto(
+                    lightScrim = navBarColor.toArgb(),
+                    darkScrim = navBarColor.toArgb(),
+                    detectDarkMode = { darkTheme })
+            )
         }
     }
 

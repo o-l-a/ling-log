@@ -135,13 +135,13 @@
     <string name="country_guatemala">Guatemala</string>
 
     <!--    confetti options   -->
-    <string name="confetti_option_1">Option 1</string>
-    <string name="confetti_option_2">Option 2</string>
-    <string name="confetti_option_3">Option 3</string>
-    <string name="confetti_option_4">Option 4</string>
-    <string name="confetti_option_5">Option 5</string>
-    <string name="confetti_option_6">Option 6</string>
-    <string name="confetti_option_7">Option 7</string>
+    <string name="confetti_option_1">Default</string>
+    <string name="confetti_option_2">Variant 1</string>
+    <string name="confetti_option_3">Variant 2</string>
+    <string name="confetti_option_4">Variant 3</string>
+    <string name="confetti_option_5">Variant 4</string>
+    <string name="confetti_option_6">Variant 5</string>
+    <string name="confetti_option_7">Variant 6</string>
 
     <!--    stats labels    -->
     <string name="stats_hours_watched">time spent</string>
@@ -162,6 +162,11 @@
     <string name="grant_access_yt_account_message">Grant access to your YouTube account to see your playlists.</string>
     <string name="choose_account_label">Choose account</string>
     <string name="network_error_playlists">Your playlist data will appear when you go back online.</string>
+
+    <!--    color theme    -->
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_system">System</string>
 
     <!--    placeholder    -->
     <string name="placeholder_long_text">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</string>

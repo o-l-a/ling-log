@@ -6,12 +6,16 @@ import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
+import com.example.myinputlog.ui.screens.utils.ConfettiOptions
+import com.example.myinputlog.ui.theme.AppTheme
 import kotlinx.coroutines.flow.Flow
 
 interface StorageDataRepository {
     val userCourses: Flow<List<UserCourse>?>
     val currentCourseId: Flow<String>
     val currentUser: Flow<UserData>
+    val themeMode: Flow<AppTheme>
+    val confettiColors: Flow<ConfettiOptions>
     suspend fun changeUsername(newUsername: String)
     suspend fun signOut()
     suspend fun deleteAccount()
@@ -34,4 +38,6 @@ interface StorageDataRepository {
 
     suspend fun deleteVideo(courseId: String, video: YouTubeVideo)
     suspend fun setCurrentCourse(courseId: String)
+    suspend fun saveThemeMode(theme: AppTheme)
+    suspend fun saveConfettiColors(colors: ConfettiOptions)
 }

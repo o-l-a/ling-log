@@ -37,6 +37,8 @@ import com.example.myinputlog.ui.screens.profile.ProfileScreen
 import com.example.myinputlog.ui.screens.profile.ProfileViewModel
 import com.example.myinputlog.ui.screens.sign_up.SignUpScreen
 import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
+import com.example.myinputlog.ui.screens.ui_settings.UiSettingsScreen
+import com.example.myinputlog.ui.screens.ui_settings.UiSettingsViewModel
 import com.example.myinputlog.ui.screens.video.VideoScreen
 import com.example.myinputlog.ui.screens.video.VideoViewModel
 
@@ -182,6 +184,12 @@ fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
             val courseViewModel = hiltViewModel<CourseViewModel>()
             CourseScreen(
                 courseViewModel = courseViewModel, onNavigateUp = { navController.navigateUp() })
+        }
+        composable<UiSettingsRoute> {
+            val uiSettingsViewModel = hiltViewModel<UiSettingsViewModel>()
+            UiSettingsScreen(
+                uiSettingsViewModel = uiSettingsViewModel,
+                onNavigateUp = { navController.navigateUp() })
         }
         composable<AccountRoute> {
             val accountViewModel = hiltViewModel<AccountViewModel>()

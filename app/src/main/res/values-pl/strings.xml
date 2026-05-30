@@ -136,13 +136,13 @@
     <string name="country_guatemala">Gwatemala</string>
 
     <!--    confetti options   -->
-    <string name="confetti_option_1">Opcja 1</string>
-    <string name="confetti_option_2">Opcja 2</string>
-    <string name="confetti_option_3">Opcja 3</string>
-    <string name="confetti_option_4">Opcja 4</string>
-    <string name="confetti_option_5">Opcja 5</string>
-    <string name="confetti_option_6">Opcja 6</string>
-    <string name="confetti_option_7">Opcja 7</string>
+    <string name="confetti_option_1">Domyślny</string>
+    <string name="confetti_option_2">Wariant 1</string>
+    <string name="confetti_option_3">Wariant 2</string>
+    <string name="confetti_option_4">Wariant 3</string>
+    <string name="confetti_option_5">Wariant 4</string>
+    <string name="confetti_option_6">Wariant 5</string>
+    <string name="confetti_option_7">Wariant 6</string>
 
     <!--    stats labels    -->
     <string name="stats_hours_watched">łączny czas</string>
@@ -164,6 +164,10 @@
     <string name="choose_account_label">Wybierz konto</string>
     <string name="network_error_playlists">Dane playlist są dostępne tylko w trybie online.</string>
 
+    <!--    color theme    -->
+    <string name="theme_dark">Ciemny</string>
+    <string name="theme_light">Jasny</string>
+    <string name="theme_system">System</string>
 
     <!--    placeholder    -->
     <string name="placeholder_long_text">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</string>

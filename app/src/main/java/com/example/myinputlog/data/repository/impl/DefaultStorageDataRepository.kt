@@ -13,6 +13,8 @@ import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.PreferenceStorageService
 import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.data.utils.createReactivePagingFlow
+import com.example.myinputlog.ui.screens.utils.ConfettiOptions
+import com.example.myinputlog.ui.theme.AppTheme
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -42,6 +44,11 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     override val currentUser: Flow<UserData> = accountService.currentUser
+
+    override val themeMode: Flow<AppTheme> = preferenceStorageService.themeMode
+
+    override val confettiColors: Flow<ConfettiOptions> = preferenceStorageService.confettiColors
+
     override suspend fun changeUsername(newUsername: String) {
         accountService.changeUsername(newUsername)
     }
@@ -58,6 +65,14 @@ class DefaultStorageDataRepository @Inject constructor(
 
     override suspend fun setCurrentCourse(courseId: String) {
         preferenceStorageService.saveCurrentCourseId(courseId)
+    }
+
+    override suspend fun saveThemeMode(theme: AppTheme) {
+        preferenceStorageService.saveThemeMode(theme)
+    }
+
+    override suspend fun saveConfettiColors(colors: ConfettiOptions) {
+        preferenceStorageService.saveConfettiColors(colors)
     }
 
     override fun videoPagingFlow(courseId: String): Flow<PagingData<YouTubeVideo>> {
