@@ -90,7 +90,7 @@ private fun CourseListBody(
     }
     LazyColumn(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
         contentPadding = PaddingValues(
             MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
         ),

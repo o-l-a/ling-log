@@ -1,7 +1,12 @@
 package com.example.myinputlog.ui.screens.account
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,10 +14,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -33,14 +42,17 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LeadingIconWithText
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.composable.channel.ProfilePicture
 import com.example.myinputlog.ui.screens.utils.ext.hideEmail
 import com.example.myinputlog.ui.theme.spacing
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +77,10 @@ fun AccountScreen(
 
                 AccountViewModel.AccountUiEvent.NavigateWithPopUp -> {
                     navigateWithPopUp()
+                }
+
+                AccountViewModel.AccountUiEvent.NavigateUp -> {
+                    onNavigateUp()
                 }
             }
         }
@@ -100,6 +116,7 @@ fun AccountScreen(
                     currentState,
                     onUsernameChange = accountViewModel::updateUsername,
                     onSignOutClicked = accountViewModel::signOut,
+                    onPhotoSave = accountViewModel::saveProfilePhoto,
                     toggleDialogVisibility = accountViewModel::toggleDialogVisibility,
                 )
             }
@@ -119,9 +136,18 @@ fun AccountBody(
     accountUiState: AccountUiState.Success,
     onSignOutClicked: () -> Unit,
     onUsernameChange: (String) -> Unit,
+    onPhotoSave: (Uri) -> Unit,
     toggleDialogVisibility: (Boolean) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
+
+    val pickMedia = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            onPhotoSave(uri)
+        }
+    }
 
     Column(modifier = modifier
         .fillMaxSize()
@@ -135,16 +161,13 @@ fun AccountBody(
         horizontalAlignment = Alignment.CenterHorizontally) {
         Row {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                LeadingIconWithText(
-                    Modifier
-                        .height(MaterialTheme.spacing.doubleExtraLarge)
-                        .width(MaterialTheme.spacing.doubleExtraLarge),
-                    name = accountUiState.username
-                )
-
+                EditImageContainer(
+                    Modifier.size(
+                        MaterialTheme.spacing.doubleExtraLarge + MaterialTheme.spacing.large
+                    ), accountUiState.username, accountUiState.imagePath
+                ) { pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
                 Text(
                     if (accountUiState.hideEmail) accountUiState.email.hideEmail() else accountUiState.email,
-                    Modifier.padding(top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall)
                 )
 
                 OutlinedTextField(
@@ -216,4 +239,36 @@ private fun ConfirmDeleteAccountDialog(
                 Text(text = stringResource(R.string.confirm_delete_account))
             }
         })
+}
+
+@Composable
+private fun EditImageContainer(
+    modifier: Modifier, username: String, imageFile: File?, onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+    ) {
+        if (imageFile != null) {
+            ProfilePicture(
+                Modifier
+                    .fillMaxSize()
+                    .padding(MaterialTheme.spacing.medium), imageFile
+            )
+        } else {
+            LeadingIconWithText(
+                Modifier
+                    .fillMaxSize()
+                    .padding(MaterialTheme.spacing.medium), name = username
+            )
+        }
+        IconButton(
+            onClick, Modifier
+                .zIndex(1F)
+                .align(Alignment.BottomEnd)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Edit, contentDescription = "edit"
+            )
+        }
+    }
 }
