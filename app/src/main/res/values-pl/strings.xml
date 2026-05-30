@@ -31,6 +31,10 @@
     <string name="ui_settings_nav_description">Wygląd</string>
     <string name="account_nav_description">Konto</string>
 
+    <!--    settings    -->
+    <string name="settings_app_theme">Wygląd aplikacji</string>
+    <string name="settings_confetti_variant">Kolory konfetti</string>
+
     <!--    common labels    -->
     <string name="search_text">Szukaj…</string>
     <string name="clear_text">Wyczyść</string>

@@ -11,6 +11,7 @@ sealed interface HomeUiState {
     data class Success(
         val courseHeader: CourseHeaderUiModel = CourseHeaderUiModel(),
         val userCourses: List<UserCourse> = listOf(),
+        val confettiColors: List<Long> = listOf(),
         val isParty: Boolean = false
     ) : HomeUiState
 }

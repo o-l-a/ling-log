@@ -6,6 +6,7 @@ import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.screens.utils.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -18,11 +19,13 @@ class UiSettingsViewModel @Inject constructor(
     val storageDataRepository: StorageDataRepository
 ) : ViewModel() {
 
+    private val isParty = MutableStateFlow(false)
+
     val uiSettingsUiState: StateFlow<UiSettingsUiState> = combine(
-        storageDataRepository.themeMode, storageDataRepository.confettiColors
-    ) { theme, confetti ->
+        storageDataRepository.themeMode, storageDataRepository.confettiColors, isParty
+    ) { theme, confetti, party ->
         UiSettingsUiState.Success(
-            selectedMode = theme, selectedConfettiVariant = confetti
+            selectedMode = theme, selectedConfettiVariant = confetti, isParty = party
         )
     }.stateIn(
         scope = viewModelScope,
@@ -39,6 +42,11 @@ class UiSettingsViewModel @Inject constructor(
     fun setConfetti(confetti: ConfettiOptions) {
         viewModelScope.launch {
             storageDataRepository.saveConfettiColors(confetti)
+            isParty.value = true
         }
+    }
+
+    fun confettiStop() {
+        isParty.value = false
     }
 }

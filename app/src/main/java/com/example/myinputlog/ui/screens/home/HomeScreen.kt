@@ -27,30 +27,21 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.CourseTopAppBar
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.data.utils.DateUtils.toDayKey
 import com.example.myinputlog.ui.navigation.Screen
+import com.example.myinputlog.ui.screens.utils.composable.ConfettiOverlay
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.StatisticContainer
 import com.example.myinputlog.ui.screens.utils.composable.calendar.SwipeableCalendar
 import com.example.myinputlog.ui.screens.utils.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
-import nl.dionsegijn.konfetti.compose.KonfettiView
-import nl.dionsegijn.konfetti.compose.OnParticleSystemUpdateListener
-import nl.dionsegijn.konfetti.core.Angle
-import nl.dionsegijn.konfetti.core.Party
-import nl.dionsegijn.konfetti.core.PartySystem
-import nl.dionsegijn.konfetti.core.Position
-import nl.dionsegijn.konfetti.core.Spread
-import nl.dionsegijn.konfetti.core.emitter.Emitter
 import java.time.YearMonth
 import java.util.Date
-import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,14 +115,18 @@ fun HomeScreen(
                         onMonthSettled = homeViewModel::onMonthSettled,
                         doParty = homeViewModel::confetti
                     )
+                    if (state.isParty) {
+                        val confettiIntColors = remember(state.confettiColors) {
+                            state.confettiColors.map { it.toInt() }
+                        }
+                        ConfettiOverlay(
+                            modifier = modifier.fillMaxSize(),
+                            stopParty = homeViewModel::confettiStop,
+                            colors = confettiIntColors
+                        )
+                    }
                 }
             }
-        }
-
-        if (homeUiState is HomeUiState.Success && (homeUiState as HomeUiState.Success).isParty) {
-            ConfettiOverlay(
-                modifier = modifier.fillMaxSize(), stopParty = homeViewModel::confettiStop
-            )
         }
     }
 }
@@ -228,30 +223,4 @@ fun HomeBody(
             )
         }
     }
-}
-
-@Composable
-fun ConfettiOverlay(
-    modifier: Modifier, stopParty: () -> Unit
-) {
-    KonfettiView(
-        modifier = modifier
-            .fillMaxSize()
-            .zIndex(1F), parties = listOf(
-            Party(
-                speed = 0f,
-                maxSpeed = 15f,
-                damping = 0.9f,
-                angle = Angle.BOTTOM,
-                spread = Spread.ROUND,
-                colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
-                emitter = Emitter(duration = 5, TimeUnit.SECONDS).perSecond(100),
-                position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0)),
-                timeToLive = 3500L
-            )
-        ), updateListener = object : OnParticleSystemUpdateListener {
-            override fun onParticleSystemEnded(system: PartySystem, activeSystems: Int) {
-                if (activeSystems == 0) stopParty()
-            }
-        })
 }

@@ -8,6 +8,7 @@ sealed interface UiSettingsUiState {
     data object Error : UiSettingsUiState
     data class Success(
         val selectedConfettiVariant: ConfettiOptions = ConfettiOptions.OPTION1,
-        val selectedMode: AppTheme = AppTheme.SYSTEM
+        val selectedMode: AppTheme = AppTheme.SYSTEM,
+        val isParty: Boolean = false
     ) : UiSettingsUiState
 }

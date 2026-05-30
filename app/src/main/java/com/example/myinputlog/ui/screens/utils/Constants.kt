@@ -89,28 +89,28 @@ enum class Country(@get:StringRes val countryNameResId: Int, val flagEmoji: Stri
     GUATEMALA(R.string.country_guatemala, "🇬🇹"),
 }
 
-enum class ConfettiOptions(@get:StringRes val optionName: Int, val colors: List<Int>) {
+enum class ConfettiOptions(@get:StringRes val optionName: Int, val colors: List<Long>) {
     OPTION1(
-        R.string.confetti_option_1, listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def)
+        R.string.confetti_option_1, listOf(0xFFfce18a, 0xFFff726d, 0xFFf4306d, 0xFFb48def)
     ),
     OPTION2(
         R.string.confetti_option_2,
-        listOf(0xE40303, 0xFF8C00, 0xFFED00, 0x008026, 0x004CFF, 0x732982)
+        listOf(0xFFE40303, 0xFFFF8C00, 0xFFFFED00, 0xFF008026, 0xFF004CFF, 0xFF732982)
     ),
     OPTION3(
         R.string.confetti_option_3,
-        listOf(0xD52D00, 0xEF7627, 0xFF9A56, 0xFFFFFF, 0xD162A4, 0xB55690, 0xA30262)
+        listOf(0xFFD52D00, 0xFFEF7627, 0xFFFF9A56, 0xFFFFFFFF, 0xFFD162A4, 0xFFB55690, 0xFFA30262)
     ),
     OPTION4(
-        R.string.confetti_option_4, listOf(0x5BCEFA, 0xF5A9B8, 0xFFFFFF)
+        R.string.confetti_option_4, listOf(0xFF5BCEFA, 0xFFFFFFFF, 0xFFF5A9B8)
     ),
     OPTION5(
-        R.string.confetti_option_5, listOf(0xD60270, 0x9B4F96, 0x0038A8)
+        R.string.confetti_option_5, listOf(0xFFD60270, 0xFF9B4F96, 0xFF0038A8)
     ),
     OPTION6(
-        R.string.confetti_option_6, listOf(0x000000, 0xA3A3A3, 0xFFFFFF, 0x800080)
+        R.string.confetti_option_6, listOf(0xFF000000, 0xFFA3A3A3, 0xFFFFFFFF, 0xFF800080)
     ),
-    OPTION7(R.string.confetti_option_7, listOf(0xFF218C, 0xFFD800, 0x21B1FF))
+    OPTION7(R.string.confetti_option_7, listOf(0xFFFF218C, 0xFFFFD800, 0xFF21B1FF))
 }
 
 class AuthConstants {

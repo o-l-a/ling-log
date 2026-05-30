@@ -42,8 +42,8 @@ class HomeViewModel @Inject constructor(
     )
 
     val homeUiState: StateFlow<HomeUiState> = combine(
-        repository.userCourses, currentCourseId, isParty
-    ) { courses, id, party ->
+        repository.userCourses, currentCourseId, isParty, repository.confettiColors
+    ) { courses, id, party, colors ->
 
         when {
             courses == null -> HomeUiState.Loading
@@ -58,6 +58,7 @@ class HomeViewModel @Inject constructor(
                     courseHeader = courseHeader,
                     userCourses = courses,
                     isParty = party,
+                    confettiColors = colors.colors
                 )
             }
         }
