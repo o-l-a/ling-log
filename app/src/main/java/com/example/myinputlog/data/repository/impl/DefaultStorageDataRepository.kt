@@ -155,14 +155,20 @@ class DefaultStorageDataRepository @Inject constructor(
             .onEach { remoteTimestamp ->
                 syncLabels(userCourseId, remoteTimestamp)
             }.flatMapLatest {
-                labelDao.getLabelsFlow()
+                labelDao.getLabelsFlow(userId, userCourseId)
             }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getLabel(courseId: String, labelId: String): Flow<UserLabel?> {
+        val userId = accountService.currentUserId
+        return labelDao.getLabelById(userId, courseId, labelId)
     }
 
     suspend fun syncLabels(userCourseId: String, remoteTimestamp: Timestamp?) {
         try {
             val userId = accountService.currentUserId
-            val latestLocalTime = labelDao.getLatestTimestamp()
+            val latestLocalTime = labelDao.getLatestTimestamp(userId, userCourseId)
 
             if (remoteTimestamp != null && latestLocalTime != null) {
                 if (remoteTimestamp.seconds <= latestLocalTime.seconds) {
@@ -188,10 +194,11 @@ class DefaultStorageDataRepository @Inject constructor(
         originalVideo: YouTubeVideo?,
         channel: YouTubeChannel?
     ) {
+        val userId = accountService.currentUserId
         val operationTimestamp = Timestamp.now()
 
         storageService.saveYouTubeVideo(
-            userId = accountService.currentUserId,
+            userId = userId,
             courseId = courseId,
             newVideo = video,
             oldVideo = originalVideo,
@@ -201,16 +208,45 @@ class DefaultStorageDataRepository @Inject constructor(
 
         originalVideo?.labelIds?.forEach { labelId ->
             labelDao.incrementStats(
-                labelId, -originalVideo.durationInSeconds, -1L, operationTimestamp
+                userId, courseId, labelId, -originalVideo.durationInSeconds, -1L, operationTimestamp
             )
         }
 
         video.labelIds.forEach { labelId ->
-            labelDao.incrementStats(labelId, video.durationInSeconds, 1L, operationTimestamp)
+            labelDao.incrementStats(
+                userId, courseId, labelId, video.durationInSeconds, 1L, operationTimestamp
+            )
         }
     }
 
     override suspend fun deleteVideo(courseId: String, video: YouTubeVideo) {
-        storageService.deleteYouTubeVideo(accountService.currentUserId, courseId, video)
+        val userId = accountService.currentUserId
+        val operationTimestamp = Timestamp.now()
+
+        storageService.deleteYouTubeVideo(
+            userId, courseId, video, operationTimestamp
+        )
+
+        video.labelIds.forEach { labelId ->
+            labelDao.incrementStats(
+                userId, courseId, labelId, -video.durationInSeconds, -1L, operationTimestamp
+            )
+        }
+    }
+
+    override suspend fun saveLabel(courseId: String, label: UserLabel) {
+        val userId = accountService.currentUserId
+        val operationTime = Timestamp.now()
+        val updatedLabel = label.copy(timestamp = operationTime)
+
+        labelDao.insertOrUpdate(listOf(updatedLabel))
+        storageService.saveUserLabel(userId, courseId, updatedLabel)
+    }
+
+    override suspend fun deleteLabel(courseId: String, label: UserLabel) {
+        val userId = accountService.currentUserId
+        val operationTime = Timestamp.now()
+        labelDao.deleteLabelById(userId, courseId, label.id)
+        storageService.deleteUserLabel(userId, courseId, label, operationTime)
     }
 }

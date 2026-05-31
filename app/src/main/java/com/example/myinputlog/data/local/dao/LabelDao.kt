@@ -10,14 +10,20 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LabelDao {
-    @Query("SELECT * FROM user_labels ORDER BY title ASC")
-    fun getLabelsFlow(): Flow<List<UserLabel>>
+    @Query("SELECT * FROM user_labels WHERE userId = :userId AND courseId = :courseId ORDER BY title ASC")
+    fun getLabelsFlow(userId: String, courseId: String): Flow<List<UserLabel>>
+
+    @Query("SELECT * FROM user_labels WHERE id = :labelId AND userId = :userId AND courseId = :courseId")
+    fun getLabelById(userId: String, courseId: String, labelId: String): Flow<UserLabel?>
+
+    @Query("DELETE FROM user_labels WHERE id = :labelId AND userId = :userId AND courseId = :courseId")
+    suspend fun deleteLabelById(userId: String, courseId: String, labelId: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(labels: List<UserLabel>)
 
     @Query("SELECT MAX(timestamp) FROM user_labels")
-    suspend fun getLatestTimestamp(): Timestamp?
+    suspend fun getLatestTimestamp(userId: String, courseId: String): Timestamp?
 
     @Query(
         """
@@ -26,9 +32,16 @@ interface LabelDao {
             totalVideoCount = totalVideoCount + :countDelta,
             timestamp = :timestamp
         WHERE id = :labelId
+        AND userId = :userId
+        AND courseId = :courseId
     """
     )
     suspend fun incrementStats(
-        labelId: String, timeDelta: Long, countDelta: Long, timestamp: Timestamp
+        userId: String,
+        courseId: String,
+        labelId: String,
+        timeDelta: Long,
+        countDelta: Long,
+        timestamp: Timestamp
     )
 }

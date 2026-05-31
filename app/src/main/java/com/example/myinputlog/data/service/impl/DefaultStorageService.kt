@@ -168,6 +168,40 @@ class DefaultStorageService @Inject constructor(
         youTubeChannelId
     ).get().await().toObject()
 
+    override suspend fun saveUserLabel(
+        userId: String, courseId: String, label: UserLabel, timestamp: Timestamp
+    ) {
+        withContext(Dispatchers.IO) {
+            val batch = firestore.batch()
+
+            val courseRef = currentUserCourseColl(userId).document(courseId)
+            val labelRef = if (label.id.isNotBlank()) {
+                courseRef.collection(USER_LABEL_COLL).document(label.id)
+            } else {
+                courseRef.collection(USER_LABEL_COLL).document()
+            }
+
+            batch.set(labelRef, label)
+            batch.update(courseRef, KEY_LABELS_LAST_UPDATE, timestamp)
+            batch.commit().await()
+        }
+    }
+
+    override suspend fun deleteUserLabel(
+        userId: String, courseId: String, label: UserLabel, timestamp: Timestamp
+    ) {
+        withContext(Dispatchers.IO) {
+            val batch = firestore.batch()
+
+            val courseRef = currentUserCourseColl(userId).document(courseId)
+            val labelRef = courseRef.collection(USER_LABEL_COLL).document(label.id)
+
+            batch.delete(labelRef)
+            batch.update(courseRef, KEY_LABELS_LAST_UPDATE, timestamp)
+            batch.commit().await()
+        }
+    }
+
     override suspend fun saveYouTubeVideo(
         userId: String,
         courseId: String,
@@ -327,6 +361,10 @@ class DefaultStorageService @Inject constructor(
             if (multiplier == 1L) { // when updating, this should already be set
                 acc.setString(intersectRef, "channelTitle", video.channel)
             }
+        }
+
+        if (video.labelIds.isNotEmpty()) {
+            acc.updateTimestamp(courseRef, KEY_LABELS_LAST_UPDATE, timestamp)
         }
     }
 

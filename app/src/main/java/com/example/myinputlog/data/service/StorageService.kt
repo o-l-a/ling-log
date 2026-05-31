@@ -58,4 +58,18 @@ interface StorageService {
     suspend fun getYouTubeChannel(
         currentUserId: String, userCourseId: String, youTubeChannelId: String
     ): YouTubeChannel?
+
+    suspend fun saveUserLabel(
+        userId: String,
+        courseId: String,
+        label: UserLabel,
+        timestamp: Timestamp = Timestamp.now()
+    )
+
+    suspend fun deleteUserLabel(
+        userId: String,
+        courseId: String,
+        label: UserLabel,
+        timestamp: Timestamp = Timestamp.now()
+    )
 }

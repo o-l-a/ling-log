@@ -15,6 +15,8 @@ data class UserLabel(
     @PrimaryKey
     val id: String = "",
     val title: String = "",
+    val courseId: String,
+    val userId: String,
     val color: Long = 0xFFFFC0CB,
     @Serializable(with = TimestampSerializer::class)
     @ServerTimestamp

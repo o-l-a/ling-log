@@ -30,6 +30,9 @@ interface StorageDataRepository {
     suspend fun deleteUserCourse(courseId: String)
     fun getMonthlyStatsFlow(userCourseId: String, monthId: String): Flow<UserMonthlyStats?>
     fun getLabelsFlow(userCourseId: String): Flow<List<UserLabel>>
+    fun getLabel(courseId: String, labelId: String): Flow<UserLabel?>
+    suspend fun saveLabel(courseId: String, label: UserLabel)
+    suspend fun deleteLabel(courseId: String, label: UserLabel)
 
     suspend fun saveVideo(
         courseId: String,
