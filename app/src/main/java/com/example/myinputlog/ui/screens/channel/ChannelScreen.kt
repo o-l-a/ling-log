@@ -19,7 +19,9 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -31,6 +33,7 @@ import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.composable.SpinningClockIcon
 import com.example.myinputlog.ui.screens.utils.composable.StatisticContainer
 import com.example.myinputlog.ui.screens.utils.composable.channel.ChannelThumbnail
 import com.example.myinputlog.ui.screens.utils.formatDurationAsText
@@ -41,7 +44,6 @@ import com.example.myinputlog.ui.theme.spacing
 fun ChannelScreen(
     modifier: Modifier = Modifier,
     channelViewModel: ChannelViewModel,
-    navigateBack: () -> Unit,
     onNavigateUp: () -> Unit
 ) {
     val channelUiState by channelViewModel.channelUiState.collectAsStateWithLifecycle()
@@ -88,6 +90,8 @@ fun ChannelBody(
             scrollState.canScrollForward || scrollState.canScrollBackward
         }
     }
+    var clockSpinTrigger by remember { mutableIntStateOf(0) }
+
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
@@ -121,7 +125,9 @@ fun ChannelBody(
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.spacing.small),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = MaterialTheme.spacing.small),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -141,12 +147,13 @@ fun ChannelBody(
                     number = formatDurationAsText(channelUiState.channelMetadata.totalTimeInSeconds),
                     label = stringResource(R.string.stats_hours_watched),
                     leadingContent = {
-                        Image(
-                            painter = painterResource(R.drawable.img_emoji_clock),
-                            contentDescription = "Clock",
+                        SpinningClockIcon(
+                            spinTrigger = clockSpinTrigger,
                             modifier = Modifier.size(MaterialTheme.spacing.statIconSize)
                         )
-                    })
+                    },
+                    isClickable = true,
+                    onClick = { clockSpinTrigger++ })
             }
         }
     }

@@ -144,7 +144,6 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
             val channelViewModel = hiltViewModel<ChannelViewModel>()
             ChannelScreen(
                 channelViewModel = channelViewModel,
-                navigateBack = { navController.popBackStack() },
                 onNavigateUp = { navController.navigateUp() })
         }
     }

@@ -19,7 +19,9 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -36,6 +38,7 @@ import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.ConfettiOverlay
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.composable.SpinningClockIcon
 import com.example.myinputlog.ui.screens.utils.composable.StatisticContainer
 import com.example.myinputlog.ui.screens.utils.composable.calendar.SwipeableCalendar
 import com.example.myinputlog.ui.screens.utils.formatDurationAsText
@@ -145,6 +148,8 @@ fun HomeBody(
             scrollState.canScrollForward || scrollState.canScrollBackward
         }
     }
+    var clockSpinTrigger by remember { mutableIntStateOf(0) }
+
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
@@ -176,12 +181,13 @@ fun HomeBody(
                     number = formatDurationAsText(homeUiState.courseHeader.dailyAverageSeconds),
                     label = stringResource(R.string.stats_daily_average),
                     leadingContent = {
-                        Image(
-                            painter = painterResource(R.drawable.img_emoji_clock),
-                            contentDescription = "Clock",
+                        SpinningClockIcon(
+                            spinTrigger = clockSpinTrigger,
                             modifier = Modifier.size(MaterialTheme.spacing.statIconSize)
                         )
-                    })
+                    },
+                    isClickable = true,
+                    onClick = { clockSpinTrigger++ })
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
