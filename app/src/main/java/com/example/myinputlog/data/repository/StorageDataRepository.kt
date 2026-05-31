@@ -3,6 +3,7 @@ package com.example.myinputlog.data.repository
 import androidx.paging.PagingData
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.UserData
+import com.example.myinputlog.data.model.UserLabel
 import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
@@ -28,6 +29,7 @@ interface StorageDataRepository {
     suspend fun updateUserCourse(course: UserCourse)
     suspend fun deleteUserCourse(courseId: String)
     fun getMonthlyStatsFlow(userCourseId: String, monthId: String): Flow<UserMonthlyStats?>
+    fun getLabelsFlow(userCourseId: String): Flow<List<UserLabel>>
 
     suspend fun saveVideo(
         courseId: String,

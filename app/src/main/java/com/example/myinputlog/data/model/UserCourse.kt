@@ -15,6 +15,9 @@ data class UserCourse (
     @Serializable(with = TimestampSerializer::class)
     @ServerTimestamp
     val lastUpdated: Timestamp = Timestamp.now(),
+    @Serializable(with = TimestampSerializer::class)
+    @ServerTimestamp
+    val labelsLastUpdated: Timestamp = Timestamp.now(),
     val name: String = "",
     val goalInHours: Long = 0L,
     val otherSourceHours: Long = 0L,

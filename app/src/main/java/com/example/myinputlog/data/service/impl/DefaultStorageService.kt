@@ -2,6 +2,7 @@ package com.example.myinputlog.data.service.impl
 
 import android.util.Log
 import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.data.model.UserLabel
 import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
@@ -9,6 +10,7 @@ import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.data.utils.DateUtils.toDayKey
 import com.example.myinputlog.data.utils.DateUtils.toMonthKey
 import com.example.myinputlog.data.utils.toFirestoreMap
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -18,6 +20,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObject
+import com.google.firebase.firestore.toObjects
 import com.google.firebase.perf.trace
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -53,6 +56,7 @@ class DefaultStorageService @Inject constructor(
         private const val KEY_WATCHED_ON = "watchedOn"
         private const val KEY_TIMESTAMP = "timestamp"
         private const val KEY_LAST_UPDATE = "lastUpdated"
+        private const val KEY_LABELS_LAST_UPDATE = "labelsLastUpdated"
         private const val KEY_TITLE = "title"
         private const val KEY_TOTAL_ACTIVE_DAYS = "totalActiveDays"
         private const val DAY_CHANNEL_MAP = "channelBreakdown"
@@ -93,6 +97,12 @@ class DefaultStorageService @Inject constructor(
         }.distinctUntilChanged().map { }
     }
 
+    override fun getLabelsChangeSignal(userId: String, courseId: String): Flow<Timestamp?> {
+        return currentUserCourseColl(userId).document(courseId).snapshots().map { snapshot ->
+            snapshot.getTimestamp(KEY_LABELS_LAST_UPDATE)
+        }.distinctUntilChanged()
+    }
+
     private fun currentUserCourseColl(uid: String): CollectionReference =
         firestore.collection(USER_COLL).document(uid).collection(USER_COURSE_COLL)
 
@@ -104,6 +114,11 @@ class DefaultStorageService @Inject constructor(
         uid: String, courseId: String
     ): CollectionReference =
         currentUserCourseColl(uid).document(courseId).collection(YT_CHANNEL_COLL)
+
+    private fun labelsCollForCurrentCourse(
+        uid: String, courseId: String
+    ): CollectionReference =
+        currentUserCourseColl(uid).document(courseId).collection(USER_LABEL_COLL)
 
     private fun monthlyStatsCollForCurrentCourse(
         uid: String, courseId: String
@@ -135,6 +150,12 @@ class DefaultStorageService @Inject constructor(
             .snapshots().map { snapshot -> snapshot.toObject<UserMonthlyStats>() }
     }
 
+    override suspend fun getLabelsUpdatedAfter(
+        currentUserId: String, userCourseId: String, timestamp: Timestamp
+    ): List<UserLabel> = labelsCollForCurrentCourse(currentUserId, userCourseId).whereGreaterThan(
+        KEY_TIMESTAMP, timestamp
+    ).get().await().toObjects()
+
     override suspend fun getYouTubeVideo(
         currentUserId: String, userCourseId: String, youTubeVideoId: String
     ): YouTubeVideo? = youTubeVideoCollForCurrentCourse(currentUserId, userCourseId).document(
@@ -152,6 +173,7 @@ class DefaultStorageService @Inject constructor(
         courseId: String,
         newVideo: YouTubeVideo,
         oldVideo: YouTubeVideo?,
+        timestamp: Timestamp,
         channelMetadata: YouTubeChannel?,
         channelExistsOnServer: Boolean
     ) {
@@ -178,9 +200,9 @@ class DefaultStorageService @Inject constructor(
                 }
 
                 // stats down for the original copy
-                oldVideo?.let { applyStats(acc, courseRef, oldVideo, multiplier = -1L) }
+                oldVideo?.let { applyStats(acc, courseRef, oldVideo, timestamp, multiplier = -1L) }
                 // stats up for the new copy
-                applyStats(acc, courseRef, newVideo, multiplier = 1L)
+                applyStats(acc, courseRef, newVideo, timestamp, multiplier = 1L)
 
                 if (!channelExistsOnServer && channelMetadata != null) {
                     // only save if this is a new channel
@@ -202,7 +224,7 @@ class DefaultStorageService @Inject constructor(
     }
 
     override suspend fun deleteYouTubeVideo(
-        userId: String, courseId: String, video: YouTubeVideo
+        userId: String, courseId: String, video: YouTubeVideo, timestamp: Timestamp
     ) {
         withContext(Dispatchers.IO) {
             Log.d(TAG, "Deleting video ${video.title}")
@@ -218,7 +240,7 @@ class DefaultStorageService @Inject constructor(
                 }
 
                 // stats down
-                applyStats(acc, courseRef, video, multiplier = -1L)
+                applyStats(acc, courseRef, video, timestamp, multiplier = -1L)
                 acc.applyToTransaction()
 
                 // delete video
@@ -260,6 +282,7 @@ class DefaultStorageService @Inject constructor(
         acc: FirestoreAccumulator,
         courseRef: DocumentReference,
         video: YouTubeVideo,
+        timestamp: Timestamp,
         multiplier: Long
     ) {
         val dur = video.durationInSeconds * multiplier
@@ -269,12 +292,12 @@ class DefaultStorageService @Inject constructor(
         // 1. Global & Channel Updates
         acc.increment(courseRef, KEY_DURATION, dur)
         acc.increment(courseRef, KEY_COUNT, count)
-        acc.updateTimestamp(courseRef, KEY_LAST_UPDATE)
+        acc.updateTimestamp(courseRef, KEY_LAST_UPDATE, timestamp)
 
         val channelRef = courseRef.collection(YT_CHANNEL_COLL).document(channelId)
         acc.increment(channelRef, KEY_DURATION, dur)
         acc.increment(channelRef, KEY_COUNT, count)
-        acc.updateTimestamp(channelRef)
+        acc.updateTimestamp(channelRef, timestamp = timestamp)
 
         // 2. Monthly Updates
         val monthKey = video.watchedOn.toMonthKey()
@@ -294,6 +317,8 @@ class DefaultStorageService @Inject constructor(
 
             acc.increment(labelRef, KEY_DURATION, dur)
             acc.increment(labelRef, KEY_COUNT, count)
+            acc.updateTimestamp(labelRef, timestamp = timestamp)
+
             acc.increment(intersectRef, KEY_DURATION, dur)
             acc.increment(intersectRef, KEY_COUNT, count)
 
@@ -329,9 +354,13 @@ class DefaultStorageService @Inject constructor(
             updates.putAll(channelMap)
         }
 
-        fun updateTimestamp(ref: DocumentReference, field: String = KEY_TIMESTAMP) {
+        fun updateTimestamp(
+            ref: DocumentReference,
+            field: String = KEY_TIMESTAMP,
+            timestamp: Timestamp = Timestamp.now()
+        ) {
             val updates = documentUpdates.getOrPut(ref) { mutableMapOf() }
-            updates[field] = FieldValue.serverTimestamp()
+            updates[field] = timestamp
         }
 
         fun applyToTransaction() {

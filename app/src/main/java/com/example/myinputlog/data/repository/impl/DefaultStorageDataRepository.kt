@@ -1,9 +1,12 @@
 package com.example.myinputlog.data.repository.impl
 
+import android.util.Log
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import com.example.myinputlog.data.local.dao.LabelDao
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.UserData
+import com.example.myinputlog.data.model.UserLabel
 import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
@@ -15,18 +18,22 @@ import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.data.utils.createReactivePagingFlow
 import com.example.myinputlog.ui.screens.utils.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import java.util.Date
 import javax.inject.Inject
 
 class DefaultStorageDataRepository @Inject constructor(
     private val storageService: StorageService,
     private val accountService: AccountService,
     private val preferenceStorageService: PreferenceStorageService,
-    private val pagingConfig: PagingConfig
+    private val pagingConfig: PagingConfig,
+    private val labelDao: LabelDao
 ) : StorageDataRepository {
     companion object {
         private const val TAG = "StorageRepository"
@@ -141,19 +148,66 @@ class DefaultStorageDataRepository @Inject constructor(
         return storageService.getMonthlyStatsFlow(uid, userCourseId, monthId)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getLabelsFlow(userCourseId: String): Flow<List<UserLabel>> {
+        val userId = accountService.currentUserId
+        return storageService.getLabelsChangeSignal(userId, userCourseId)
+            .onEach { remoteTimestamp ->
+                syncLabels(userCourseId, remoteTimestamp)
+            }.flatMapLatest {
+                labelDao.getLabelsFlow()
+            }
+    }
+
+    suspend fun syncLabels(userCourseId: String, remoteTimestamp: Timestamp?) {
+        try {
+            val userId = accountService.currentUserId
+            val latestLocalTime = labelDao.getLatestTimestamp()
+
+            if (remoteTimestamp != null && latestLocalTime != null) {
+                if (remoteTimestamp.seconds <= latestLocalTime.seconds) {
+                    Log.d(TAG, "Skipping label sync: local is up to date.")
+                    return
+                }
+            }
+
+            val updatedLabels = storageService.getLabelsUpdatedAfter(
+                userId, userCourseId, latestLocalTime ?: Timestamp(Date(0))
+            )
+            if (updatedLabels.isNotEmpty()) {
+                labelDao.insertOrUpdate(updatedLabels)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to sync labels", e)
+        }
+    }
+
     override suspend fun saveVideo(
         courseId: String,
         video: YouTubeVideo,
         originalVideo: YouTubeVideo?,
         channel: YouTubeChannel?
     ) {
+        val operationTimestamp = Timestamp.now()
+
         storageService.saveYouTubeVideo(
             userId = accountService.currentUserId,
             courseId = courseId,
             newVideo = video,
             oldVideo = originalVideo,
+            timestamp = operationTimestamp,
             channelMetadata = channel
         )
+
+        originalVideo?.labelIds?.forEach { labelId ->
+            labelDao.incrementStats(
+                labelId, -originalVideo.durationInSeconds, -1L, operationTimestamp
+            )
+        }
+
+        video.labelIds.forEach { labelId ->
+            labelDao.incrementStats(labelId, video.durationInSeconds, 1L, operationTimestamp)
+        }
     }
 
     override suspend fun deleteVideo(courseId: String, video: YouTubeVideo) {

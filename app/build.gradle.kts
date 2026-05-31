@@ -32,7 +32,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true // Enable R8 for production
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -102,9 +103,15 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
+    // Room
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+
     // Auth & OAuth
+    //noinspection LoginCredentials
     implementation(libs.openid.appauth)
-    implementation("com.auth0.android:jwtdecode:2.0.2")
+    implementation(libs.jwtdecode)
 
     // Networking
     implementation(libs.retrofit.core)
@@ -112,7 +119,7 @@ dependencies {
     implementation(libs.okhttp.logging)
 
     // Confetti
-    implementation("nl.dionsegijn:konfetti-compose:2.0.5")
+    implementation(libs.konfetti.compose)
 
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.google.accompanist.systemui)
@@ -122,7 +129,7 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
 
-    implementation("com.google.android.play:integrity:1.6.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.11.0")
+    implementation(libs.integrity)
+    implementation(libs.kotlinx.coroutines.play.services)
     implementation(kotlin("reflect"))
 }
