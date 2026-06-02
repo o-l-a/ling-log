@@ -18,6 +18,7 @@ data class UserLabel(
     val courseId: String,
     val userId: String,
     val color: Long = 0xFFFFC0CB,
+    val textColor: Long = 0xFF000000,
     @Serializable(with = TimestampSerializer::class)
     @ServerTimestamp
     val timestamp: Timestamp = Timestamp.now(),

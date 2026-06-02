@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.myinputlog.data.local.AppDatabase
 import com.example.myinputlog.data.local.dao.LabelDao
+import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,10 +19,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: "guest"
         return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "my_input_log_db"
+            context, AppDatabase::class.java, "user_db_$userId.db"
         ).build()
     }
 

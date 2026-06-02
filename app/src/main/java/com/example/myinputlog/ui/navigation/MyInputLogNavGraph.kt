@@ -27,6 +27,10 @@ import com.example.myinputlog.ui.screens.course_list.CourseListScreen
 import com.example.myinputlog.ui.screens.course_list.CourseListViewModel
 import com.example.myinputlog.ui.screens.home.HomeScreen
 import com.example.myinputlog.ui.screens.home.HomeViewModel
+import com.example.myinputlog.ui.screens.label.LabelScreen
+import com.example.myinputlog.ui.screens.label.LabelViewModel
+import com.example.myinputlog.ui.screens.label_list.LabelListScreen
+import com.example.myinputlog.ui.screens.label_list.LabelListViewModel
 import com.example.myinputlog.ui.screens.landing.LandingScreen
 import com.example.myinputlog.ui.screens.landing.LandingViewModel
 import com.example.myinputlog.ui.screens.login.LoginScreen
@@ -143,8 +147,7 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
         composable<ChannelRoute> {
             val channelViewModel = hiltViewModel<ChannelViewModel>()
             ChannelScreen(
-                channelViewModel = channelViewModel,
-                onNavigateUp = { navController.navigateUp() })
+                channelViewModel = channelViewModel, onNavigateUp = { navController.navigateUp() })
         }
     }
 }
@@ -183,6 +186,21 @@ fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
             val courseViewModel = hiltViewModel<CourseViewModel>()
             CourseScreen(
                 courseViewModel = courseViewModel, onNavigateUp = { navController.navigateUp() })
+        }
+        composable<LabelListRoute> {
+            val labelListViewModel = hiltViewModel<LabelListViewModel>()
+            LabelListScreen(
+                labelListViewModel = labelListViewModel,
+                onNavigateUp = { navController.navigateUp() },
+                navigateToLabelEntry = { navController.navigate(LabelRoute(DEFAULT_ID.toString())) },
+                navigateToLabel = { labelId ->
+                    navController.navigate(LabelRoute(labelId))
+                })
+        }
+        composable<LabelRoute> {
+            val labelViewModel = hiltViewModel<LabelViewModel>()
+            LabelScreen(
+                labelViewModel = labelViewModel, onNavigateUp = { navController.navigateUp() })
         }
         composable<UiSettingsRoute> {
             val uiSettingsViewModel = hiltViewModel<UiSettingsViewModel>()

@@ -21,7 +21,6 @@ class CourseListViewModel @Inject constructor(repository: StorageDataRepository)
                 CourseListUiState.Success(courses)
             }
         }
-
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

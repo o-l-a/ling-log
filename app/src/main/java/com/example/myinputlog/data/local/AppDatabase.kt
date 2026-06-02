@@ -7,7 +7,7 @@ import com.example.myinputlog.data.local.dao.LabelDao
 import com.example.myinputlog.data.model.UserLabel
 
 @Database(entities = [UserLabel::class], version = 1)
-@TypeConverters(RoomTimestampConverter::class)
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun labelDao(): LabelDao
 }
