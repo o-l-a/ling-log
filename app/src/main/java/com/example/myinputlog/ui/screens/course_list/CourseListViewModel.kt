@@ -3,6 +3,7 @@ package com.example.myinputlog.ui.screens.course_list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.ui.models.toCourseUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,11 +15,10 @@ import javax.inject.Inject
 class CourseListViewModel @Inject constructor(repository: StorageDataRepository) : ViewModel() {
     val courseListUiState: StateFlow<CourseListUiState> = repository.courses.map { courses ->
         when {
-            courses == null -> CourseListUiState.Loading
             courses.isEmpty() -> CourseListUiState.Empty
 
             else -> {
-                CourseListUiState.Success(courses)
+                CourseListUiState.Success(courses.map { it.toCourseUiModel() })
             }
         }
     }.stateIn(

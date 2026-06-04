@@ -50,7 +50,7 @@ class HomeViewModel @Inject constructor(
             courses.isEmpty() -> HomeUiState.Empty
 
             else -> {
-                val current = courses.find { it.id == id } ?: courses.first()
+                val current = courses.find { it.course.id == id } ?: courses.first()
                 val courseHeader = mapToCourseUiModel(
                     current.toCourseUiModel(), secondsToday
                 )

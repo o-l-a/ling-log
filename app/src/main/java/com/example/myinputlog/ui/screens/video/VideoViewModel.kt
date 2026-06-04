@@ -89,7 +89,7 @@ class VideoViewModel @Inject constructor(
     private fun loadVideoFromStorage() {
         viewModelScope.launch {
             val selectedCourse = storageDataRepository.courses.first().firstOrNull { userCourse ->
-                userCourse.id == defaultCourseId
+                userCourse.course.id == defaultCourseId
             }?.toCourseUiModel() ?: CourseUiModel()
             if (!isNewVideo(videoId)) {
                 loadExistingVideo(selectedCourse)

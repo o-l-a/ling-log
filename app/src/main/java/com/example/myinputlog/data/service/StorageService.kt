@@ -21,4 +21,9 @@ interface StorageService {
     suspend fun getLastUpdatedLabels(userId: String): List<LabelDto>
     suspend fun getLastUpdatedVideos(userId: String, lastPull: Date): List<VideoDto>
     suspend fun getLastUpdatedChannels(userId: String, lastPull: Date): List<ChannelDto>
+
+    suspend fun initializeUser(uid: String)
+    suspend fun deleteAllForUser(
+        userId: String, courseIds: List<String>, channelIds: List<String>, monthKeys: List<String>
+    )
 }

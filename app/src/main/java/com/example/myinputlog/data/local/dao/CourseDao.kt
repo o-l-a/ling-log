@@ -5,6 +5,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
 import com.example.myinputlog.data.local.entities.CourseEntity
+import com.example.myinputlog.data.local.model.CourseWithStats
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -16,8 +17,22 @@ interface CourseDao {
     @Query("SELECT * FROM courses WHERE id IN (:ids)")
     suspend fun getCoursesByIds(ids: List<String>): List<CourseEntity>
 
-    @Query("SELECT * FROM courses WHERE isDeleted = 0")
-    fun getAllCourses(): Flow<List<CourseEntity>>
+    @Transaction
+    @Query(
+        """SELECT 
+            c.*, 
+            COUNT(DISTINCT date(v.watchedOn / 1000, 'unixepoch')) as totalActiveDays,
+            COUNT(v.id) AS totalVideoCount,
+            COALESCE(SUM(v.durationInSeconds), 0) AS totalTimeInSeconds
+        FROM courses c
+        LEFT JOIN videos v ON c.id = v.channelId AND v.isDeleted = 0
+        WHERE c.isDeleted = 0
+        GROUP BY c.id"""
+    )
+    fun getAllCourses(): Flow<List<CourseWithStats>>
+
+    @Query("SELECT id FROM courses")
+    suspend fun getAllIds(): List<String>
 
     // UPSERTS
     @Upsert
@@ -50,10 +65,14 @@ interface CourseDao {
     suspend fun deleteCourseById(courseId: String, timestamp: Long = System.currentTimeMillis())
 
     @Query("UPDATE channels SET isDeleted = 1, lastUpdated = :timestamp WHERE courseId = :courseId")
-    suspend fun bulkDeleteChannelsForCourse(courseId: String, timestamp: Long = System.currentTimeMillis())
+    suspend fun bulkDeleteChannelsForCourse(
+        courseId: String, timestamp: Long = System.currentTimeMillis()
+    )
 
     @Query("UPDATE videos SET isDeleted = 1, lastUpdated = :timestamp WHERE courseId = :courseId")
-    suspend fun bulkDeleteVideosForCourse(courseId: String, timestamp: Long = System.currentTimeMillis())
+    suspend fun bulkDeleteVideosForCourse(
+        courseId: String, timestamp: Long = System.currentTimeMillis()
+    )
 
     // SYNC OPERATIONS
     @Query("SELECT * FROM courses WHERE lastUpdated > lastSynced")

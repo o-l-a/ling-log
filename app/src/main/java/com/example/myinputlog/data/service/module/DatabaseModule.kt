@@ -1,17 +1,15 @@
 package com.example.myinputlog.data.service.module
 
-import android.content.Context
-import androidx.room.Room
 import com.example.myinputlog.data.local.AppDatabase
 import com.example.myinputlog.data.local.dao.ChannelDao
 import com.example.myinputlog.data.local.dao.CourseDao
 import com.example.myinputlog.data.local.dao.LabelDao
+import com.example.myinputlog.data.local.dao.StatsDao
 import com.example.myinputlog.data.local.dao.VideoDao
-import com.google.firebase.auth.FirebaseAuth
+import com.example.myinputlog.data.service.AppDatabaseManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 
@@ -21,12 +19,7 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: "guest"
-        return Room.databaseBuilder(
-                context, AppDatabase::class.java, "user_db_$userId.db"
-            ).fallbackToDestructiveMigration(true).build()
-    }
+    fun provideAppDatabase(manager: AppDatabaseManager): AppDatabase = manager.getDatabase()
 
     @Provides
     fun provideLabelDao(database: AppDatabase): LabelDao {
@@ -46,5 +39,10 @@ object DatabaseModule {
     @Provides
     fun provideCourseDao(database: AppDatabase): CourseDao {
         return database.courseDao()
+    }
+
+    @Provides
+    fun provideStatsDao(database: AppDatabase): StatsDao {
+        return database.statsDao()
     }
 }

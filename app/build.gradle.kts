@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.hilt.common)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.lifecycle.runtime.compose)
@@ -81,6 +82,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.hilt.work)
     ksp(libs.hilt.compiler) // Switched from kapt to ksp
     implementation(libs.hilt.navigation.compose)
     ksp(libs.androidx.hilt.compiler)
@@ -107,6 +109,7 @@ dependencies {
 
     // Room
     implementation(libs.androidx.room.ktx)
+    implementation(libs.room.paging)
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
 

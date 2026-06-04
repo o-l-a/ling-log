@@ -1,4 +1,4 @@
-package com.example.myinputlog.data.worker
+package com.example.myinputlog.worker
 
 import android.content.Context
 import android.util.Log
@@ -12,14 +12,15 @@ import com.example.myinputlog.data.local.dao.VideoDao
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.data.utils.DateUtils.toMonthKey
-import jakarta.inject.Inject
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @HiltWorker
-class PushSyncWorker @Inject constructor(
-    context: Context,
-    params: WorkerParameters,
+class PushSyncWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
     private val videoDao: VideoDao,
     private val courseDao: CourseDao,
     private val labelDao: LabelDao,

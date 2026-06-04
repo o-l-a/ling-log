@@ -4,7 +4,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 
 data class CourseDto(
-    @DocumentId val id: String? = null,
+    val id: String? = null,
     val name: String? = null,
     val goalInHours: Long? = null,
     val otherSourceHours: Long? = null,

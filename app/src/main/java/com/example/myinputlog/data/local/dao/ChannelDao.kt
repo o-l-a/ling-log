@@ -21,11 +21,14 @@ interface ChannelDao {
     @Query("SELECT * FROM channels WHERE id IN (:ids)")
     suspend fun getChannelsByIds(ids: List<String>): List<ChannelEntity>
 
+    @Query("SELECT id FROM channels")
+    suspend fun getAllIds(): List<String>
+
     @Transaction
     @Query(
         """SELECT 
             c.*, 
-            COUNT(v.id) AS videoCount, 
+            COUNT(v.id) AS totalVideoCount, 
             COALESCE(SUM(v.durationInSeconds), 0) AS totalTimeInSeconds
         FROM channels c
         LEFT JOIN videos v ON c.id = v.channelId AND v.isDeleted = 0
@@ -35,10 +38,14 @@ interface ChannelDao {
     suspend fun getChannelWithLabelsById(id: String): ChannelWithStatsAndLabels?
 
     @Transaction
-    @Query(
-        """SELECT * FROM channels 
-        WHERE isDeleted = 0 AND courseId = :courseId 
-        ORDER BY lastUpdated DESC"""
+    @Query("""SELECT 
+        c.*, 
+        COUNT(v.id) AS totalVideoCount, 
+        SUM(v.durationInSeconds) AS totalTimeInSeconds 
+    FROM channels AS c
+    LEFT JOIN videos AS v ON c.id = v.channelId
+    WHERE c.courseId = :courseId
+    GROUP BY c.id"""
     )
     fun getChannelsPagingSource(courseId: String): PagingSource<Int, ChannelWithStatsAndLabels>
 

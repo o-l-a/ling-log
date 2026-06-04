@@ -48,7 +48,7 @@ class MediaListViewModel @Inject constructor(
             courses.isEmpty() -> MediaListUiState.Empty
 
             else -> {
-                val current = courses.find { it.id == id } ?: courses.first()
+                val current = courses.find { it.course.id == id } ?: courses.first()
                 val courseHeader = mapToCourseUiModel(current.toCourseUiModel())
 
                 MediaListUiState.Success(

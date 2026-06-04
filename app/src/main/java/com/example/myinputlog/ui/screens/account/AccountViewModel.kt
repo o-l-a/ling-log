@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.R
 import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.worker.SyncManager
 import com.example.myinputlog.ui.screens.utils.UiText
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,7 +32,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    val storageDataRepository: StorageDataRepository
+    val storageDataRepository: StorageDataRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
     sealed class AccountUiEvent {
         data class ShowSnackbar(val message: UiText) : AccountUiEvent()
@@ -141,6 +143,7 @@ class AccountViewModel @Inject constructor(
 
     fun signOut() {
         viewModelScope.launch {
+            syncManager.stopAllSync()
             storageDataRepository.signOut()
             _uiEvent.send(AccountUiEvent.NavigateWithPopUp)
         }
@@ -150,6 +153,7 @@ class AccountViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 Log.d(TAG, "deleting account")
+                syncManager.stopAllSync()
                 storageDataRepository.deleteAccount()
                 _uiEvent.send(AccountUiEvent.NavigateWithPopUp)
             } catch (e: Exception) {

@@ -1,6 +1,5 @@
 package com.example.myinputlog.ui.models
 
-import com.example.myinputlog.ui.models.CourseUiModel
 import java.util.concurrent.TimeUnit
 
 data class CourseHeaderUiModel(
@@ -42,7 +41,7 @@ fun mapToCourseUiModel(
         totalTimeInSecondsToday = totalTimeInSecondsToday,
         dailyAverageSeconds = dailyAverageSeconds,
         totalActiveDays = course.totalActiveDays.toString(),
-        videoCount = course.totalVideoCount,
+        videoCount = course.videoCount,
         percentageText = "${(progressValue * 100).toInt()}%"
     )
 }

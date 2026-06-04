@@ -4,7 +4,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 
 data class ChannelDto(
-    @DocumentId val id: String? = null,
+    val id: String? = null,
     val courseId: String? = null,
     val title: String? = null,
     val customUrl: String? = null,

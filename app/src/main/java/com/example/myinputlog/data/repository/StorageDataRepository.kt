@@ -6,6 +6,7 @@ import com.example.myinputlog.data.local.entities.CourseEntity
 import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
+import com.example.myinputlog.data.local.model.CourseWithStats
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.ui.models.ChannelUiModel
@@ -16,7 +17,7 @@ import com.example.myinputlog.ui.theme.AppTheme
 import kotlinx.coroutines.flow.Flow
 
 interface StorageDataRepository {
-    val courses: Flow<List<CourseEntity>>
+    val courses: Flow<List<CourseWithStats>>
     val currentCourseId: Flow<String>
     val currentUser: Flow<UserData>
     val themeMode: Flow<AppTheme>
@@ -25,6 +26,7 @@ interface StorageDataRepository {
     // account
     suspend fun changeUsername(newUsername: String)
     suspend fun signOut()
+    suspend fun createAccount(email: String, password: String, username: String)
     suspend fun deleteAccount()
 
     // video

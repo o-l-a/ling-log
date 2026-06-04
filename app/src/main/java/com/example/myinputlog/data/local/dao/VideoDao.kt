@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RewriteQueriesToDropUnusedColumns
 import androidx.room.Transaction
 import androidx.room.Upsert
 import com.example.myinputlog.data.local.entities.VideoEntity
@@ -12,6 +13,7 @@ import com.example.myinputlog.data.local.entities.VideoLabelCrossRef
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
 import kotlinx.coroutines.flow.Flow
+import java.util.Date
 
 @Dao
 interface VideoDao {
@@ -21,6 +23,14 @@ interface VideoDao {
 
     @Query("SELECT * FROM videos WHERE id IN (:ids)")
     suspend fun getVideosByIds(ids: List<String>): List<VideoEntity>
+
+    @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """SELECT DISTINCT 
+    CAST(strftime('%s', date(watchedOn / 1000, 'unixepoch', 'start of month')) AS INTEGER) * 1000 
+    FROM videos"""
+    )
+    suspend fun getAllUniqueMonthKeys(): List<Date>
 
     @Transaction
     @Query("SELECT * FROM videos WHERE id = :videoId AND isDeleted = 0")

@@ -171,4 +171,42 @@ class DefaultStorageService @Inject constructor(
         return channelRef(userId).whereGreaterThan(FIELD_LAST_UPDATED, Timestamp(lastPull)).get()
             .await().toObjects(ChannelDto::class.java)
     }
+
+    override suspend fun initializeUser(uid: String) {
+        userRef(uid).set(hashMapOf<String, Any>()).await()
+        Log.d(TAG, "createCollection:success")
+    }
+
+    override suspend fun deleteAllForUser(
+        userId: String, courseIds: List<String>, channelIds: List<String>, monthKeys: List<String>
+    ) {
+        val refsToDelete = mutableListOf<DocumentReference>()
+
+        refsToDelete.add(metadataRef(userId).document(DOC_LABELS))
+        refsToDelete.add(metadataRef(userId).document(DOC_SYNC_POINTERS))
+
+        courseIds.forEach { id ->
+            refsToDelete.add(courseRef(userId).document(id))
+        }
+
+        channelIds.forEach { id ->
+            refsToDelete.add(channelRef(userId).document(id))
+        }
+
+        monthKeys.forEach { key ->
+            refsToDelete.add(monthRef(userId).document(key))
+        }
+
+        refsToDelete.add(userRef(userId))
+
+        refsToDelete.chunked(CHUNK_SIZE).forEach { chunk ->
+            firestore.runBatch { batch ->
+                chunk.forEach { ref ->
+                    batch.delete(ref)
+                }
+            }.await()
+        }
+
+        Log.d(TAG, "Deleted ${refsToDelete.size} documents.")
+    }
 }

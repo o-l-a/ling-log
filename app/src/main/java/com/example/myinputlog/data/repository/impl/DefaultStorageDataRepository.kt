@@ -23,13 +23,16 @@ import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithLabelIds
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
+import com.example.myinputlog.data.local.model.CourseWithStats
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
 import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.PreferenceStorageService
-import com.example.myinputlog.data.worker.PushSyncWorker
+import com.example.myinputlog.data.service.StorageService
+import com.example.myinputlog.data.utils.DateUtils.toMonthKey
+import com.example.myinputlog.worker.PushSyncWorker
 import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.DayAggregation
 import com.example.myinputlog.ui.models.MonthlyStatsUiModel
@@ -53,6 +56,7 @@ import javax.inject.Inject
 class DefaultStorageDataRepository @Inject constructor(
     private val accountService: AccountService,
     private val preferenceStorageService: PreferenceStorageService,
+    private val storageService: StorageService,
     private val pagingConfig: PagingConfig,
     private val workManager: WorkManager,
     private val db: AppDatabase,
@@ -63,7 +67,7 @@ class DefaultStorageDataRepository @Inject constructor(
     private val statsDao: StatsDao
 ) : StorageDataRepository {
 
-    override val courses: Flow<List<CourseEntity>> = courseDao.getAllCourses()
+    override val courses: Flow<List<CourseWithStats>> = courseDao.getAllCourses()
 
     override val currentUser: Flow<UserData> = accountService.currentUser
 
@@ -95,7 +99,20 @@ class DefaultStorageDataRepository @Inject constructor(
         accountService.signOut()
     }
 
+    override suspend fun createAccount(email: String, password: String, username: String) {
+        val uid = accountService.createAccount(email, password, username)
+        uid?.let { storageService.initializeUser(uid) }
+    }
+
     override suspend fun deleteAccount() {
+        val uid = accountService.currentUserId
+
+        val courseIds = courseDao.getAllIds()
+        val channelIds = channelDao.getAllIds()
+        val monthKeys = videoDao.getAllUniqueMonthKeys().map { it.toMonthKey() }
+
+        storageService.deleteAllForUser(uid, courseIds, channelIds, monthKeys)
+        db.clearAllTables()
         accountService.deleteAccount()
     }
 
@@ -122,8 +139,8 @@ class DefaultStorageDataRepository @Inject constructor(
         syncLabelsToChannel: Boolean
     ) {
         db.withTransaction {
-            videoDao.upsertVideoWithLabelIds(VideoWithLabelIds(video, labelIds))
             channelDao.upsertChannel(channel)
+            videoDao.upsertVideoWithLabelIds(VideoWithLabelIds(video, labelIds))
             if (syncLabelsToChannel) {
                 channelDao.upsertChannelWithLabelIds(ChannelWithLabelIds(channel, labelIds))
             } else {
@@ -274,7 +291,7 @@ class DefaultStorageDataRepository @Inject constructor(
             .build()
 
         workManager.beginUniqueWork(
-            "global_push_sync", ExistingWorkPolicy.APPEND_OR_REPLACE, listOf(pushSync)
+            "immediate_push_sync", ExistingWorkPolicy.APPEND_OR_REPLACE, listOf(pushSync)
         ).enqueue()
     }
 }
