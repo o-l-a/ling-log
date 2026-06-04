@@ -103,26 +103,16 @@ class CourseViewModel @Inject constructor(
         toggleDialogVisibility(false)
         viewModelScope.launch {
             storageDataRepository.deleteUserCourse(courseId)
-            val currentCourseId = storageDataRepository.currentCourseId.firstOrNull() ?: ""
-            if (currentCourseId == courseId) {
-                val firstAvailable =
-                    storageDataRepository.courses.firstOrNull()?.getOrNull(0)
-                firstAvailable?.let { storageDataRepository.setCurrentCourse(it.id) }
-            }
             _uiEvent.send(CourseUiEvent.NavigateBack)
         }
     }
 
-    fun persistCourse() {
+    fun saveCourse() {
         viewModelScope.launch {
             val currentFields = _fields.value
             val course = currentFields.toUserCourse(id = courseId)
-            if (course.id.isBlank()) {
-                val newCourseId = storageDataRepository.saveUserCourse(course)
-                storageDataRepository.setCurrentCourse(newCourseId)
-            } else {
-                storageDataRepository.updateUserCourse(course)
-            }
+            val courseEntity = course.toCourseEntity()
+            storageDataRepository.saveUserCourse(courseEntity)
             _uiEvent.send(CourseUiEvent.NavigateBack)
         }
     }

@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.ui.models.ChannelUiModel
+import com.example.myinputlog.ui.models.toChannelUiModel
 import com.example.myinputlog.ui.navigation.ChannelRoute
-import com.example.myinputlog.ui.screens.video.ChannelMetadata
-import com.example.myinputlog.ui.screens.video.toChannelMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,10 +22,9 @@ class ChannelViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle, private val storageDataRepository: StorageDataRepository
 ) : ViewModel() {
     private val channelRoute = savedStateHandle.toRoute<ChannelRoute>()
-    private val courseId = channelRoute.courseId
     private val channelId = channelRoute.channelId
 
-    private val _channelMetadata = MutableStateFlow(ChannelMetadata())
+    private val _channelMetadata = MutableStateFlow(ChannelUiModel())
     private val _loadingState = MutableStateFlow<ChannelLoadState>(ChannelLoadState.Loading)
 
     val channelUiState: StateFlow<ChannelUiState> = combine(
@@ -35,7 +34,7 @@ class ChannelViewModel @Inject constructor(
             is ChannelLoadState.Loading -> ChannelUiState.Loading
             is ChannelLoadState.Error -> ChannelUiState.Error
             is ChannelLoadState.Success -> ChannelUiState.Success(
-                channelMetadata = meta,
+                channelUiModel = meta,
                 channelLoadState = state
             )
         }
@@ -52,7 +51,7 @@ class ChannelViewModel @Inject constructor(
     private fun loadChannel() {
         viewModelScope.launch {
             val channelMetadata =
-                storageDataRepository.getChannel(courseId, channelId)?.toChannelMetadata()
+                storageDataRepository.getChannel(channelId)?.toChannelUiModel()
             if (channelMetadata != null) {
                 _channelMetadata.value = channelMetadata
                 _loadingState.value = ChannelLoadState.Success

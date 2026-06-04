@@ -18,16 +18,23 @@ interface StatsDao {
     )
     fun getSecondsPerLabel(monthStart: Long, monthEnd: Long): Flow<List<LabelStat>>
 
+
     @Query(
         """
-        SELECT CAST(watchedOn / 86400000 AS INTEGER) as day, COUNT(*) as count
+        SELECT 
+            strftime('%d', watchedOn / 1000, 'unixepoch') as dayOfMonth,
+            SUM(durationInSeconds) as totalSeconds,
+            COUNT(*) as videoCount
         FROM videos
-        WHERE isDeleted = 0
-        GROUP BY day
+        WHERE watchedOn BETWEEN :start AND :end AND isDeleted = 0
+        GROUP BY dayOfMonth
     """
     )
-    fun getVideoCountPerDay(): Flow<List<DayStat>>
+    fun getDailyStats(start: Long, end: Long): Flow<List<DailyStatRow>>
 }
 
 data class LabelStat(val labelName: String, val totalSeconds: Long)
-data class DayStat(val day: Int, val count: Int)
+
+data class DailyStatRow(
+    val dayOfMonth: String, val totalSeconds: Long, val videoCount: Long
+)

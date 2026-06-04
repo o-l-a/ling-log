@@ -3,6 +3,7 @@ package com.example.myinputlog.data.repository.impl
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.map
 import androidx.room.withTransaction
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
@@ -14,30 +15,39 @@ import com.example.myinputlog.data.local.AppDatabase
 import com.example.myinputlog.data.local.dao.ChannelDao
 import com.example.myinputlog.data.local.dao.CourseDao
 import com.example.myinputlog.data.local.dao.LabelDao
+import com.example.myinputlog.data.local.dao.StatsDao
 import com.example.myinputlog.data.local.dao.VideoDao
 import com.example.myinputlog.data.local.entities.ChannelEntity
 import com.example.myinputlog.data.local.entities.CourseEntity
 import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithLabelIds
-import com.example.myinputlog.data.local.model.ChannelWithLabels
+import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
-import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.data.model.UserData
-import com.example.myinputlog.data.model.UserLabel
-import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.PreferenceStorageService
 import com.example.myinputlog.data.worker.PushSyncWorker
+import com.example.myinputlog.ui.models.ChannelUiModel
+import com.example.myinputlog.ui.models.DayAggregation
+import com.example.myinputlog.ui.models.MonthlyStatsUiModel
+import com.example.myinputlog.ui.models.VideoUiModel
+import com.example.myinputlog.ui.models.toChannelUiModel
+import com.example.myinputlog.ui.models.toVideoUiModel
 import com.example.myinputlog.ui.screens.utils.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
-import com.google.firebase.Timestamp
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.YearMonth
+import java.time.ZoneId
 import javax.inject.Inject
 
 class DefaultStorageDataRepository @Inject constructor(
@@ -49,11 +59,9 @@ class DefaultStorageDataRepository @Inject constructor(
     private val courseDao: CourseDao,
     private val labelDao: LabelDao,
     private val videoDao: VideoDao,
-    private val channelDao: ChannelDao
+    private val channelDao: ChannelDao,
+    private val statsDao: StatsDao
 ) : StorageDataRepository {
-    companion object {
-        private const val TAG = "StorageRepository"
-    }
 
     override val courses: Flow<List<CourseEntity>> = courseDao.getAllCourses()
 
@@ -92,11 +100,15 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     // video
-    override fun videoPagingFlow(courseId: String): Flow<PagingData<VideoWithChannelAndLabels>> {
+    override fun videoPagingFlow(courseId: String): Flow<PagingData<VideoUiModel>> {
         return Pager(
             config = pagingConfig, pagingSourceFactory = {
                 videoDao.getVideosPagingSource(courseId)
-            }).flow
+            }).flow.map { pagingData ->
+            pagingData.map { entity ->
+                entity.toVideoUiModel()
+            }
+        }
     }
 
     override suspend fun getVideo(videoId: String): VideoWithChannelAndLabels? {
@@ -131,14 +143,18 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     // channel
-    override fun channelPagingFlow(courseId: String): Flow<PagingData<ChannelWithLabels>> {
+    override fun channelPagingFlow(courseId: String): Flow<PagingData<ChannelUiModel>> {
         return Pager(
             config = pagingConfig, pagingSourceFactory = {
                 channelDao.getChannelsPagingSource(courseId)
-            }).flow
+            }).flow.map { pagingData ->
+            pagingData.map { entity ->
+                entity.toChannelUiModel()
+            }
+        }
     }
 
-    override suspend fun getChannel(channelId: String): ChannelWithLabels? {
+    override suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels? {
         return channelDao.getChannelWithLabelsById(channelId)
     }
 
@@ -147,14 +163,10 @@ class DefaultStorageDataRepository @Inject constructor(
         return courseDao.getCourseById(courseId)
     }
 
-    override suspend fun saveUserCourse(course: CourseUiModel): String {
-        val uid = accountService.currentUserId
-        return storageService.saveUserCourse(uid, course)
-    }
-
-    override suspend fun updateUserCourse(course: CourseUiModel) {
-        val uid = accountService.currentUserId
-        storageService.updateUserCourse(uid, course)
+    override suspend fun saveUserCourse(course: CourseEntity) {
+        courseDao.upsertCourse(course)
+        setCurrentCourse(course.id)
+        schedulePushSync()
     }
 
     override suspend fun deleteUserCourse(courseId: String) {
@@ -163,6 +175,16 @@ class DefaultStorageDataRepository @Inject constructor(
             courseDao.deleteCourseById(courseId, now)
             courseDao.bulkDeleteChannelsForCourse(courseId, now)
             courseDao.bulkDeleteVideosForCourse(courseId, now)
+        }
+        val currentCourseId = currentCourseId.firstOrNull() ?: ""
+        if (currentCourseId == courseId) {
+            val uid = accountService.currentUserId
+            val firstAvailable = courses.firstOrNull()?.getOrNull(0)
+            if (firstAvailable == null) {
+                preferenceStorageService.clearCurrentCourseId(uid)
+            } else {
+                preferenceStorageService.saveCurrentCourseId(uid, courseId)
+            }
         }
         schedulePushSync()
     }
@@ -178,13 +200,9 @@ class DefaultStorageDataRepository @Inject constructor(
         return labelDao.getLabelById(labelId)
     }
 
-    override suspend fun saveLabel(courseId: String, label: UserLabel) {
-        val userId = accountService.currentUserId
-        val operationTime = Timestamp.now()
-        val updatedLabel = label.copy(timestamp = operationTime)
-
-        labelDao.insertOrUpdate(listOf(updatedLabel))
-        storageService.saveUserLabel(userId, courseId, updatedLabel)
+    override suspend fun saveLabel(label: LabelEntity) {
+        labelDao.upsertLabel(label)
+        schedulePushSync()
     }
 
     override suspend fun deleteLabel(labelId: String) {
@@ -194,12 +212,41 @@ class DefaultStorageDataRepository @Inject constructor(
 
     // stats
     override fun getMonthlyStatsFlow(
-        userCourseId: String, monthId: String
-    ): Flow<UserMonthlyStats?> {
-        val uid = accountService.currentUserId
-        return storageService.getMonthlyStatsFlow(uid, userCourseId, monthId)
+        courseId: String, monthId: String
+    ): Flow<MonthlyStatsUiModel?> {
+        val yearMonth = YearMonth.parse(monthId)
+        val start =
+            yearMonth.atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val end =
+            yearMonth.atEndOfMonth().atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()
+                .toEpochMilli()
+
+        return statsDao.getDailyStats(start, end).map { rows ->
+            val daysMap = rows.associate {
+                "day_${it.dayOfMonth.toInt()}" to DayAggregation(
+                    totalTimeInSeconds = it.totalSeconds, totalVideoCount = it.videoCount
+                )
+            }
+
+            MonthlyStatsUiModel(
+                id = monthId,
+                totalTimeInSeconds = rows.sumOf { it.totalSeconds },
+                totalVideoCount = rows.sumOf { it.videoCount },
+                days = daysMap
+            )
+        }
     }
 
+    override fun getTodaySecondsFlow(courseId: String): Flow<Long> {
+        val today = LocalDate.now()
+        val start = today.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val end =
+            today.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+        return statsDao.getDailyStats(start, end).map { rows ->
+            rows.sumOf { it.totalSeconds }
+        }
+    }
 
     // preferences
     override suspend fun saveThemeMode(theme: AppTheme) {

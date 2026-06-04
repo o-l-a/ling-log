@@ -1,13 +1,13 @@
 package com.example.myinputlog.ui.screens.channel
 
-import com.example.myinputlog.ui.screens.video.ChannelMetadata
+import com.example.myinputlog.ui.models.ChannelUiModel
 
 
 sealed interface ChannelUiState {
     data object Loading : ChannelUiState
     data object Error : ChannelUiState
     data class Success(
-        val channelMetadata: ChannelMetadata = ChannelMetadata(),
+        val channelUiModel: ChannelUiModel = ChannelUiModel(),
         val channelLoadState: ChannelLoadState = ChannelLoadState.Loading,
         val isDeleteEnabled: Boolean = false,
     ) : ChannelUiState

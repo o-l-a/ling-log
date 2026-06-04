@@ -5,10 +5,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
-import com.example.myinputlog.ui.models.CourseUiModel
-import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.ui.models.CourseUiModel
+import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.models.mapToCourseUiModel
+import com.example.myinputlog.ui.models.toCourseUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -44,21 +45,20 @@ class MediaListViewModel @Inject constructor(
     ) { courses, id ->
 
         when {
-            courses == null -> MediaListUiState.Loading
             courses.isEmpty() -> MediaListUiState.Empty
 
             else -> {
                 val current = courses.find { it.id == id } ?: courses.first()
-                val courseHeader = mapToCourseUiModel(current)
+                val courseHeader = mapToCourseUiModel(current.toCourseUiModel())
 
                 MediaListUiState.Success(
                     courseHeader = courseHeader,
-                    userCourses = courses
+                    userCourses = courses.map { it.toCourseUiModel() }
                 )
             }
         }
     }.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), // Save battery
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000),
         initialValue = MediaListUiState.Loading
     )
 
@@ -73,12 +73,12 @@ class MediaListViewModel @Inject constructor(
     }
 }
 
-fun Flow<PagingData<YouTubeVideo>>.insertHeaderAndSeparators(): Flow<PagingData<YouTubeVideo>> {
+fun Flow<PagingData<VideoUiModel>>.insertHeaderAndSeparators(): Flow<PagingData<VideoUiModel>> {
     return this.map {
-        it.insertSeparators { before: YouTubeVideo?, after: YouTubeVideo? ->
+        it.insertSeparators { before: VideoUiModel?, after: VideoUiModel? ->
             when {
                 before == null && after != null -> {
-                    YouTubeVideo(watchedOn = after.watchedOn)
+                    VideoUiModel(watchedOn = after.watchedOn)
                 }
 
                 before == null || after == null -> {
@@ -86,7 +86,7 @@ fun Flow<PagingData<YouTubeVideo>>.insertHeaderAndSeparators(): Flow<PagingData<
                 }
 
                 before.watchedOn != after.watchedOn -> {
-                    YouTubeVideo(watchedOn = after.watchedOn)
+                    VideoUiModel(watchedOn = after.watchedOn)
                 }
 
                 else -> {

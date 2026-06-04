@@ -3,7 +3,7 @@ package com.example.myinputlog.data.service.impl
 import android.util.Log
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.data.model.UserData
-import com.example.myinputlog.data.model.YouTubeVideo
+import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.data.service.AccountService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
@@ -116,7 +116,7 @@ class DefaultAccountService @Inject constructor(
             .collection(DefaultStorageService.USER_COURSE_COLL)
             .document(userCourseId)
             .collection(DefaultStorageService.YT_VIDEO_COLL)
-        val videosForCourse: List<YouTubeVideo> = videosCollection
+        val videosForCourse: List<VideoUiModel> = videosCollection
             .get()
             .await()
             .toObjects()

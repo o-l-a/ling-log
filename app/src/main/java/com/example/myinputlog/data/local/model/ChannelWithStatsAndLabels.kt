@@ -7,12 +7,15 @@ import com.example.myinputlog.data.local.entities.ChannelEntity
 import com.example.myinputlog.data.local.entities.ChannelLabelCrossRef
 import com.example.myinputlog.data.local.entities.LabelEntity
 
-class ChannelWithLabels(
-    @Embedded val channel: ChannelEntity, @Relation(
+class ChannelWithStatsAndLabels(
+    @Embedded val channel: ChannelEntity,
+    @Relation(
         parentColumn = "id", entityColumn = "id", associateBy = Junction(
             value = ChannelLabelCrossRef::class,
             parentColumn = "channelId",
             entityColumn = "labelId"
         )
-    ) val labels: List<LabelEntity>
+    ) val labels: List<LabelEntity>,
+    val totalTimeInSeconds: Long = 0L,
+    val totalVideoCount: Long = 0L
 )

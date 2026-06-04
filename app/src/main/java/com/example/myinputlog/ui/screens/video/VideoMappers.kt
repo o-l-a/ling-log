@@ -2,7 +2,7 @@ package com.example.myinputlog.ui.screens.video
 
 import com.example.myinputlog.data.local.entities.ChannelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
-import com.example.myinputlog.data.local.model.ChannelWithLabels
+import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.remote.ChannelItem
 import com.example.myinputlog.data.remote.VideoItem
@@ -96,14 +96,14 @@ fun VideoForm.toFormWithChannelMetadata(channelItem: ChannelItem): VideoForm {
     )
 }
 
-fun VideoForm.toFormWithChannelMetadata(channelWithLabels: ChannelWithLabels): VideoForm {
+fun VideoForm.toFormWithChannelMetadata(channelWithStatsAndLabels: ChannelWithStatsAndLabels): VideoForm {
     return this.copy(
-        channelId = channelWithLabels.channel.id,
-        channelTitle = channelWithLabels.channel.title,
-        channelCustomUrl = channelWithLabels.channel.customUrl,
-        channelCountry = channelWithLabels.channel.country,
-        channelThumbnailDefaultUrl = channelWithLabels.channel.thumbnailDefaultUrl,
-        channelThumbnailMediumUrl = channelWithLabels.channel.thumbnailMediumUrl,
-        channelThumbnailHighUrl = channelWithLabels.channel.thumbnailHighUrl,
+        channelId = channelWithStatsAndLabels.channel.id,
+        channelTitle = channelWithStatsAndLabels.channel.title,
+        channelCustomUrl = channelWithStatsAndLabels.channel.customUrl,
+        channelCountry = channelWithStatsAndLabels.channel.country,
+        channelThumbnailDefaultUrl = channelWithStatsAndLabels.channel.thumbnailDefaultUrl,
+        channelThumbnailMediumUrl = channelWithStatsAndLabels.channel.thumbnailMediumUrl,
+        channelThumbnailHighUrl = channelWithStatsAndLabels.channel.thumbnailHighUrl,
     )
 }

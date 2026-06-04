@@ -1,0 +1,34 @@
+package com.example.myinputlog.ui.models
+
+import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
+import com.example.myinputlog.ui.screens.utils.Country
+import java.util.Date
+
+data class VideoUiModel(
+    val id: String = "",
+    val watchedOn: Date = Date(0),
+    val speakersNationality: Country? = null,
+    val title: String = "",
+    val channelTitle: String = "",
+    val durationInSeconds: Long = 0L,
+    val videoUrl: String = "",
+    val thumbnailDefaultUrl: String = "",
+    val thumbnailMediumUrl: String = "",
+    val thumbnailHighUrl: String = "",
+    val defaultAudioLanguage: String = "",
+    val labels: List<LabelUiModel> = emptyList()
+)
+
+fun VideoWithChannelAndLabels.toVideoUiModel(): VideoUiModel = VideoUiModel(
+    id = video.id,
+    watchedOn = video.watchedOn,
+    speakersNationality = video.speakersNationality,
+    title = video.title,
+    channelTitle = channel.title,
+    durationInSeconds = video.durationInSeconds,
+    videoUrl = video.videoUrl,
+    thumbnailDefaultUrl = video.thumbnailDefaultUrl,
+    thumbnailMediumUrl = video.thumbnailMediumUrl,
+    thumbnailHighUrl = video.thumbnailHighUrl,
+    defaultAudioLanguage = video.defaultAudioLanguage,
+    labels = labels.map { it.toLabelUiModel() })

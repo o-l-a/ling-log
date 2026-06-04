@@ -64,7 +64,7 @@ fun CourseScreen(
                 hasSaveAction = true,
                 isFormValid = successState?.isFormValid ?: false,
                 onDelete = { courseViewModel.toggleDialogVisibility(true) },
-                onSave = courseViewModel::persistCourse,
+                onSave = courseViewModel::saveCourse,
                 scrollBehavior = scrollBehavior
             )
         }) { innerPadding ->
@@ -87,7 +87,7 @@ fun CourseScreen(
                     onNameChange = courseViewModel::updateName,
                     onGoalChange = courseViewModel::updateGoal,
                     onOtherHoursChange = courseViewModel::updateOtherHours,
-                    onDone = courseViewModel::persistCourse
+                    onDone = courseViewModel::saveCourse
                 )
 
                 if ((courseUiState as CourseUiState.Success).isDialogVisible) {

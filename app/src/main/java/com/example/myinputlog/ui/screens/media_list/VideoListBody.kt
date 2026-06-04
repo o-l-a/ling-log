@@ -17,7 +17,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.myinputlog.R
-import com.example.myinputlog.data.model.YouTubeVideo
+import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.video.VideoListItemPlaceholder
@@ -29,7 +29,7 @@ import com.example.myinputlog.ui.theme.spacing
 fun VideoListBody(
     modifier: Modifier = Modifier,
     currentCourseId: String,
-    videos: LazyPagingItems<YouTubeVideo>,
+    videos: LazyPagingItems<VideoUiModel>,
     navigateToYouTubeVideo: (String, String) -> Unit,
     lazyColumnListState: LazyListState
 ) {
@@ -90,7 +90,7 @@ fun VideoListBody(
 @Composable
 fun VideoContainer(
     modifier: Modifier = Modifier,
-    video: YouTubeVideo,
+    video: VideoUiModel,
     isSeparator: Boolean = false,
     onVideoClicked: (String) -> Unit
 ) {
@@ -104,7 +104,7 @@ fun VideoContainer(
             )
         }, supportingContent = {
             Text(
-                text = "${video.channel}${if (video.speakersNationality != null) " • " + video.speakersNationality.flagEmoji else ""}",
+                text = "${video.channelTitle}${if (video.speakersNationality != null) " • " + video.speakersNationality.flagEmoji else ""}",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodySmall

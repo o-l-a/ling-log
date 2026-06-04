@@ -60,6 +60,12 @@ class DefaultPreferenceStorageService @Inject constructor(
         }
     }
 
+    override suspend fun clearCurrentCourseId(userId: String) {
+        datastore.edit { preferences ->
+            preferences.remove(buildStringKey(CURRENT_COURSE_ID, userId))
+        }
+    }
+
     override suspend fun saveThemeMode(userId: String, theme: AppTheme) {
         datastore.edit { preferences ->
             preferences[buildStringKey(THEME_MODE, userId)] = theme.name

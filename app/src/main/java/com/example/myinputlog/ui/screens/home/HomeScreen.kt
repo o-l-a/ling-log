@@ -33,7 +33,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.CourseTopAppBar
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
-import com.example.myinputlog.data.utils.DateUtils.toDayKey
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.ConfettiOverlay
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
@@ -43,8 +42,7 @@ import com.example.myinputlog.ui.screens.utils.composable.StatisticContainer
 import com.example.myinputlog.ui.screens.utils.composable.calendar.SwipeableCalendar
 import com.example.myinputlog.ui.screens.utils.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
-import java.time.YearMonth
-import java.util.Date
+import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +53,6 @@ fun HomeScreen(
     navigateToYouTubeVideoEntry: (String) -> Unit,
 ) {
     val homeUiState by homeViewModel.homeUiState.collectAsStateWithLifecycle()
-    val monthlyStatsMap by homeViewModel.monthlyStatsMap.collectAsStateWithLifecycle()
     val currentCourseId by homeViewModel.currentCourseId.collectAsStateWithLifecycle()
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -103,19 +100,10 @@ fun HomeScreen(
                 }
 
                 is HomeUiState.Success -> {
-                    val todaySeconds = remember(monthlyStatsMap) {
-                        val stats = (monthlyStatsMap[YearMonth.now()
-                            .toString()] as? MonthlyStatsResult.Success)?.data
-                        stats?.days?.get(Date().toDayKey())?.totalTimeInSeconds ?: 0L
-                    }
-                    val updatedSuccessState = state.copy(
-                        courseHeader = state.courseHeader.copy(totalTimeInSecondsToday = todaySeconds)
-                    )
                     HomeBody(
                         modifier = modifier.padding(innerPadding),
-                        homeUiState = updatedSuccessState,
-                        monthlyStatsMap = monthlyStatsMap,
-                        onMonthSettled = homeViewModel::onMonthSettled,
+                        homeUiState = state,
+                        getStatsForMonth = homeViewModel::getStatsForMonth,
                         doParty = homeViewModel::confetti
                     )
                     if (state.isParty) {
@@ -138,8 +126,7 @@ fun HomeScreen(
 fun HomeBody(
     modifier: Modifier = Modifier,
     homeUiState: HomeUiState.Success,
-    monthlyStatsMap: Map<String, MonthlyStatsResult>,
-    onMonthSettled: (YearMonth) -> Unit,
+    getStatsForMonth: (String) -> Flow<MonthlyStatsResult>,
     doParty: () -> Unit
 ) {
     val scrollState = rememberLazyListState()
@@ -223,9 +210,7 @@ fun HomeBody(
         }
         item {
             SwipeableCalendar(
-                selectedCourseId = homeUiState.courseHeader.id,
-                monthlyStatsMap = monthlyStatsMap,
-                onMonthSettled = onMonthSettled,
+                getStatsForMonth = getStatsForMonth
             )
         }
     }

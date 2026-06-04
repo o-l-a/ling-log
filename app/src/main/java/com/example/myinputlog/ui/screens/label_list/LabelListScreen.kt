@@ -20,7 +20,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
-import com.example.myinputlog.data.model.UserLabel
+import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.SettingsCard
@@ -78,7 +78,7 @@ fun LabelListScreen(
 
 @Composable
 private fun LabelListBody(
-    modifier: Modifier = Modifier, labels: List<UserLabel>, onLabelClicked: (String) -> Unit
+    modifier: Modifier = Modifier, labels: List<LabelUiModel>, onLabelClicked: (String) -> Unit
 ) {
     val scrollState = rememberLazyListState()
     val isScrollEnabled by remember {

@@ -18,7 +18,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.myinputlog.R
-import com.example.myinputlog.data.model.YouTubeChannel
+import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.channel.ChannelListItemPlaceholder
@@ -29,7 +29,7 @@ import com.example.myinputlog.ui.theme.spacing
 @Composable
 fun ChannelListBody(
     modifier: Modifier = Modifier,
-    channels: LazyPagingItems<YouTubeChannel>,
+    channels: LazyPagingItems<ChannelUiModel>,
     navigateToYouTubeChannel: (String, String) -> Unit,
     currentCourseId: String,
     lazyColumnListState: LazyListState
@@ -88,7 +88,7 @@ fun ChannelListBody(
 
 @Composable
 fun ChannelContainer(
-    modifier: Modifier = Modifier, channel: YouTubeChannel, onChannelClicked: (String) -> Unit = {}
+    modifier: Modifier = Modifier, channel: ChannelUiModel, onChannelClicked: (String) -> Unit = {}
 ) {
     ListItem(modifier = modifier.clickable { onChannelClicked(channel.id) }, headlineContent = {
         Text(

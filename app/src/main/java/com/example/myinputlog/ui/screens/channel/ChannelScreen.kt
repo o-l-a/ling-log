@@ -103,21 +103,21 @@ fun ChannelBody(
         item {
             ChannelThumbnail(
                 Modifier.height(MaterialTheme.spacing.doubleExtraLarge),
-                channelUiState.channelMetadata.thumbnailHighUrl
+                channelUiState.channelUiModel.thumbnailHighUrl
             )
         }
         item {
             Text(
                 modifier = Modifier.padding(top = MaterialTheme.spacing.extraSmall),
-                text = channelUiState.channelMetadata.title,
+                text = channelUiState.channelUiModel.title,
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center
             )
         }
-        channelUiState.channelMetadata.customUrl?.ifEmpty { null }?.let {
+        channelUiState.channelUiModel.customUrl?.ifEmpty { null }?.let {
             item {
                 Text(
-                    text = channelUiState.channelMetadata.customUrl,
+                    text = channelUiState.channelUiModel.customUrl,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
@@ -133,7 +133,7 @@ fun ChannelBody(
             ) {
                 StatisticContainer(
                     modifier = Modifier.weight(1F),
-                    number = channelUiState.channelMetadata.totalVideoCount.toString(),
+                    number = channelUiState.channelUiModel.totalVideoCount.toString(),
                     label = stringResource(R.string.stats_videos_watched),
                     leadingContent = {
                         Image(
@@ -144,7 +144,7 @@ fun ChannelBody(
                     })
                 StatisticContainer(
                     modifier = Modifier.weight(1F),
-                    number = formatDurationAsText(channelUiState.channelMetadata.totalTimeInSeconds),
+                    number = formatDurationAsText(channelUiState.channelUiModel.totalTimeInSeconds),
                     label = stringResource(R.string.stats_hours_watched),
                     leadingContent = {
                         SpinningClockIcon(

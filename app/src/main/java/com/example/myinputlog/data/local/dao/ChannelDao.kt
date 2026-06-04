@@ -10,7 +10,7 @@ import androidx.room.Upsert
 import com.example.myinputlog.data.local.entities.ChannelEntity
 import com.example.myinputlog.data.local.entities.ChannelLabelCrossRef
 import com.example.myinputlog.data.local.model.ChannelWithLabelIds
-import com.example.myinputlog.data.local.model.ChannelWithLabels
+import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 
 @Dao
 interface ChannelDao {
@@ -22,8 +22,17 @@ interface ChannelDao {
     suspend fun getChannelsByIds(ids: List<String>): List<ChannelEntity>
 
     @Transaction
-    @Query("SELECT * FROM channels WHERE id = :id AND isDeleted = 0")
-    suspend fun getChannelWithLabelsById(id: String): ChannelWithLabels?
+    @Query(
+        """SELECT 
+            c.*, 
+            COUNT(v.id) AS videoCount, 
+            COALESCE(SUM(v.durationInSeconds), 0) AS totalTimeInSeconds
+        FROM channels c
+        LEFT JOIN videos v ON c.id = v.channelId AND v.isDeleted = 0
+        WHERE c.id = :id AND c.isDeleted = 0
+        GROUP BY c.id"""
+    )
+    suspend fun getChannelWithLabelsById(id: String): ChannelWithStatsAndLabels?
 
     @Transaction
     @Query(
@@ -31,7 +40,7 @@ interface ChannelDao {
         WHERE isDeleted = 0 AND courseId = :courseId 
         ORDER BY lastUpdated DESC"""
     )
-    fun getChannelsPagingSource(courseId: String): PagingSource<Int, ChannelWithLabels>
+    fun getChannelsPagingSource(courseId: String): PagingSource<Int, ChannelWithStatsAndLabels>
 
     // UPSERTS
     @Upsert
