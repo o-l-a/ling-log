@@ -42,7 +42,7 @@ class HomeViewModel @Inject constructor(
     )
 
     val homeUiState: StateFlow<HomeUiState> = combine(
-        repository.userCourses, currentCourseId, isParty, repository.confettiColors
+        repository.courses, currentCourseId, isParty, repository.confettiColors
     ) { courses, id, party, colors ->
 
         when {

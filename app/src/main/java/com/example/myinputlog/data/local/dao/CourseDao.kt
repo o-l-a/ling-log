@@ -1,23 +1,54 @@
 package com.example.myinputlog.data.local.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Upsert
 import com.example.myinputlog.data.local.entities.CourseEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CourseDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(course: CourseEntity)
+    // GETS
+    @Query("SELECT * FROM courses WHERE id = :id AND isDeleted = 0")
+    suspend fun getCourseById(id: String): CourseEntity?
+
+    @Query("SELECT * FROM courses WHERE id IN (:ids)")
+    suspend fun getCoursesByIds(ids: List<String>): List<CourseEntity>
 
     @Query("SELECT * FROM courses WHERE isDeleted = 0")
     fun getAllCourses(): Flow<List<CourseEntity>>
 
+    // UPSERTS
+    @Upsert
+    suspend fun upsertCourse(course: CourseEntity)
+
+    @Upsert
+    suspend fun bulkUpsertCourses(courses: List<CourseEntity>)
+
+    @Transaction
+    suspend fun bulkUpsertCoursesIfNewer(remoteEntities: List<CourseEntity>) {
+        if (remoteEntities.isEmpty()) return
+
+        val ids = remoteEntities.map { it.id }
+        val localEntities = getCoursesByIds(ids).associateBy { it.id }
+
+        val toUpsert = remoteEntities.filter { remoteCourse ->
+            val localCourse = localEntities[remoteCourse.id]
+            localCourse == null || remoteCourse.lastUpdated > localCourse.lastUpdated
+        }.map { remoteCourse ->
+            remoteCourse.copy(lastSynced = remoteCourse.lastUpdated)
+        }
+
+        if (toUpsert.isNotEmpty()) {
+            bulkUpsertCourses(toUpsert)
+        }
+    }
+
+    // SYNC OPERATIONS
     @Query("SELECT * FROM courses WHERE lastUpdated > lastSynced")
     suspend fun getUnsyncedCourses(): List<CourseEntity>
 
-    @Query("UPDATE courses SET lastSynced = :ts WHERE id = :id")
-    suspend fun markSynced(id: String, ts: Long)
+    @Query("UPDATE courses SET lastSynced = lastUpdated WHERE id IN (:ids)")
+    suspend fun markCoursesSynced(ids: List<String>)
 }

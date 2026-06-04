@@ -1,9 +1,9 @@
 package com.example.myinputlog.data.service.module
 
-import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.repository.ApiDataRepository
-import com.example.myinputlog.data.repository.impl.DefaultStorageDataRepository
+import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.repository.impl.DefaultApiDataRepository
+import com.example.myinputlog.data.repository.impl.DefaultStorageDataRepository
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.PreferenceStorageService
 import com.example.myinputlog.data.service.StorageService

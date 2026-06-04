@@ -62,7 +62,7 @@ class VideoViewModel @Inject constructor(
     private var fetchJob: Job? = null
 
     val videoUiState: StateFlow<VideoUiState> = combine(
-        storageDataRepository.userCourses, _userDraft, _videoMetadata, _loadingState, _uiFlags
+        storageDataRepository.courses, _userDraft, _videoMetadata, _loadingState, _uiFlags
     ) { courses, draft, meta, loadState, flags ->
         if (flags.isDeleting) {
             VideoUiState.Loading
@@ -94,7 +94,7 @@ class VideoViewModel @Inject constructor(
     private fun loadVideoFromStorage() {
         viewModelScope.launch {
             val selectedCourse =
-                storageDataRepository.userCourses.first()?.firstOrNull { userCourse ->
+                storageDataRepository.courses.first()?.firstOrNull { userCourse ->
                     userCourse.id == defaultCourseId
                 } ?: UserCourse()
             if (!isNewVideo(videoId)) {
@@ -107,7 +107,7 @@ class VideoViewModel @Inject constructor(
     }
 
     private suspend fun loadExistingVideo(selectedCourse: UserCourse) {
-        val video = storageDataRepository.getYouTubeVideo(defaultCourseId, videoId)
+        val video = storageDataRepository.getVideo(defaultCourseId, videoId)
         originalVideo = video
         if (video != null) {
             val channelMetadata = loadChannel(video.channelId)
@@ -125,7 +125,7 @@ class VideoViewModel @Inject constructor(
     }
 
     private suspend fun loadChannel(channelId: String): ChannelMetadata? {
-        val channel = storageDataRepository.getYouTubeChannel(defaultCourseId, channelId)
+        val channel = storageDataRepository.getChannel(defaultCourseId, channelId)
         if (channel != null) {
             Log.d(TAG, "Loaded channel ${channel.title} from storage")
             return channel.toChannelMetadata()
@@ -240,6 +240,14 @@ class VideoViewModel @Inject constructor(
                     _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.video_delete_error)))
                 }
             }
+        }
+    }
+
+    fun saveVideo() {
+        val state = uiState.value as? VideoUiState.Success ?: return
+        viewModelScope.launch {
+            // We pass the ID and the Draft (the user's input)
+            repository.saveVideo(state.id, state.videoUserDraft, state.videoMetadata)
         }
     }
 

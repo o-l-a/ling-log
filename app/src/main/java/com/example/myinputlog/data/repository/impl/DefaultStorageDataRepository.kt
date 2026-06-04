@@ -1,39 +1,56 @@
 package com.example.myinputlog.data.repository.impl
 
-import android.util.Log
+import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkManager
+import com.example.myinputlog.data.local.dao.ChannelDao
+import com.example.myinputlog.data.local.dao.CourseDao
 import com.example.myinputlog.data.local.dao.LabelDao
+import com.example.myinputlog.data.local.dao.VideoDao
+import com.example.myinputlog.data.local.entities.CourseEntity
+import com.example.myinputlog.data.local.entities.LabelEntity
+import com.example.myinputlog.data.local.model.ChannelWithLabels
+import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.data.model.UserLabel
 import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.model.YouTubeChannel
 import com.example.myinputlog.data.model.YouTubeVideo
-import com.example.myinputlog.data.paging.FirestorePagingSource
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.PreferenceStorageService
-import com.example.myinputlog.data.service.StorageService
-import com.example.myinputlog.data.utils.createReactivePagingFlow
+import com.example.myinputlog.data.worker.PushSyncWorker
 import com.example.myinputlog.ui.screens.utils.ConfettiOptions
+import com.example.myinputlog.ui.screens.utils.ext.stripUrl
+import com.example.myinputlog.ui.screens.video.VideoMetadata
+import com.example.myinputlog.ui.screens.video.VideoUserDraft
 import com.example.myinputlog.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import java.util.Date
+import java.util.UUID
 import javax.inject.Inject
 
 class DefaultStorageDataRepository @Inject constructor(
-    private val storageService: StorageService,
     private val accountService: AccountService,
     private val preferenceStorageService: PreferenceStorageService,
     private val pagingConfig: PagingConfig,
-    private val labelDao: LabelDao
+    private val workManager: WorkManager,
+    private val courseDao: CourseDao,
+    private val labelDao: LabelDao,
+    private val videoDao: VideoDao,
+    private val channelDao: ChannelDao
 ) : StorageDataRepository {
     companion object {
         private const val TAG = "StorageRepository"
@@ -41,20 +58,27 @@ class DefaultStorageDataRepository @Inject constructor(
 
     private val userId: Flow<String> = accountService.currentUser.map { it.id }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override val userCourses: Flow<List<UserCourse>?> = userId.flatMapLatest { id ->
-        if (id.isEmpty()) {
-            flowOf(null)
-        } else {
-            storageService.getUserCourses(id)
-        }
-    }
+    override val courses: Flow<List<CourseEntity>> = courseDao.getAllCourses()
 
     override val currentUser: Flow<UserData> = accountService.currentUser
 
-    override val themeMode: Flow<AppTheme> = preferenceStorageService.themeMode
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val themeMode: Flow<AppTheme> =
+        currentUser.distinctUntilChanged().flatMapLatest { user ->
+            preferenceStorageService.themeMode(user.id)
+        }
 
-    override val confettiColors: Flow<ConfettiOptions> = preferenceStorageService.confettiColors
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val confettiColors: Flow<ConfettiOptions> =
+        currentUser.distinctUntilChanged().flatMapLatest { user ->
+            preferenceStorageService.confettiColors(user.id)
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val currentCourseId: Flow<String> =
+        currentUser.distinctUntilChanged().flatMapLatest { user ->
+            preferenceStorageService.currentCourseId(user.id)
+        }
 
     override suspend fun changeUsername(newUsername: String) {
         accountService.changeUsername(newUsername)
@@ -68,62 +92,46 @@ class DefaultStorageDataRepository @Inject constructor(
         accountService.deleteAccount()
     }
 
-    override val currentCourseId: Flow<String> = preferenceStorageService.currentCourseId
 
     override suspend fun setCurrentCourse(courseId: String) {
-        preferenceStorageService.saveCurrentCourseId(courseId)
+        val uid = accountService.currentUserId
+        preferenceStorageService.saveCurrentCourseId(uid, courseId)
     }
 
     override suspend fun saveThemeMode(theme: AppTheme) {
-        preferenceStorageService.saveThemeMode(theme)
+        val uid = accountService.currentUserId
+        preferenceStorageService.saveThemeMode(uid, theme)
     }
 
     override suspend fun saveConfettiColors(colors: ConfettiOptions) {
-        preferenceStorageService.saveConfettiColors(colors)
-    }
-
-    override fun videoPagingFlow(courseId: String): Flow<PagingData<YouTubeVideo>> {
-        return userId.createReactivePagingFlow(
-            courseId = courseId,
-            changeSignal = { uid -> storageService.getVideosChangeSignal(uid, courseId) },
-            factoryProvider = { uid ->
-                FirestorePagingSource(YouTubeVideo::class.java) { key, loadSize ->
-                    storageService.videosByWatchedOnQuery(uid, courseId, key, loadSize)
-                }
-            },
-            pagingConfig = pagingConfig
-        )
-    }
-
-    override fun channelPagingFlow(courseId: String): Flow<PagingData<YouTubeChannel>> {
-        return userId.createReactivePagingFlow(
-            courseId = courseId,
-            changeSignal = { uid -> storageService.getVideosChangeSignal(uid, courseId) },
-            factoryProvider = { uid ->
-                FirestorePagingSource(YouTubeChannel::class.java) { key, loadSize ->
-                    storageService.channelsByVideoCount(uid, courseId, key, loadSize)
-                }
-            },
-            pagingConfig = pagingConfig
-        )
-    }
-
-    override suspend fun getYouTubeVideo(courseId: String, videoId: String): YouTubeVideo? {
         val uid = accountService.currentUserId
-        return storageService.getYouTubeVideo(uid, courseId, videoId)
+        preferenceStorageService.saveConfettiColors(uid, colors)
     }
 
-    override suspend fun getYouTubeChannel(courseId: String, channelId: String): YouTubeChannel? {
-        if (channelId.isBlank()) {
-            return null
-        }
-        val uid = accountService.currentUserId
-        return storageService.getYouTubeChannel(uid, courseId, channelId)
+    override fun videoPagingFlow(courseId: String): Flow<PagingData<VideoWithChannelAndLabels>> {
+        return Pager(
+            config = pagingConfig, pagingSourceFactory = {
+                videoDao.getVideosPagingSource(courseId)
+            }).flow
     }
 
-    override suspend fun getUserCourse(courseId: String): UserCourse? {
-        val uid = accountService.currentUserId
-        return storageService.getUserCourse(uid, courseId)
+    override fun channelPagingFlow(courseId: String): Flow<PagingData<ChannelWithLabels>> {
+        return Pager(
+            config = pagingConfig, pagingSourceFactory = {
+                channelDao.getChannelsPagingSource(courseId)
+            }).flow
+    }
+
+    override suspend fun getVideo(videoId: String): VideoWithChannelAndLabels? {
+        return videoDao.getVideoWithChannelAndLabelsById(videoId)
+    }
+
+    override suspend fun getChannel(channelId: String): ChannelWithLabels? {
+        return channelDao.getChannelWithLabelsById(channelId)
+    }
+
+    override suspend fun getUserCourse(courseId: String): CourseEntity? {
+        return courseDao.getCourseById(courseId)
     }
 
     override suspend fun saveUserCourse(course: UserCourse): String {
@@ -149,43 +157,35 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getLabelsFlow(userCourseId: String): Flow<List<UserLabel>> {
-        val userId = accountService.currentUserId
-        return storageService.getLabelsChangeSignal(userId, userCourseId)
-            .onEach { remoteTimestamp ->
-                syncLabels(userCourseId, remoteTimestamp)
-            }.flatMapLatest {
-                labelDao.getLabelsFlow(userId, userCourseId)
-            }
+    override fun getLabelsFlow(): Flow<List<LabelEntity>> {
+        return labelDao.getAllLabels()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getLabel(courseId: String, labelId: String): Flow<UserLabel?> {
-        val userId = accountService.currentUserId
-        return labelDao.getLabelById(userId, courseId, labelId)
+    override suspend fun getLabelById(labelId: String): LabelEntity? {
+        return labelDao.getLabelById(labelId)
     }
 
-    suspend fun syncLabels(userCourseId: String, remoteTimestamp: Timestamp?) {
-        try {
-            val userId = accountService.currentUserId
-            val latestLocalTime = labelDao.getLatestTimestamp(userId, userCourseId)
+    suspend fun saveVideo(id: String, draft: VideoUserDraft, metadata: VideoMetadata) {
+        val existingVideo = videoDao.getVideoWithChannelAndLabelsById(id)
+        val now = System.currentTimeMillis()
 
-            if (remoteTimestamp != null && latestLocalTime != null) {
-                if (remoteTimestamp.seconds <= latestLocalTime.seconds) {
-                    Log.d(TAG, "Skipping label sync: local is up to date.")
-                    return
-                }
-            }
+        val videoToSave = existingVideo?.copy(
+            watchedOn = draft.watchedOn ?: Date(0),
+            speakersNationality = draft.speakersNationality,
+            videoUrl = draft.videoUrl.stripUrl(),
+            lastUpdated = now
+            // TODO
+        ) ?: VideoWithChannelAndLabels(
+            id = UUID.randomUUID().toString(),
+            title = metadata.title,
+            videoUrl = draft.videoUrl.stripUrl(),
+            watchedOn = draft.watchedOn ?: Date(0),
+            lastUpdated = now
+            // TODO
+        )
 
-            val updatedLabels = storageService.getLabelsUpdatedAfter(
-                userId, userCourseId, latestLocalTime ?: Timestamp(Date(0))
-            )
-            if (updatedLabels.isNotEmpty()) {
-                labelDao.insertOrUpdate(updatedLabels)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to sync labels", e)
-        }
+        videoDao.upsertVideoWithLabelIds(videoToSave)
     }
 
     override suspend fun saveVideo(
@@ -245,8 +245,20 @@ class DefaultStorageDataRepository @Inject constructor(
 
     override suspend fun deleteLabel(courseId: String, label: UserLabel) {
         val userId = accountService.currentUserId
-        val operationTime = Timestamp.now()
         labelDao.deleteLabelById(userId, courseId, label.id)
         storageService.deleteUserLabel(userId, courseId, label, operationTime)
+    }
+
+    private fun schedulePushSync() {
+        val constraints =
+            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+
+        val pushSync = OneTimeWorkRequestBuilder<PushSyncWorker>().setConstraints(constraints)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST).addTag("pushSync")
+            .build()
+
+        workManager.beginUniqueWork(
+            "global_push_sync", ExistingWorkPolicy.APPEND_OR_REPLACE, listOf(pushSync)
+        ).enqueue()
     }
 }

@@ -40,7 +40,7 @@ class MediaListViewModel @Inject constructor(
     }.cachedIn(viewModelScope)
 
     val mediaListUiState: StateFlow<MediaListUiState> = combine(
-        repository.userCourses, currentCourseId
+        repository.courses, currentCourseId
     ) { courses, id ->
 
         when {

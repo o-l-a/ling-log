@@ -52,7 +52,7 @@ class ChannelViewModel @Inject constructor(
     private fun loadChannel() {
         viewModelScope.launch {
             val channelMetadata =
-                storageDataRepository.getYouTubeChannel(courseId, channelId)?.toChannelMetadata()
+                storageDataRepository.getChannel(courseId, channelId)?.toChannelMetadata()
             if (channelMetadata != null) {
                 _channelMetadata.value = channelMetadata
                 _loadingState.value = ChannelLoadState.Success

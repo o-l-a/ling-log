@@ -106,7 +106,7 @@ class CourseViewModel @Inject constructor(
             val currentCourseId = storageDataRepository.currentCourseId.firstOrNull() ?: ""
             if (currentCourseId == courseId) {
                 val firstAvailable =
-                    storageDataRepository.userCourses.firstOrNull()?.getOrNull(0)
+                    storageDataRepository.courses.firstOrNull()?.getOrNull(0)
                 firstAvailable?.let { storageDataRepository.setCurrentCourse(it.id) }
             }
             _uiEvent.send(CourseUiEvent.NavigateBack)

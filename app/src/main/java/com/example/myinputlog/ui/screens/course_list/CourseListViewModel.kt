@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CourseListViewModel @Inject constructor(repository: StorageDataRepository) : ViewModel() {
-    val courseListUiState: StateFlow<CourseListUiState> = repository.userCourses.map { courses ->
+    val courseListUiState: StateFlow<CourseListUiState> = repository.courses.map { courses ->
         when {
             courses == null -> CourseListUiState.Loading
             courses.isEmpty() -> CourseListUiState.Empty
