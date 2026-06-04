@@ -105,7 +105,10 @@ interface VideoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertVideoLabelRefs(refs: List<VideoLabelCrossRef>)
 
-    // REF DELETES
+    // DELETES
+    @Query("UPDATE videos SET isDeleted = 1, lastUpdated = :timestamp WHERE id = :videoId")
+    suspend fun deleteVideoById(videoId: String, timestamp: Long = System.currentTimeMillis())
+
     @Query("DELETE FROM video_label_cross_ref WHERE videoId = :videoId")
     suspend fun deleteLabelRefsForVideo(videoId: String)
 

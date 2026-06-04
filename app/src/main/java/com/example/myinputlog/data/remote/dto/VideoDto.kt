@@ -5,6 +5,7 @@ import com.google.firebase.Timestamp
 
 data class VideoDto(
     val id: String? = null,
+    val videoId: String? = null,
     val courseId: String? = null,
     val channelId: String? = null,
     val watchedOn: Timestamp? = null,

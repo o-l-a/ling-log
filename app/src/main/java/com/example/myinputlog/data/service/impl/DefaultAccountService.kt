@@ -1,7 +1,7 @@
 package com.example.myinputlog.data.service.impl
 
 import android.util.Log
-import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.service.AccountService
@@ -99,7 +99,7 @@ class DefaultAccountService @Inject constructor(
             .collection(DefaultStorageService.USER_COLL)
             .document(userId)
             .collection(DefaultStorageService.USER_COURSE_COLL)
-        val courses: List<UserCourse> = courseCollection
+        val courses: List<CourseUiModel> = courseCollection
             .get()
             .await()
             .toObjects()

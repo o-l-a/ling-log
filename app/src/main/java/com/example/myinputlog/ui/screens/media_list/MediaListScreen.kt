@@ -47,7 +47,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.myinputlog.CourseTopAppBar
 import com.example.myinputlog.MyInputLogBottomNavBar
 import com.example.myinputlog.R
-import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.CourseHeaderUiModel
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
@@ -76,6 +76,9 @@ fun MediaListScreen(
 ) {
     val videoListUiState by mediaListViewModel.mediaListUiState.collectAsStateWithLifecycle()
     val currentCourseId by mediaListViewModel.currentCourseId.collectAsStateWithLifecycle()
+
+    val videos = mediaListViewModel.videoFlow.collectAsLazyPagingItems()
+    val channels = mediaListViewModel.channelFlow.collectAsLazyPagingItems()
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val coroutineScope = rememberCoroutineScope()
@@ -166,8 +169,6 @@ fun MediaListScreen(
             }
 
             is MediaListUiState.Success -> {
-                val videos = currentState.videos.collectAsLazyPagingItems()
-                val channels = currentState.channels.collectAsLazyPagingItems()
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier
@@ -200,11 +201,11 @@ fun MediaListScreen(
 @Composable
 fun MediaListHeader(
     courseHeader: CourseHeaderUiModel,
-    options: List<UserCourse>,
+    options: List<CourseUiModel>,
     scrollBehavior: TopAppBarScrollBehavior,
     pagerState: PagerState,
     tabs: List<MediaTab>,
-    onValueChange: (UserCourse) -> Unit,
+    onValueChange: (CourseUiModel) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
 

@@ -19,7 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.myinputlog.R
-import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.screens.utils.myInputLogTextFieldColors
 
 /**
@@ -29,9 +29,9 @@ import com.example.myinputlog.ui.screens.utils.myInputLogTextFieldColors
 @Composable
 fun MyInputLogDropdownField(
     modifier: Modifier = Modifier,
-    value: UserCourse?,
-    onValueChange: (UserCourse) -> Unit,
-    options: List<UserCourse>,
+    value: CourseUiModel?,
+    onValueChange: (CourseUiModel) -> Unit,
+    options: List<CourseUiModel>,
     isInTopBar: Boolean = true,
     isEditable: Boolean = true
 ) {

@@ -6,14 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.myinputlog.R
-import com.example.myinputlog.data.model.UserCourse
-import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.remote.getChannelId
-import com.example.myinputlog.data.remote.toChannelMetadata
-import com.example.myinputlog.data.remote.toVideoMetadata
+import com.example.myinputlog.data.remote.getChannelTitle
+import com.example.myinputlog.data.repository.ApiDataRepository
 import com.example.myinputlog.data.repository.DataResult
 import com.example.myinputlog.data.repository.StorageDataRepository
-import com.example.myinputlog.data.repository.ApiDataRepository
+import com.example.myinputlog.ui.models.CourseUiModel
+import com.example.myinputlog.ui.models.toCourseUiModel
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import com.example.myinputlog.ui.navigation.VideoRoute
 import com.example.myinputlog.ui.screens.utils.Country
@@ -49,10 +48,8 @@ class VideoViewModel @Inject constructor(
     private val videoRoute = savedStateHandle.toRoute<VideoRoute>()
     private val defaultCourseId: String = videoRoute.courseId
     private val videoId = sanitizeInitialVideoId(videoRoute.videoId)
-    private var originalVideo: YouTubeVideo? = null
 
-    private val _userDraft = MutableStateFlow(VideoUserDraft())
-    private val _videoMetadata = MutableStateFlow(VideoMetadata())
+    private val _videoForm = MutableStateFlow(VideoForm())
     private val _loadingState = MutableStateFlow<VideoLoadState>(VideoLoadState.LoadingFromStorage)
     private val _uiFlags = MutableStateFlow(VideoUiFlags())
 
@@ -62,21 +59,19 @@ class VideoViewModel @Inject constructor(
     private var fetchJob: Job? = null
 
     val videoUiState: StateFlow<VideoUiState> = combine(
-        storageDataRepository.courses, _userDraft, _videoMetadata, _loadingState, _uiFlags
-    ) { courses, draft, meta, loadState, flags ->
+        storageDataRepository.courses, _videoForm, _loadingState, _uiFlags
+    ) { courses, form, loadState, flags ->
         if (flags.isDeleting) {
             VideoUiState.Loading
-        } else if (loadState is VideoLoadState.StorageError || courses == null) {
+        } else if (loadState is VideoLoadState.StorageError) {
             VideoUiState.Error
         } else {
             VideoUiState.Success(
-                id = videoId,
-                videoUserDraft = draft,
-                videoMetadata = meta,
+                videoForm = form,
                 videoLoadState = loadState,
-                userCourses = courses,
+                userCourses = courses.map { it.toCourseUiModel() },
                 videoUiFlags = flags,
-                isFormValid = draft.videoUrl.isNotBlank() && loadState is VideoLoadState.Success,
+                isFormValid = form.videoUrl.isNotBlank() && loadState is VideoLoadState.Success,
                 isDeleteEnabled = !isNewVideo(videoId),
                 isCourseEditable = isNewVideo(videoId)
             )
@@ -93,60 +88,56 @@ class VideoViewModel @Inject constructor(
 
     private fun loadVideoFromStorage() {
         viewModelScope.launch {
-            val selectedCourse =
-                storageDataRepository.courses.first()?.firstOrNull { userCourse ->
-                    userCourse.id == defaultCourseId
-                } ?: UserCourse()
+            val selectedCourse = storageDataRepository.courses.first().firstOrNull { userCourse ->
+                userCourse.id == defaultCourseId
+            }?.toCourseUiModel() ?: CourseUiModel()
             if (!isNewVideo(videoId)) {
                 loadExistingVideo(selectedCourse)
             } else {
-                _userDraft.update { it.copy(selectedCourse = selectedCourse) }
+                _videoForm.update { it.copy(selectedCourse = selectedCourse) }
                 _loadingState.value = VideoLoadState.Success
             }
         }
     }
 
-    private suspend fun loadExistingVideo(selectedCourse: UserCourse) {
-        val video = storageDataRepository.getVideo(defaultCourseId, videoId)
-        originalVideo = video
+    private suspend fun loadExistingVideo(selectedCourse: CourseUiModel) {
+        val video = storageDataRepository.getVideo(videoId)
         if (video != null) {
-            val channelMetadata = loadChannel(video.channelId)
-            if (channelMetadata == null) {
-                _loadingState.value = VideoLoadState.MetadataError
-                _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.wrong_url_message)))
-                return
+            loadChannel(video.channel.id)
+            _videoForm.update {
+                it.toFormWithVideoMetadata(video).copy(selectedCourse = selectedCourse)
             }
-            _videoMetadata.value = video.toVideoMetadata(channelMetadata)
-            _userDraft.value = video.toVideoUserDraft(selectedCourse)
             _loadingState.value = VideoLoadState.Success
         } else {
             _loadingState.value = VideoLoadState.StorageError
         }
     }
 
-    private suspend fun loadChannel(channelId: String): ChannelMetadata? {
-        val channel = storageDataRepository.getChannel(defaultCourseId, channelId)
+    private suspend fun loadChannel(channelId: String) {
+        val channel = storageDataRepository.getChannel(channelId)
         if (channel != null) {
-            Log.d(TAG, "Loaded channel ${channel.title} from storage")
-            return channel.toChannelMetadata()
+            _videoForm.update { it.toFormWithChannelMetadata(channel) }
+            Log.d(TAG, "Loaded channel ${channel.channel.id} from storage")
+            return
         } else {
             when (val result = apiDataRepository.getChannelData(channelId)) {
                 is DataResult.Success -> {
-                    val channelData = result.data
-                    val channelMetadata = channelData.toChannelMetadata()
-                    Log.d(TAG, "Loaded channel ${channelMetadata?.title} from API")
-                    return channelMetadata
+                    _videoForm.update { it.toFormWithChannelMetadata(result.data) }
+                    Log.d(TAG, "Loaded channel ${result.data.getChannelTitle()} from API")
+                    return
                 }
 
                 else -> {
-                    return null
+                    Log.d(TAG, "Failed to load $channelId from API")
                 }
             }
         }
+        _loadingState.value = VideoLoadState.MetadataError
+        _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.wrong_url_message)))
     }
 
     private suspend fun loadVideoMetadata() {
-        val currentUrl = _userDraft.value.videoUrl
+        val currentUrl = _videoForm.value.videoUrl
 
         if (currentUrl.isBlank()) {
             _loadingState.value = VideoLoadState.Success
@@ -156,23 +147,10 @@ class VideoViewModel @Inject constructor(
         val videoId = currentUrl.extractYouTubeVideoId() ?: ""
         when (val result = apiDataRepository.getVideoData(videoId)) {
             is DataResult.Success -> {
-                val videoData = result.data
-                val channelMetadata = loadChannel(videoData.getChannelId() ?: "")
-                if (channelMetadata == null) {
-                    _loadingState.value = VideoLoadState.MetadataError
-                    _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.wrong_url_message)))
-                    return
-                }
-                val videoMetadata = videoData.toVideoMetadata(channelMetadata)
-                if (videoMetadata != null) {
-                    Log.d(TAG, videoMetadata.toString())
-                    _videoMetadata.value = videoMetadata
-                    _loadingState.value = VideoLoadState.Success
-                } else {
-                    _loadingState.value = VideoLoadState.MetadataError
-                    _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.wrong_url_message)))
-                    Log.d(TAG, "Network ok, null for some reason")
-                }
+                val videoItem = result.data
+                loadChannel(videoItem.getChannelId())
+                _videoForm.update { it.toFormWithVideoMetadata(videoItem) }
+                _loadingState.value = VideoLoadState.Success
             }
 
             is DataResult.ApiError -> {
@@ -190,8 +168,7 @@ class VideoViewModel @Inject constructor(
     }
 
     fun deleteUrlAndUrlData() {
-        _userDraft.update { it.copy(videoUrl = "") }
-        _videoMetadata.value = VideoMetadata()
+        _videoForm.update { it.toClearedMetadata() }
     }
 
     fun toggleDeleteDialogVisibility(visible: Boolean) {
@@ -202,13 +179,12 @@ class VideoViewModel @Inject constructor(
         _uiFlags.update { it.copy(isDatePickerDialogVisible = visible) }
     }
 
-    fun updateUserCourse(newCourse: UserCourse) {
-        _userDraft.update { it.copy(selectedCourse = newCourse) }
+    fun updateUserCourse(newCourse: CourseUiModel) {
+        _videoForm.update { it.copy(selectedCourse = newCourse) }
     }
 
     fun updateVideoUrl(newUrl: String) {
-        _userDraft.update { it.copy(videoUrl = newUrl) }
-        _videoMetadata.value = VideoMetadata()
+        _videoForm.update { it.toClearedMetadata().copy(videoUrl = newUrl) }
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch {
             delay(600) // Wait for user to stop typing
@@ -217,54 +193,48 @@ class VideoViewModel @Inject constructor(
     }
 
     fun updateLanguage(newLanguage: Country? = null) {
-        _userDraft.update { it.copy(speakersNationality = newLanguage) }
+        _videoForm.update { it.copy(speakersNationality = newLanguage) }
     }
 
     fun updateWatchedOn(milliseconds: Long?) {
-        _userDraft.update { it.copy(watchedOn = milliseconds?.let { date -> Date(date) }) }
+        _videoForm.update { it.copy(watchedOn = milliseconds?.let { date -> Date(date) } as Date) }
     }
 
     fun deleteVideo() {
         toggleDeleteDialogVisibility(false)
+        val currentState = videoUiState.value as? VideoUiState.Success ?: return
+        val form = currentState.videoForm
         viewModelScope.launch {
-            val currentState = videoUiState.value
-            if (currentState is VideoUiState.Success) {
-                val video = currentState.toYouTubeVideo()
-                _uiFlags.update { it.copy(isDeleting = true) }
-                try {
-                    storageDataRepository.deleteVideo(defaultCourseId, video)
-                    _uiEvent.send(VideoUiEvent.NavigateBack)
-                } catch (e: Exception) {
-                    Log.d(TAG, e.toString())
-                    _uiFlags.update { it.copy(isDeleting = false) }
-                    _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.video_delete_error)))
-                }
+            _uiFlags.update { it.copy(isDeleting = true) }
+            try {
+                storageDataRepository.deleteVideo(form.id)
+                _uiEvent.send(VideoUiEvent.NavigateBack)
+            } catch (e: Exception) {
+                Log.d(TAG, e.toString())
+                _uiFlags.update { it.copy(isDeleting = false) }
+                _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.video_delete_error)))
             }
         }
     }
 
     fun saveVideo() {
-        val state = uiState.value as? VideoUiState.Success ?: return
-        viewModelScope.launch {
-            // We pass the ID and the Draft (the user's input)
-            repository.saveVideo(state.id, state.videoUserDraft, state.videoMetadata)
-        }
-    }
+        val currentState = videoUiState.value as? VideoUiState.Success ?: return
+        val form = currentState.videoForm
 
-    fun persistVideo() {
         viewModelScope.launch {
-            val currentState = videoUiState.value
-            if (currentState is VideoUiState.Success) {
-                val video = currentState.toYouTubeVideo()
-                val channel = currentState.toYouTubeChannel()
-                val selectedCourseId = currentState.videoUserDraft.selectedCourse.id
+            viewModelScope.launch {
                 try {
+                    val videoEntity = form.toVideoEntity()
+                    val channelEntity = form.toChannelEntity()
                     storageDataRepository.saveVideo(
-                        selectedCourseId, video, originalVideo, channel
+                        video = videoEntity,
+                        channel = channelEntity,
+                        labelIds = form.selectedLabelIds.toList(),
+                        syncLabelsToChannel = form.saveLabelsForChannel
                     )
                     _uiEvent.send(VideoUiEvent.NavigateBack)
                 } catch (e: Exception) {
-                    Log.d(TAG, e.toString())
+                    Log.e(TAG, "Save failed", e)
                     _uiEvent.send(VideoUiEvent.ShowSnackbar(UiText.StringResource(R.string.video_save_error)))
                 }
             }

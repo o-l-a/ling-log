@@ -1,6 +1,6 @@
 package com.example.myinputlog.ui.models
 
-import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseUiModel
 import java.util.concurrent.TimeUnit
 
 data class CourseHeaderUiModel(
@@ -18,7 +18,7 @@ data class CourseHeaderUiModel(
 )
 
 fun mapToCourseUiModel(
-    course: UserCourse, totalTimeInSecondsToday: Long = 0L
+    course: CourseUiModel, totalTimeInSecondsToday: Long = 0L
 ): CourseHeaderUiModel {
     val totalTimeInSeconds =
         course.totalTimeInSeconds + TimeUnit.HOURS.toSeconds(course.otherSourceHours)

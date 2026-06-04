@@ -45,6 +45,16 @@ interface CourseDao {
         }
     }
 
+    // DELETE
+    @Query("UPDATE courses SET isDeleted = 1, lastUpdated = :timestamp WHERE id = :courseId")
+    suspend fun deleteCourseById(courseId: String, timestamp: Long = System.currentTimeMillis())
+
+    @Query("UPDATE channels SET isDeleted = 1, lastUpdated = :timestamp WHERE courseId = :courseId")
+    suspend fun bulkDeleteChannelsForCourse(courseId: String, timestamp: Long = System.currentTimeMillis())
+
+    @Query("UPDATE videos SET isDeleted = 1, lastUpdated = :timestamp WHERE courseId = :courseId")
+    suspend fun bulkDeleteVideosForCourse(courseId: String, timestamp: Long = System.currentTimeMillis())
+
     // SYNC OPERATIONS
     @Query("SELECT * FROM courses WHERE lastUpdated > lastSynced")
     suspend fun getUnsyncedCourses(): List<CourseEntity>

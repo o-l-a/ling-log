@@ -16,6 +16,7 @@ import java.util.Date
 // VIDEO
 fun VideoWithLabelIds.toFirestoreMap(): Map<String, Any?> = mapOf(
     "id" to video.id,
+    "videoId" to video.videoId,
     "courseId" to video.courseId,
     "channelId" to video.channelId,
     "watchedOn" to video.watchedOn,
@@ -35,6 +36,7 @@ fun VideoWithLabelIds.toFirestoreMap(): Map<String, Any?> = mapOf(
 fun VideoDto.toEntity(): VideoWithLabelIds = VideoWithLabelIds(
     video = VideoEntity(
         id = id ?: "",
+        videoId = videoId ?: "",
         courseId = courseId ?: "",
         channelId = channelId ?: "",
         watchedOn = watchedOn?.toDate() ?: Date(),

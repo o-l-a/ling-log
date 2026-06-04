@@ -1,6 +1,6 @@
 package com.example.myinputlog.ui.screens.home
 
-import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.CourseHeaderUiModel
 
 sealed interface HomeUiState {
@@ -10,7 +10,7 @@ sealed interface HomeUiState {
     data object NetworkError : HomeUiState
     data class Success(
         val courseHeader: CourseHeaderUiModel = CourseHeaderUiModel(),
-        val userCourses: List<UserCourse> = listOf(),
+        val userCourses: List<CourseUiModel> = listOf(),
         val confettiColors: List<Long> = listOf(),
         val isParty: Boolean = false
     ) : HomeUiState

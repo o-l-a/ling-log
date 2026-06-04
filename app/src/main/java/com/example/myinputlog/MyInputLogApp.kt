@@ -44,7 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.CourseHeaderUiModel
 import com.example.myinputlog.ui.navigation.MyInputLogNavHost
 import com.example.myinputlog.ui.navigation.Screen
@@ -189,8 +189,8 @@ fun MyInputLogBottomNavBar(
 fun CourseTopAppBar(
     modifier: Modifier = Modifier,
     courseHeader: CourseHeaderUiModel,
-    onValueChange: (UserCourse) -> Unit,
-    options: List<UserCourse>,
+    onValueChange: (CourseUiModel) -> Unit,
+    options: List<CourseUiModel>,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors()
 ) {

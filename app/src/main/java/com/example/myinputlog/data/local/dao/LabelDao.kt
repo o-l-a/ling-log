@@ -48,6 +48,10 @@ interface LabelDao {
         }
     }
 
+    // DELETES
+    @Query("UPDATE labels SET isDeleted = 1, lastUpdated = :timestamp WHERE id = :labelId")
+    suspend fun deleteLabelById(labelId: String, timestamp: Long = System.currentTimeMillis())
+
     // SYNC OPERATIONS
     @Query("SELECT * FROM labels WHERE lastUpdated > lastSynced")
     fun getUnsyncedLabels(): List<LabelEntity>

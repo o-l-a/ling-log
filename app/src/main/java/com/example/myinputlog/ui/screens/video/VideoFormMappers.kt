@@ -1,0 +1,109 @@
+package com.example.myinputlog.ui.screens.video
+
+import com.example.myinputlog.data.local.entities.ChannelEntity
+import com.example.myinputlog.data.local.entities.VideoEntity
+import com.example.myinputlog.data.local.model.ChannelWithLabels
+import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
+import com.example.myinputlog.data.remote.ChannelItem
+import com.example.myinputlog.data.remote.VideoItem
+import com.example.myinputlog.ui.screens.utils.ext.stripUrl
+import java.time.Duration
+import java.util.UUID
+
+fun VideoForm.toVideoEntity(): VideoEntity {
+    return VideoEntity(
+        id = id.ifBlank { UUID.randomUUID().toString() },
+        videoId = videoId,
+        courseId = selectedCourse.id,
+        channelId = channelId,
+        title = title,
+        videoUrl = videoUrl.stripUrl(),
+        watchedOn = watchedOn,
+        speakersNationality = speakersNationality,
+        durationInSeconds = durationInSeconds,
+        thumbnailDefaultUrl = thumbnailDefaultUrl,
+        thumbnailMediumUrl = thumbnailMediumUrl,
+        thumbnailHighUrl = thumbnailHighUrl,
+        defaultAudioLanguage = defaultAudioLanguage,
+        lastUpdated = System.currentTimeMillis()
+    )
+}
+
+fun VideoForm.toChannelEntity(): ChannelEntity {
+    return ChannelEntity(
+        id = channelId,
+        courseId = selectedCourse.id,
+        title = channelTitle,
+        customUrl = channelCustomUrl,
+        country = channelCountry,
+        thumbnailDefaultUrl = channelThumbnailDefaultUrl,
+        thumbnailMediumUrl = channelThumbnailMediumUrl,
+        thumbnailHighUrl = channelThumbnailHighUrl,
+        lastUpdated = System.currentTimeMillis()
+    )
+}
+
+fun VideoForm.toClearedMetadata(): VideoForm {
+    return this.copy(
+        videoId = "",
+        title = "",
+        durationInSeconds = 0L,
+        thumbnailDefaultUrl = "",
+        thumbnailMediumUrl = "",
+        thumbnailHighUrl = "",
+        defaultAudioLanguage = "",
+        channelId = "",
+        channelTitle = "",
+        channelCustomUrl = "",
+        channelCountry = "",
+        channelThumbnailDefaultUrl = "",
+        channelThumbnailMediumUrl = "",
+        channelThumbnailHighUrl = "",
+    )
+}
+
+fun VideoForm.toFormWithVideoMetadata(videoItem: VideoItem): VideoForm {
+    return this.copy(
+        videoId = videoItem.id,
+        title = videoItem.snippet.title,
+        durationInSeconds = Duration.parse(videoItem.contentDetails.duration).seconds,
+        thumbnailDefaultUrl = videoItem.snippet.thumbnails.default.url,
+        thumbnailMediumUrl = videoItem.snippet.thumbnails.medium.url,
+        thumbnailHighUrl = videoItem.snippet.thumbnails.high.url
+    )
+}
+
+fun VideoForm.toFormWithVideoMetadata(videoWithChannelAndLabels: VideoWithChannelAndLabels): VideoForm {
+    return this.copy(
+        videoId = videoWithChannelAndLabels.video.id,
+        title = videoWithChannelAndLabels.video.title,
+        durationInSeconds = videoWithChannelAndLabels.video.durationInSeconds,
+        thumbnailDefaultUrl = videoWithChannelAndLabels.video.thumbnailDefaultUrl,
+        thumbnailMediumUrl = videoWithChannelAndLabels.video.thumbnailMediumUrl,
+        thumbnailHighUrl = videoWithChannelAndLabels.video.thumbnailHighUrl
+    )
+}
+
+fun VideoForm.toFormWithChannelMetadata(channelItem: ChannelItem): VideoForm {
+    return this.copy(
+        channelId = channelItem.id,
+        channelTitle = channelItem.snippet.title,
+        channelCustomUrl = channelItem.snippet.customUrl,
+        channelCountry = channelItem.snippet.country,
+        channelThumbnailDefaultUrl = channelItem.snippet.thumbnails.default.url,
+        channelThumbnailMediumUrl = channelItem.snippet.thumbnails.medium.url,
+        channelThumbnailHighUrl = channelItem.snippet.thumbnails.high.url,
+    )
+}
+
+fun VideoForm.toFormWithChannelMetadata(channelWithLabels: ChannelWithLabels): VideoForm {
+    return this.copy(
+        channelId = channelWithLabels.channel.id,
+        channelTitle = channelWithLabels.channel.title,
+        channelCustomUrl = channelWithLabels.channel.customUrl,
+        channelCountry = channelWithLabels.channel.country,
+        channelThumbnailDefaultUrl = channelWithLabels.channel.thumbnailDefaultUrl,
+        channelThumbnailMediumUrl = channelWithLabels.channel.thumbnailMediumUrl,
+        channelThumbnailHighUrl = channelWithLabels.channel.thumbnailHighUrl,
+    )
+}

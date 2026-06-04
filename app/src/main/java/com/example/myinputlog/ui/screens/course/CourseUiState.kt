@@ -1,6 +1,6 @@
 package com.example.myinputlog.ui.screens.course
 
-import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseUiModel
 
 sealed interface CourseUiState {
     data object Loading : CourseUiState
@@ -19,7 +19,7 @@ data class CourseFields(
     val otherSourceHours: String = ""
 )
 
-fun CourseFields.toUserCourse(id: String): UserCourse = UserCourse(
+fun CourseFields.toUserCourse(id: String): CourseUiModel = CourseUiModel(
     id = id,
     name = name,
     goalInHours = goalInHours.toLongOrNull() ?: 0L,

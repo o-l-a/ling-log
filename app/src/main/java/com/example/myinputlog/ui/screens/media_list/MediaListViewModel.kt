@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
-import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.mapToCourseUiModel
@@ -53,9 +53,7 @@ class MediaListViewModel @Inject constructor(
 
                 MediaListUiState.Success(
                     courseHeader = courseHeader,
-                    userCourses = courses,
-                    videos = videoFlow,
-                    channels = channelFlow
+                    userCourses = courses
                 )
             }
         }
@@ -64,7 +62,7 @@ class MediaListViewModel @Inject constructor(
         initialValue = MediaListUiState.Loading
     )
 
-    fun changeCurrentCourseId(newCourse: UserCourse) {
+    fun changeCurrentCourseId(newCourse: CourseUiModel) {
         viewModelScope.launch {
             repository.setCurrentCourse(newCourse.id)
         }

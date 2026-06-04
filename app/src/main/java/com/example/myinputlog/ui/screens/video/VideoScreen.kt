@@ -63,8 +63,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
-import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.utils.LanguageUtils.getLanguageDisplayName
+import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
@@ -117,7 +117,7 @@ fun VideoScreen(
             hasSaveAction = true,
             isFormValid = isFormValid,
             onDelete = { videoViewModel.toggleDeleteDialogVisibility(true) },
-            onSave = videoViewModel::persistVideo,
+            onSave = videoViewModel::saveVideo,
             scrollBehavior = scrollBehavior
         )
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
@@ -175,7 +175,7 @@ fun VideoScreen(
 fun VideoEditBody(
     modifier: Modifier = Modifier,
     videoUiState: VideoUiState.Success,
-    onCourseValueChange: (UserCourse) -> Unit,
+    onCourseValueChange: (CourseUiModel) -> Unit,
     onDateChipClicked: () -> Unit,
     onDateClearClicked: () -> Unit,
     onUrlClearClicked: () -> Unit,
@@ -205,7 +205,7 @@ fun VideoEditBody(
     ) {
         item(key = "course_input") {
             MyInputLogDropdownField(
-                value = videoUiState.videoUserDraft.selectedCourse,
+                value = videoUiState.videoForm.selectedCourse,
                 onValueChange = onCourseValueChange,
                 options = videoUiState.userCourses,
                 isInTopBar = false,
@@ -214,22 +214,22 @@ fun VideoEditBody(
         }
 
         videoUrlSection(
-            videoUrl = videoUiState.videoUserDraft.videoUrl,
+            videoUrl = videoUiState.videoForm.videoUrl,
             isEditable = videoUiState.isCourseEditable,
             onUrlClearClicked = onUrlClearClicked,
             onUrlValueChange = onUrlValueChange
         )
 
         videoAttributesSection(
-            watchedOn = videoUiState.videoUserDraft.watchedOn,
-            speakersNationality = videoUiState.videoUserDraft.speakersNationality,
+            watchedOn = videoUiState.videoForm.watchedOn,
+            speakersNationality = videoUiState.videoForm.speakersNationality,
             onDateChipClicked = onDateChipClicked,
             onDateClearClicked = onDateClearClicked,
             onCountryValueChange = onCountryValueChange
         )
 
         videoMetadataSection(
-            videoMetadata = videoUiState.videoMetadata,
+            videoMetadata = videoUiState.videoForm,
             isVisible = videoUiState.isFormValid
         )
     }
@@ -321,7 +321,7 @@ fun LazyListScope.videoAttributesSection(
 }
 
 fun LazyListScope.videoMetadataSection(
-    videoMetadata: VideoMetadata, isVisible: Boolean
+    videoMetadata: VideoForm, isVisible: Boolean
 ) {
     if (isVisible) {
         item(key = "video_thumbnail") {
@@ -340,7 +340,7 @@ fun LazyListScope.videoMetadataSection(
         }
         item(key = "channel_info") {
             Text(
-                text = "${videoMetadata.channelMetadata.customUrl} • ${videoMetadata.channelMetadata.title} • ${
+                text = "${videoMetadata.channelCustomUrl} • ${videoMetadata.channelTitle} • ${
                     getLanguageDisplayName(
                         videoMetadata.defaultAudioLanguage
                     ) ?: stringResource(R.string.unknown_language)
@@ -364,7 +364,7 @@ fun VideoScreenDialogs(
     if (videoUiState.videoUiFlags.isDeleteDialogVisible) {
         ConfirmDeleteVideoDialog(
             modifier = modifier,
-            videoName = videoUiState.videoMetadata.title,
+            videoName = videoUiState.videoForm.title,
             onConfirm = onDeleteConfirm,
             onDismiss = onDeleteDismiss
         )

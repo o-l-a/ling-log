@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
-import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.SettingsCard
@@ -78,7 +78,7 @@ fun CourseListScreen(
 
 @Composable
 private fun CourseListBody(
-    modifier: Modifier = Modifier, courses: List<UserCourse>, onCourseClicked: (String) -> Unit
+    modifier: Modifier = Modifier, courses: List<CourseUiModel>, onCourseClicked: (String) -> Unit
 ) {
     val scrollState = rememberLazyListState()
     val isScrollEnabled by remember {

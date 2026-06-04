@@ -22,6 +22,7 @@ import java.util.Date
 )
 data class VideoEntity(
     @PrimaryKey val id: String,
+    val videoId: String,
     val courseId: String,
     val channelId: String,
     val watchedOn: Date,

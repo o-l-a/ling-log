@@ -3,7 +3,7 @@ package com.example.myinputlog.ui.screens.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myinputlog.data.model.UserCourse
+import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.data.model.UserMonthlyStats
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.mapToCourseUiModel
@@ -131,7 +131,7 @@ class HomeViewModel @Inject constructor(
         isParty.value = false
     }
 
-    fun changeCurrentCourseId(newCourse: UserCourse) {
+    fun changeCurrentCourseId(newCourse: CourseUiModel) {
         cleanupAllListeners()
         viewModelScope.launch {
             repository.setCurrentCourse(newCourse.id)
