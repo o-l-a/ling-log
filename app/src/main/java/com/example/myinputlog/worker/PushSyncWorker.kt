@@ -49,7 +49,7 @@ class PushSyncWorker @AssistedInject constructor(
             Log.d(TAG, "No videos to sync. Skipping.")
             true
         } else {
-            Log.d(TAG, "Pushing ${unsyncedVideos.count()} channels.")
+            Log.d(TAG, "Pushing ${unsyncedVideos.count()} videos.")
             val groupedByMonth = unsyncedVideos.groupBy { it.video.watchedOn.toMonthKey() }
             storageService.pushMonths(userId, groupedByMonth)
             val videoIds = unsyncedVideos.map { it.video.id }

@@ -10,6 +10,7 @@ import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.models.mapToCourseUiModel
 import com.example.myinputlog.ui.models.toCourseUiModel
+import com.example.myinputlog.ui.screens.utils.ext.asStartOfDay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -85,7 +86,7 @@ fun Flow<PagingData<VideoUiModel>>.insertHeaderAndSeparators(): Flow<PagingData<
                     null
                 }
 
-                before.watchedOn != after.watchedOn -> {
+                before.watchedOn.asStartOfDay() != after.watchedOn.asStartOfDay() -> {
                     VideoUiModel(watchedOn = after.watchedOn)
                 }
 

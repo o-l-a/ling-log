@@ -168,7 +168,7 @@ class VideoViewModel @Inject constructor(
     }
 
     fun deleteUrlAndUrlData() {
-        _videoForm.update { it.toClearedMetadata() }
+        _videoForm.update { it.toClearedMetadata().copy(videoUrl = "") }
     }
 
     fun toggleDeleteDialogVisibility(visible: Boolean) {
@@ -202,12 +202,10 @@ class VideoViewModel @Inject constructor(
 
     fun deleteVideo() {
         toggleDeleteDialogVisibility(false)
-        val currentState = videoUiState.value as? VideoUiState.Success ?: return
-        val form = currentState.videoForm
         viewModelScope.launch {
             _uiFlags.update { it.copy(isDeleting = true) }
             try {
-                storageDataRepository.deleteVideo(form.id)
+                storageDataRepository.deleteVideo(videoId)
                 _uiEvent.send(VideoUiEvent.NavigateBack)
             } catch (e: Exception) {
                 Log.d(TAG, e.toString())

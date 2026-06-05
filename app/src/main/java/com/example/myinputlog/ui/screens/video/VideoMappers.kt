@@ -69,7 +69,8 @@ fun VideoForm.toFormWithVideoMetadata(videoItem: VideoItem): VideoForm {
         durationInSeconds = Duration.parse(videoItem.contentDetails.duration).seconds,
         thumbnailDefaultUrl = videoItem.snippet.thumbnails.default.url,
         thumbnailMediumUrl = videoItem.snippet.thumbnails.medium.url,
-        thumbnailHighUrl = videoItem.snippet.thumbnails.high.url
+        thumbnailHighUrl = videoItem.snippet.thumbnails.high.url,
+        defaultAudioLanguage = videoItem.snippet.defaultAudioLanguage ?: "",
     )
 }
 
@@ -77,10 +78,12 @@ fun VideoForm.toFormWithVideoMetadata(videoWithChannelAndLabels: VideoWithChanne
     return this.copy(
         videoId = videoWithChannelAndLabels.video.id,
         title = videoWithChannelAndLabels.video.title,
+        videoUrl = videoWithChannelAndLabels.video.videoUrl,
         durationInSeconds = videoWithChannelAndLabels.video.durationInSeconds,
         thumbnailDefaultUrl = videoWithChannelAndLabels.video.thumbnailDefaultUrl,
         thumbnailMediumUrl = videoWithChannelAndLabels.video.thumbnailMediumUrl,
-        thumbnailHighUrl = videoWithChannelAndLabels.video.thumbnailHighUrl
+        thumbnailHighUrl = videoWithChannelAndLabels.video.thumbnailHighUrl,
+        defaultAudioLanguage = videoWithChannelAndLabels.video.defaultAudioLanguage
     )
 }
 

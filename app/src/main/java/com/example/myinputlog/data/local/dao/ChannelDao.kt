@@ -43,7 +43,7 @@ interface ChannelDao {
         COUNT(v.id) AS totalVideoCount, 
         SUM(v.durationInSeconds) AS totalTimeInSeconds 
     FROM channels AS c
-    LEFT JOIN videos AS v ON c.id = v.channelId
+    LEFT JOIN videos AS v ON c.id = v.channelId AND v.isDeleted = 0
     WHERE c.courseId = :courseId
     GROUP BY c.id"""
     )

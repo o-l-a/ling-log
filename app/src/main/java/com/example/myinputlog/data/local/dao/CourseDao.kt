@@ -25,7 +25,7 @@ interface CourseDao {
             COUNT(v.id) AS totalVideoCount,
             COALESCE(SUM(v.durationInSeconds), 0) AS totalTimeInSeconds
         FROM courses c
-        LEFT JOIN videos v ON c.id = v.channelId AND v.isDeleted = 0
+        LEFT JOIN videos v ON c.id = v.courseId AND v.isDeleted = 0
         WHERE c.isDeleted = 0
         GROUP BY c.id"""
     )

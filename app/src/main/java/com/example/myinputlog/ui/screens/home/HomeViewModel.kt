@@ -1,5 +1,6 @@
 package com.example.myinputlog.ui.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.data.repository.StorageDataRepository
