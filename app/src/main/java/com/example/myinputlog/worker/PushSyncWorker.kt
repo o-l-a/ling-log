@@ -49,6 +49,7 @@ class PushSyncWorker @AssistedInject constructor(
             Log.d(TAG, "No videos to sync. Skipping.")
             true
         } else {
+            Log.d(TAG, "Pushing ${unsyncedVideos.count()} channels.")
             val groupedByMonth = unsyncedVideos.groupBy { it.video.watchedOn.toMonthKey() }
             storageService.pushMonths(userId, groupedByMonth)
             val videoIds = unsyncedVideos.map { it.video.id }
@@ -66,6 +67,7 @@ class PushSyncWorker @AssistedInject constructor(
             Log.d(TAG, "No channels to sync. Skipping.")
             true
         } else {
+            Log.d(TAG, "Pushing ${unsyncedChannels.count()} channels.")
             storageService.pushChannels(userId, unsyncedChannels)
             val channelIds = unsyncedChannels.map { it.channel.id }
             channelDao.markChannelsSynced(channelIds)
@@ -84,6 +86,7 @@ class PushSyncWorker @AssistedInject constructor(
             Log.d(TAG, "No metadata to sync. Skipping.")
             true
         } else {
+            Log.d(TAG, "Syncing metadata (${unsyncedCourses.count()} courses).")
             val allLabels =
                 if (unsyncedLabels.isNotEmpty()) labelDao.getAllLabelsAsList() else emptyList()
             storageService.pushMetadata(userId, unsyncedCourses, allLabels)

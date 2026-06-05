@@ -66,11 +66,13 @@ class DefaultStorageService @Inject constructor(
         val batch = firestore.batch()
         for ((monthKey, videos) in months) {
             val docRef = monthRef(userId).document(monthKey)
-            val updates = mutableMapOf<String, Any>()
-            videos.forEach { video ->
-                updates["$FIELD_VIDEOS.${video.video.id}"] = video.toFirestoreMap()
+            val videosMap = videos.associate { video ->
+                video.video.id to video.toFirestoreMap()
             }
-            updates[FIELD_LAST_UPDATED] = FieldValue.serverTimestamp()
+            val updates = mapOf(
+                FIELD_VIDEOS to videosMap,
+                FIELD_LAST_UPDATED to FieldValue.serverTimestamp()
+            )
             batch.set(docRef, updates, SetOptions.merge())
         }
         batch.commit().await()
@@ -79,6 +81,7 @@ class DefaultStorageService @Inject constructor(
     override suspend fun pushChannels(
         userId: String, channels: List<ChannelWithLabelIds>
     ) {
+        val pointersRef = metadataRef(userId).document(DOC_SYNC_POINTERS)
         channels.chunked(CHUNK_SIZE).forEach { chunk ->
             val batch = firestore.batch()
             val pointersUpdate = mutableMapOf<String, Any>()
@@ -87,6 +90,7 @@ class DefaultStorageService @Inject constructor(
                 batch.set(docRef, channel.toFirestoreMap())
             }
             pointersUpdate[FIELD_CHANNELS_LAST_UPDATED] = FieldValue.serverTimestamp()
+            batch.set(pointersRef, pointersUpdate, SetOptions.merge())
             batch.commit().await()
         }
     }
@@ -155,14 +159,20 @@ class DefaultStorageService @Inject constructor(
     override suspend fun getLastUpdatedVideos(
         userId: String, lastPull: Date
     ): List<VideoDto> {
-        return monthRef(userId).whereGreaterThan(FIELD_LAST_UPDATED, Timestamp(lastPull)).get()
-            .await().toObjects(
-                VideoDtoWrapper::class.java
-            ).flatMap { monthDoc ->
-                monthDoc.videos?.map {
-                    it.value
-                } ?: emptyList()
-            }
+        Log.d(
+            TAG, "Pulling videos with timestamp: ${Timestamp(lastPull).toDate()}"
+        )
+        val months =
+            monthRef(userId).whereGreaterThan(FIELD_LAST_UPDATED, Timestamp(lastPull)).get().await()
+                .toObjects(
+                    VideoDtoWrapper::class.java
+                )
+        Log.d(TAG, "Found months: $months")
+        return months.flatMap { monthDoc ->
+            monthDoc.videos?.map {
+                it.value
+            } ?: emptyList()
+        }
     }
 
     override suspend fun getLastUpdatedChannels(

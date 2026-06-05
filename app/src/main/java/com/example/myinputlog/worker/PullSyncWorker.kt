@@ -36,9 +36,13 @@ class PullSyncWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val userId = accountService.currentUserId
         val lastPull = preferences.getLastPullTimestamp(userId)
+        Log.d(TAG, "Last pull: ${Date(lastPull)}")
 
         try {
             val pointers = storageService.getSyncPointers(userId)?.toDomain() ?: SyncPointers()
+            Log.d(TAG, "Sync pointers: labels ${Date(pointers.labelsLastUpdated)}")
+            Log.d(TAG, "Sync pointers: channels ${Date(pointers.channelsLastUpdated)}")
+            Log.d(TAG, "Sync pointers: courses ${Date(pointers.coursesLastUpdated)}")
 
             if (pointers.coursesLastUpdated > lastPull) {
                 val courses = storageService.getLastUpdatedCourses(userId, Date(lastPull))
