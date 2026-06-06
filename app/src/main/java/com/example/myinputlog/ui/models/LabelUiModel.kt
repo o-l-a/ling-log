@@ -7,12 +7,13 @@ data class LabelUiModel(
     val id: String = "",
     val title: String = "",
     val color: Long = 0xFFFFC0CB,
-    val textColor: Long = 0xFF000000
-)
+    val textColor: Long = 0xFF000000,
+    val isSeparator: Boolean = false
+) {
+    val firstLetter: String
+        get() = title.firstOrNull().toString()
+}
 
 fun LabelEntity.toLabelUiModel(): LabelUiModel = LabelUiModel(
-    id = id,
-    title = title,
-    color = color,
-    textColor = textColor
+    id = id, title = title, color = color, textColor = textColor
 )

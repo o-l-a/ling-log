@@ -52,7 +52,7 @@
     <string name="today_text">Dzisiaj</string>
     <string name="yesterday_text">Wczoraj</string>
     <string name="long_ago_text">Dawno temu</string>
-    <string name="preview_text">Podgląd</string>
+    <string name="preview_text">Podgląd:</string>
 
     <!--    routine screen field labels    -->
     <string name="date_placeholder">dd/mm/yyyy</string>

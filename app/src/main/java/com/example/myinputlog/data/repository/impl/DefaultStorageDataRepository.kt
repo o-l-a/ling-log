@@ -32,7 +32,6 @@ import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.data.service.PreferenceStorageService
 import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.data.utils.DateUtils.toMonthKey
-import com.example.myinputlog.worker.PushSyncWorker
 import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.DayAggregation
 import com.example.myinputlog.ui.models.MonthlyStatsUiModel
@@ -41,6 +40,7 @@ import com.example.myinputlog.ui.models.toChannelUiModel
 import com.example.myinputlog.ui.models.toVideoUiModel
 import com.example.myinputlog.ui.screens.utils.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
+import com.example.myinputlog.worker.PushSyncWorker
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -68,6 +68,8 @@ class DefaultStorageDataRepository @Inject constructor(
 ) : StorageDataRepository {
 
     override val courses: Flow<List<CourseWithStats>> = courseDao.getAllCourses()
+
+    override val labels: Flow<List<LabelEntity>> = labelDao.getAllLabels()
 
     override val currentUser: Flow<UserData> = accountService.currentUser
 
@@ -207,11 +209,6 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     // label
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getLabelsFlow(): Flow<List<LabelEntity>> {
-        return labelDao.getAllLabels()
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun getLabelById(labelId: String): LabelEntity? {
         return labelDao.getLabelById(labelId)

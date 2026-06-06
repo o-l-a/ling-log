@@ -1,5 +1,10 @@
 package com.example.myinputlog.ui.screens.label
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -21,10 +27,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -37,6 +46,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.label.LabelViewModel.LabelUiEvent
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_NEXT
+import com.example.myinputlog.ui.screens.utils.composable.ClickableLabelChip
 import com.example.myinputlog.ui.screens.utils.composable.ColorSwatch
 import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
@@ -89,7 +99,7 @@ fun LabelScreen(
             is LabelUiState.Success -> {
                 LabelEditBody(
                     modifier = Modifier.padding(innerPadding),
-                    labelUiState = currentState,
+                    label = currentState.label,
                     onTitleChange = labelViewModel::onTitleChange,
                     onColorChange = labelViewModel::onColorChange,
                     onTextColorChange = labelViewModel::onTextColorChange,
@@ -116,7 +126,7 @@ fun LabelScreen(
 @Composable
 fun LabelEditBody(
     modifier: Modifier = Modifier,
-    labelUiState: LabelUiState.Success,
+    label: LabelForm,
     onTitleChange: (String) -> Unit,
     onColorChange: (String) -> Unit,
     onTextColorChange: (String) -> Unit,
@@ -124,6 +134,16 @@ fun LabelEditBody(
     onDone: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
+
+    val previewData by remember(label.previewColor, label.previewTextColor) {
+        derivedStateOf {
+            val bgColor = label.previewColor
+            val txtColor = label.previewTextColor
+            if (bgColor != null && txtColor != null) {
+                Color(bgColor) to Color(txtColor)
+            } else null
+        }
+    }
 
     Column(
         modifier = modifier
@@ -146,7 +166,7 @@ fun LabelEditBody(
                 )
                 .fillMaxWidth(),
             label = { Text(stringResource(R.string.label_name_label)) },
-            value = labelUiState.label.title,
+            value = label.title,
             onValueChange = onTitleChange,
             singleLine = true,
             keyboardOptions = IME_ACTION_NEXT,
@@ -163,11 +183,11 @@ fun LabelEditBody(
                 )
                 .fillMaxWidth(),
             label = { Text(stringResource(R.string.label_color_label)) },
-            value = labelUiState.label.colorHex,
+            value = label.colorHex,
             onValueChange = onColorChange,
             singleLine = true,
             trailingIcon = {
-                ColorSwatch(labelUiState.label.previewColor)
+                ColorSwatch(label.previewColor)
             },
             keyboardOptions = IME_ACTION_NEXT.copy(
                 keyboardType = KeyboardType.Number
@@ -181,7 +201,7 @@ fun LabelEditBody(
                 .fillMaxWidth()
                 .heightIn(min = MaterialTheme.spacing.large + MaterialTheme.spacing.medium)
                 .toggleable(
-                    value = labelUiState.label.autoCalculateTextColor,
+                    value = label.autoCalculateTextColor,
                     role = Role.Checkbox,
                     onValueChange = { isChecked ->
                         onAutoCalculateChange(isChecked)
@@ -190,13 +210,11 @@ fun LabelEditBody(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
-                checked = labelUiState.label.autoCalculateTextColor, onCheckedChange = null
+                checked = label.autoCalculateTextColor, onCheckedChange = null
             )
             Spacer(modifier = Modifier.width(MaterialTheme.spacing.small))
             Text(
-                text = stringResource(R.string.label_auto_text_color),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                text = stringResource(R.string.label_auto_text_color)
             )
         }
         OutlinedTextField(
@@ -209,12 +227,12 @@ fun LabelEditBody(
                 )
                 .fillMaxWidth(),
             label = { Text(stringResource(R.string.label_text_color_label)) },
-            value = labelUiState.label.textColorHex,
-            enabled = !labelUiState.label.autoCalculateTextColor,
+            value = label.textColorHex,
+            enabled = !label.autoCalculateTextColor,
             onValueChange = onTextColorChange,
             singleLine = true,
             trailingIcon = {
-                ColorSwatch(labelUiState.label.previewTextColor)
+                ColorSwatch(label.previewTextColor)
             },
             keyboardOptions = IME_ACTION_DONE.copy(
                 keyboardType = KeyboardType.Number
@@ -225,5 +243,34 @@ fun LabelEditBody(
                     focusManager.clearFocus()
                 })
         )
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+        val isVisible = previewData != null
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
+            label = "LabelPreviewAnimation"
+        ) {
+            previewData?.let { (backgroundColor, textColor) ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = MaterialTheme.spacing.medium),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Text(
+                        stringResource(R.string.preview_text),
+                        modifier = Modifier.padding(end = MaterialTheme.spacing.small)
+                    )
+                    ClickableLabelChip(
+                        onClick = { },
+                        title = label.title,
+                        backgroundColor = backgroundColor,
+                        textColor = textColor
+                    )
+                }
+            }
+        }
     }
 }

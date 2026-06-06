@@ -3,8 +3,8 @@ package com.example.myinputlog.ui.screens.label_list
 import com.example.myinputlog.ui.models.LabelUiModel
 
 sealed interface LabelListUiState {
-    data object Loading : LabelListUiState
-    data object Empty : LabelListUiState
-    data object Error : LabelListUiState
-    data class Success(val userLabels: List<LabelUiModel> = listOf()) : LabelListUiState
+    object Loading : LabelListUiState
+    object Empty : LabelListUiState
+    data class Success(val groupedLabels: Map<String, List<LabelUiModel>>) : LabelListUiState
+    data class Error(val message: String?) : LabelListUiState
 }
