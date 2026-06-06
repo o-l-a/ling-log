@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
@@ -49,7 +47,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
@@ -66,6 +63,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.data.utils.LanguageUtils.getLanguageDisplayName
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.screens.utils.Country
+import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownField
@@ -74,7 +72,6 @@ import com.example.myinputlog.ui.screens.utils.dateFormatter
 import com.example.myinputlog.ui.theme.spacing
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoScreen(
     modifier: Modifier = Modifier,
@@ -168,9 +165,6 @@ fun VideoScreen(
     }
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class
-)
 @Composable
 fun VideoEditBody(
     modifier: Modifier = Modifier,
@@ -362,9 +356,17 @@ fun VideoScreenDialogs(
     datePickerState: DatePickerState
 ) {
     if (videoUiState.videoUiFlags.isDeleteDialogVisible) {
-        ConfirmDeleteVideoDialog(
+        ConfirmDeleteDialog(
             modifier = modifier,
-            videoName = videoUiState.videoForm.title,
+            entityName = videoUiState.videoForm.title,
+            text = {
+                Text(
+                    stringResource(
+                        R.string.delete_video_phrase,
+                        videoUiState.videoForm.title
+                    )
+                )
+            },
             onConfirm = onDeleteConfirm,
             onDismiss = onDeleteDismiss
         )
@@ -378,35 +380,6 @@ fun VideoScreenDialogs(
     }
 }
 
-@Composable
-fun ConfirmDeleteVideoDialog(
-    modifier: Modifier = Modifier,
-    videoName: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.delete_dialog_title, videoName)) },
-        text = { Text(stringResource(R.string.delete_video_phrase, videoName)) },
-        modifier = modifier,
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
-                Text(text = stringResource(R.string.dismiss_delete))
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-            ) {
-                Text(text = stringResource(R.string.confirm_delete))
-            }
-        })
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDatePickerDialog(
     onDismiss: () -> Unit, onConfirm: () -> Unit, datePickerState: DatePickerState

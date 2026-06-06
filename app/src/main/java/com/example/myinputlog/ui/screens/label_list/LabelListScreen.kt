@@ -51,7 +51,7 @@ fun LabelListScreen(
             LabelListUiState.Empty -> {
                 EmptyCollectionBox(
                     modifier = modifier.padding(MaterialTheme.spacing.medium),
-                    bodyMessage = R.string.empty_course_collection_body_course_tab
+                    bodyMessage = R.string.empty_label_collection_body
                 )
             }
 
@@ -72,7 +72,6 @@ fun LabelListScreen(
                 ), labels = currentState.userLabels, onLabelClicked = navigateToLabel
             )
         }
-        Text("Label list", modifier = Modifier.padding(innerPadding))
     }
 }
 

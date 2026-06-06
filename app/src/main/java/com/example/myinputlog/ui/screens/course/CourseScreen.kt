@@ -7,12 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -32,6 +30,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.course.CourseViewModel.CourseUiEvent
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_NEXT
+import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.theme.spacing
@@ -91,8 +90,10 @@ fun CourseScreen(
                 )
 
                 if ((courseUiState as CourseUiState.Success).isDialogVisible) {
-                    ConfirmDeleteCourseDialog(
-                        courseName = (courseUiState as CourseUiState.Success).courseFields.name,
+                    val courseName = (courseUiState as CourseUiState.Success).courseFields.name
+                    ConfirmDeleteDialog(
+                        entityName = courseName,
+                        text = { Text(stringResource(R.string.delete_course_phrase, courseName)) },
                         onConfirm = courseViewModel::deleteCourse,
                         onDismiss = {
                             courseViewModel.toggleDialogVisibility(false)
@@ -184,32 +185,4 @@ fun CourseEditBody(
                 })
         )
     }
-}
-
-@Composable
-private fun ConfirmDeleteCourseDialog(
-    modifier: Modifier = Modifier,
-    courseName: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.delete_dialog_title, courseName)) },
-        text = { Text(stringResource(R.string.delete_course_phrase, courseName)) },
-        modifier = modifier,
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
-                Text(text = stringResource(R.string.dismiss_delete))
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-            ) {
-                Text(text = stringResource(R.string.confirm_delete))
-            }
-        })
 }

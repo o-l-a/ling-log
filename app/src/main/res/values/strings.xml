@@ -51,6 +51,7 @@
     <string name="today_text">Today</string>
     <string name="yesterday_text">Yesterday</string>
     <string name="long_ago_text">Long ago</string>
+    <string name="preview_text">Preview</string>
 
     <!--    routine screen field labels    -->
     <string name="date_placeholder">dd/mm/yyyy</string>
@@ -86,6 +87,7 @@
     <string name="empty_collection_headline">Nothing to see here.</string>
     <string name="empty_course_collection_body_other_tabs">Head over to the "Profile" tab and add your first course.</string>
     <string name="empty_course_collection_body_course_tab">Add your first course.</string>
+    <string name="empty_label_collection_body">Add your first label.</string>
     <string name="empty_video_collection_body">Your videos will appear here after you add them.</string>
     <string name="empty_channel_collection_body">Your channels will appear here after you add them.</string>
     <string name="empty_playlist">This playlist seems to be empty.</string>
@@ -97,6 +99,8 @@
     <string name="delete_dialog_title">Deleting \"%s\"</string>
     <string name="delete_course_phrase">Are you sure you want to delete course \"%s\"? This action cannot be undone.</string>
     <string name="delete_video_phrase">Are you sure you want to delete video \"%s\"? This action cannot be undone.</string>
+    <string name="delete_label_phrase">Are you sure you want to delete label \"%s\"? This action cannot be undone.</string>
+    <string name="delete_channel_phrase">Are you sure you want to delete channel \"%s\"? This action cannot be undone.</string>
     <string name="confirm_delete">Delete</string>
 
     <!--    course    -->
@@ -107,6 +111,12 @@
     <string name="course_other_source_hours_label">Hours outside platform</string>
     <string name="course_goal_card_text">Goal: %dh</string>
     <string name="course_other_source_hours_card_text">%dh outside platform</string>
+
+    <!--    label    -->
+    <string name="label_name_label">Text</string>
+    <string name="label_color_label">Background color</string>
+    <string name="label_text_color_label">Text color</string>
+    <string name="label_auto_text_color">Auto calculate text color</string>
 
     <!--    video edit    -->
     <string name="video_watched_on_label">Set watch date</string>

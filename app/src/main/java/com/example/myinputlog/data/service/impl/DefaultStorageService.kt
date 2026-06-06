@@ -45,6 +45,7 @@ class DefaultStorageService @Inject constructor(
         private const val FIELD_CHANNELS_LAST_UPDATED = "channelsLastUpdated"
         private const val FIELD_COURSES_LAST_UPDATED = "coursesLastUpdated"
         private const val FIELD_VIDEOS = "videos"
+        private const val FIELD_LABELS = "labels"
 
         private const val CHUNK_SIZE = 499
     }
@@ -114,12 +115,15 @@ class DefaultStorageService @Inject constructor(
 
         if (labels.isNotEmpty()) {
             val docRef = metadataRef(userId).document(DOC_LABELS)
-            val updates = mutableMapOf<String, Any>()
-
-            labels.forEach { label ->
-                updates[label.id] = label.toFirestoreMap()
+            val labelsMap = labels.associate { label ->
+                label.id to label.toFirestoreMap()
             }
-            updates[FIELD_LAST_UPDATED] = FieldValue.serverTimestamp()
+
+            val updates = mapOf(
+                FIELD_LABELS to labelsMap,
+                FIELD_LAST_UPDATED to FieldValue.serverTimestamp()
+            )
+
             batch.set(docRef, updates, SetOptions.merge())
 
             pointersUpdate[FIELD_LABELS_LAST_UPDATED] = FieldValue.serverTimestamp()

@@ -16,7 +16,7 @@ interface LabelDao {
     @Query("SELECT * FROM labels WHERE id IN (:ids)")
     suspend fun getLabelsByIds(ids: List<String>): List<LabelEntity>
 
-    @Query("SELECT * FROM labels WHERE isDeleted = 0")
+    @Query("SELECT * FROM labels WHERE isDeleted = 0 ORDER BY title ASC")
     fun getAllLabels(): Flow<List<LabelEntity>>
 
     @Query("SELECT * FROM labels")
