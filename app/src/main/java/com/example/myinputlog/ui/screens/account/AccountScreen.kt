@@ -88,7 +88,7 @@ fun AccountScreen(
 
     Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         MyInputLogTopAppBar(
-            title = "",
+            title = stringResource(R.string.account_nav_description),
             canNavigateBack = true,
             navigateUp = onNavigateUp,
             hasDeleteAction = false,

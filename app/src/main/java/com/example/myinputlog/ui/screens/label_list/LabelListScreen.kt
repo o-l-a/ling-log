@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
@@ -44,7 +45,7 @@ fun LabelListScreen(
 
     Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         MyInputLogTopAppBar(
-            title = "",
+            title = stringResource(R.string.label_list_nav_description),
             canNavigateBack = true,
             hasAddAction = true,
             onAdd = navigateToLabelEntry,

@@ -107,7 +107,7 @@ fun VideoScreen(
     Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         val successState = videoUiState as? VideoUiState.Success
         MyInputLogTopAppBar(
-            title = "",
+            title = stringResource(R.string.video_screen_title),
             canNavigateBack = true,
             navigateUp = onNavigateUp,
             hasDeleteAction = successState?.isDeleteEnabled ?: false,

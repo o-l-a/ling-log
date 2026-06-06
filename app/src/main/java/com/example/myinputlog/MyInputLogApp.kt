@@ -42,10 +42,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.CourseHeaderUiModel
+import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.navigation.MyInputLogNavHost
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.navigation.navigationItems
@@ -83,7 +84,12 @@ fun MyInputLogTopAppBar(
     if (canNavigateBack) {
         TopAppBar(modifier = modifier, title = {
             Text(
-                title, maxLines = 1, overflow = TextOverflow.Ellipsis
+                title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontSize = 20.sp
+                )
             )
         }, navigationIcon = {
             IconButton(onClick = navigateUp) {
@@ -104,8 +110,7 @@ fun MyInputLogTopAppBar(
             if (hasSaveAction) {
                 IconButton(onClick = onSave, enabled = isFormValid) {
                     Icon(
-                        Icons.Filled.Done,
-                        contentDescription = stringResource(R.string.save_text)
+                        Icons.Filled.Done, contentDescription = stringResource(R.string.save_text)
                     )
                 }
             }
@@ -202,7 +207,9 @@ fun CourseTopAppBar(
         ) {
             Text(
                 text = courseHeader.name,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontSize = 20.sp
+                ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -232,9 +239,9 @@ fun CourseTopAppBar(
                 options.forEach { selectionOption ->
                     DropdownMenuItem(
                         text = { Text(selectionOption.name) }, onClick = {
-                            onValueChange(selectionOption)
-                            expanded = false
-                        }, contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                        onValueChange(selectionOption)
+                        expanded = false
+                    }, contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                     )
                 }
             }

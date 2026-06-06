@@ -79,7 +79,7 @@ fun UiSettingsScreen(
 
     Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         MyInputLogTopAppBar(
-            title = "",
+            title = stringResource(R.string.ui_settings_nav_description),
             canNavigateBack = true,
             navigateUp = onNavigateUp,
             scrollBehavior = scrollBehavior

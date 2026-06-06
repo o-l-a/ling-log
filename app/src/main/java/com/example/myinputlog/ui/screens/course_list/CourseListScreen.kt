@@ -40,7 +40,7 @@ fun CourseListScreen(
 
     Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         MyInputLogTopAppBar(
-            title = "",
+            title = stringResource(R.string.course_list_nav_description),
             canNavigateBack = true,
             hasAddAction = true,
             onAdd = navigateToUserCourseEntry,

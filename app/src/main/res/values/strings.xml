@@ -27,6 +27,7 @@
     <!--    settings nav descriptions    -->
     <string name="course_list_nav_description">Courses</string>
     <string name="label_list_nav_description">Labels</string>
+    <string name="label_nav_description">Label</string>
     <string name="ui_settings_nav_description">UI Settings</string>
     <string name="account_nav_description">Account</string>
 

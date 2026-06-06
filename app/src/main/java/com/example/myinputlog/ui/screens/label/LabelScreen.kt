@@ -73,7 +73,7 @@ fun LabelScreen(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
             val successState = labelUiState as? LabelUiState.Success
             MyInputLogTopAppBar(
-                title = "",
+                title = stringResource(R.string.label_nav_description),
                 canNavigateBack = true,
                 navigateUp = onNavigateUp,
                 hasDeleteAction = successState?.label?.id?.isNotBlank() ?: false,

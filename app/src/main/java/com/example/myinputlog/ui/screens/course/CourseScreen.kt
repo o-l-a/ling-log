@@ -56,7 +56,7 @@ fun CourseScreen(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
             val successState = courseUiState as? CourseUiState.Success
             MyInputLogTopAppBar(
-                title = "",
+                title = stringResource(R.string.course_screen_title),
                 canNavigateBack = true,
                 navigateUp = onNavigateUp,
                 hasDeleteAction = successState?.courseId?.isNotBlank() ?: false,

@@ -51,7 +51,7 @@ fun ChannelScreen(
 
     Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         MyInputLogTopAppBar(
-            title = "",
+            title = stringResource(R.string.video_channel_label),
             canNavigateBack = true,
             navigateUp = onNavigateUp,
             hasDeleteAction = false,
