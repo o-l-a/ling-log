@@ -63,6 +63,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.data.utils.LanguageUtils.getLanguageDisplayName
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.screens.utils.Country
+import com.example.myinputlog.ui.screens.utils.MAX_URL_LENGTH
 import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
@@ -147,8 +148,8 @@ fun VideoScreen(
     if (videoUiState is VideoUiState.Success) {
         VideoScreenDialogs(
             onDeleteConfirm = {
-                videoViewModel.deleteVideo()
-            },
+            videoViewModel.deleteVideo()
+        },
             onDeleteDismiss = {
                 videoViewModel.toggleDeleteDialogVisibility(false)
             },
@@ -223,8 +224,7 @@ fun VideoEditBody(
         )
 
         videoMetadataSection(
-            videoMetadata = videoUiState.videoForm,
-            isVisible = videoUiState.isFormValid
+            videoMetadata = videoUiState.videoForm, isVisible = videoUiState.isFormValid
         )
     }
 }
@@ -261,7 +261,7 @@ fun LazyListScope.videoUrlSection(
             keyboardActions = KeyboardActions(
                 onDone = { keyboardController?.hide() }),
             value = videoUrl,
-            onValueChange = onUrlValueChange,
+            onValueChange = { onUrlValueChange(it.take(MAX_URL_LENGTH)) },
             singleLine = true
         )
     }
@@ -338,8 +338,7 @@ fun LazyListScope.videoMetadataSection(
                     getLanguageDisplayName(
                         videoMetadata.defaultAudioLanguage
                     ) ?: stringResource(R.string.unknown_language)
-                }",
-                style = MaterialTheme.typography.bodyMedium
+                }", style = MaterialTheme.typography.bodyMedium
             )
         }
     }
@@ -357,18 +356,13 @@ fun VideoScreenDialogs(
 ) {
     if (videoUiState.videoUiFlags.isDeleteDialogVisible) {
         ConfirmDeleteDialog(
-            modifier = modifier,
-            entityName = videoUiState.videoForm.title,
-            text = {
+            modifier = modifier, entityName = videoUiState.videoForm.title, text = {
                 Text(
                     stringResource(
-                        R.string.delete_video_phrase,
-                        videoUiState.videoForm.title
+                        R.string.delete_video_phrase, videoUiState.videoForm.title
                     )
                 )
-            },
-            onConfirm = onDeleteConfirm,
-            onDismiss = onDeleteDismiss
+            }, onConfirm = onDeleteConfirm, onDismiss = onDeleteDismiss
         )
     }
     if (videoUiState.videoUiFlags.isDatePickerDialogVisible) {

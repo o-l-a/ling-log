@@ -30,6 +30,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.course.CourseViewModel.CourseUiEvent
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_NEXT
+import com.example.myinputlog.ui.screens.utils.MAX_COURSE_LENGTH
 import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
@@ -137,7 +138,7 @@ fun CourseEditBody(
                 .fillMaxWidth(),
             label = { Text(stringResource(R.string.course_name_label)) },
             value = courseUiState.courseFields.name,
-            onValueChange = onNameChange,
+            onValueChange = { onNameChange(it.take(MAX_COURSE_LENGTH)) },
             singleLine = true,
             keyboardOptions = IME_ACTION_NEXT,
             keyboardActions = KeyboardActions(

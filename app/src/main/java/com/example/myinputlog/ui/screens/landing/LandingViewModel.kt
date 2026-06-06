@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.data.service.AccountService
 import com.example.myinputlog.ui.navigation.LoginRoute
-import com.example.myinputlog.ui.navigation.ProfileRoute
+import com.example.myinputlog.ui.navigation.MediaListRoute
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -20,7 +20,7 @@ class LandingViewModel @Inject constructor(
             val userId = accountService.get().currentUserId
             if (userId.isNotBlank()) {
                 // TODO: change to HomeRoute
-                navigateWithPopUp(ProfileRoute)
+                navigateWithPopUp(MediaListRoute)
             } else {
                 navigateWithPopUp(LoginRoute)
             }

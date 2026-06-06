@@ -16,6 +16,12 @@ const val PAGE_SIZE = 8
 const val MAX_PAGE_SIZE = 1024
 const val DEFAULT_INITIAL_PAGE_MULTIPLIER = 1.5
 
+const val MAX_LABEL_LENGTH = 50
+const val MAX_COURSE_LENGTH = 120
+const val MAX_USER_LENGTH = 50
+const val MAX_URL_LENGTH = 120
+
+
 val IME_ACTION_NEXT = KeyboardOptions.Default.copy(
     imeAction = ImeAction.Next
 )

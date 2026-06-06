@@ -46,6 +46,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.label.LabelViewModel.LabelUiEvent
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_NEXT
+import com.example.myinputlog.ui.screens.utils.MAX_LABEL_LENGTH
 import com.example.myinputlog.ui.screens.utils.composable.ClickableLabelChip
 import com.example.myinputlog.ui.screens.utils.composable.ColorSwatch
 import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
@@ -167,7 +168,7 @@ fun LabelEditBody(
                 .fillMaxWidth(),
             label = { Text(stringResource(R.string.label_name_label)) },
             value = label.title,
-            onValueChange = onTitleChange,
+            onValueChange = { onTitleChange(it.take(MAX_LABEL_LENGTH)) },
             singleLine = true,
             keyboardOptions = IME_ACTION_NEXT,
             keyboardActions = KeyboardActions(
