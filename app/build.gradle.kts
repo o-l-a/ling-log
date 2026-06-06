@@ -34,7 +34,9 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            )
         }
     }
 
@@ -84,7 +86,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.hilt.work)
-    ksp(libs.hilt.compiler) // Switched from kapt to ksp
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.androidx.hilt.compiler)
 
@@ -114,11 +116,6 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
 
-    // Auth & OAuth
-    //noinspection LoginCredentials
-    implementation(libs.openid.appauth)
-    implementation(libs.jwtdecode)
-
     // Networking
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.serialization)
@@ -128,9 +125,8 @@ dependencies {
     implementation(libs.konfetti.compose)
 
     implementation(libs.androidx.material.icons.extended)
-    implementation(libs.google.accompanist.systemui)
 
-    implementation(libs.androidx.ui.tooling.preview) // Must be implementation
+    implementation(libs.androidx.ui.tooling.preview)
     debugImplementation(libs.androidx.ui.tooling)
 
     implementation(libs.kotlinx.serialization.json)
