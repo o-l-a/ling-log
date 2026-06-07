@@ -41,12 +41,14 @@ import com.example.myinputlog.ui.models.toVideoUiModel
 import com.example.myinputlog.ui.screens.utils.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
 import com.example.myinputlog.worker.PushSyncWorker
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.YearMonth
@@ -69,7 +71,8 @@ class DefaultStorageDataRepository @Inject constructor(
 
     override val courses: Flow<List<CourseWithStats>> = courseDao.getAllCourses()
 
-    override val labels: Flow<List<LabelEntity>> = labelDao.getAllLabels()
+    override val labels: Flow<Set<LabelEntity>> =
+        labelDao.getAllLabels().map { list -> list.toSet() }
 
     override val currentUser: Flow<UserData> = accountService.currentUser
 
@@ -93,11 +96,11 @@ class DefaultStorageDataRepository @Inject constructor(
 
 
     // account
-    override suspend fun changeUsername(newUsername: String) {
+    override suspend fun changeUsername(newUsername: String) = withContext(Dispatchers.IO) {
         accountService.changeUsername(newUsername)
     }
 
-    override suspend fun signOut() {
+    override suspend fun signOut() = withContext(Dispatchers.IO) {
         accountService.signOut()
     }
 
@@ -106,7 +109,7 @@ class DefaultStorageDataRepository @Inject constructor(
         uid?.let { storageService.initializeUser(uid) }
     }
 
-    override suspend fun deleteAccount() {
+    override suspend fun deleteAccount() = withContext(Dispatchers.IO) {
         val uid = accountService.currentUserId
 
         val courseIds = courseDao.getAllIds()
@@ -130,16 +133,17 @@ class DefaultStorageDataRepository @Inject constructor(
         }
     }
 
-    override suspend fun getVideo(videoId: String): VideoWithChannelAndLabels? {
-        return videoDao.getVideoWithChannelAndLabelsById(videoId)
-    }
+    override suspend fun getVideo(videoId: String): VideoWithChannelAndLabels? =
+        withContext(Dispatchers.IO) {
+            return@withContext videoDao.getVideoWithChannelAndLabelsById(videoId)
+        }
 
     override suspend fun saveVideo(
         video: VideoEntity,
         channel: ChannelEntity,
         labelIds: List<String>,
         syncLabelsToChannel: Boolean
-    ) {
+    ) = withContext(Dispatchers.IO) {
         db.withTransaction {
             channelDao.upsertChannel(channel)
             videoDao.upsertVideoWithLabelIds(VideoWithLabelIds(video, labelIds))
@@ -153,7 +157,7 @@ class DefaultStorageDataRepository @Inject constructor(
         schedulePushSync()
     }
 
-    override suspend fun deleteVideo(videoId: String) {
+    override suspend fun deleteVideo(videoId: String) = withContext(Dispatchers.IO) {
         db.withTransaction {
             videoDao.deleteVideoById(videoId)
             videoDao.deleteLabelRefsForVideo(videoId)
@@ -173,22 +177,24 @@ class DefaultStorageDataRepository @Inject constructor(
         }
     }
 
-    override suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels? {
-        return channelDao.getChannelWithLabelsById(channelId)
-    }
+    override suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels? =
+        withContext(Dispatchers.IO) {
+            return@withContext channelDao.getChannelWithLabelsById(channelId)
+        }
 
     // course
-    override suspend fun getUserCourse(courseId: String): CourseEntity? {
-        return courseDao.getCourseById(courseId)
-    }
+    override suspend fun getUserCourse(courseId: String): CourseEntity? =
+        withContext(Dispatchers.IO) {
+            return@withContext courseDao.getCourseById(courseId)
+        }
 
-    override suspend fun saveUserCourse(course: CourseEntity) {
+    override suspend fun saveUserCourse(course: CourseEntity) = withContext(Dispatchers.IO) {
         courseDao.upsertCourse(course)
         setCurrentCourse(course.id)
         schedulePushSync()
     }
 
-    override suspend fun deleteUserCourse(courseId: String) {
+    override suspend fun deleteUserCourse(courseId: String) = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
         db.withTransaction {
             courseDao.deleteCourseById(courseId, now)
@@ -210,16 +216,20 @@ class DefaultStorageDataRepository @Inject constructor(
 
     // label
     @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun getLabelById(labelId: String): LabelEntity? {
-        return labelDao.getLabelById(labelId)
+    override suspend fun getLabelById(labelId: String): LabelEntity? = withContext(Dispatchers.IO) {
+        return@withContext labelDao.getLabelById(labelId)
     }
 
-    override suspend fun saveLabel(label: LabelEntity) {
+    override suspend fun getAllLabelsAsSet(): Set<LabelEntity> = withContext(Dispatchers.IO) {
+        return@withContext labelDao.getAllLabelsAsList().toSet()
+    }
+
+    override suspend fun saveLabel(label: LabelEntity) = withContext(Dispatchers.IO) {
         labelDao.upsertLabel(label)
         schedulePushSync()
     }
 
-    override suspend fun deleteLabel(labelId: String) {
+    override suspend fun deleteLabel(labelId: String) = withContext(Dispatchers.IO) {
         labelDao.deleteLabelById(labelId)
         schedulePushSync()
     }
@@ -263,17 +273,17 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     // preferences
-    override suspend fun saveThemeMode(theme: AppTheme) {
+    override suspend fun saveThemeMode(theme: AppTheme) = withContext(Dispatchers.IO) {
         val uid = accountService.currentUserId
         preferenceStorageService.saveThemeMode(uid, theme)
     }
 
-    override suspend fun saveConfettiColors(colors: ConfettiOptions) {
+    override suspend fun saveConfettiColors(colors: ConfettiOptions) = withContext(Dispatchers.IO) {
         val uid = accountService.currentUserId
         preferenceStorageService.saveConfettiColors(uid, colors)
     }
 
-    override suspend fun setCurrentCourse(courseId: String) {
+    override suspend fun setCurrentCourse(courseId: String) = withContext(Dispatchers.IO) {
         val uid = accountService.currentUserId
         preferenceStorageService.saveCurrentCourseId(uid, courseId)
     }

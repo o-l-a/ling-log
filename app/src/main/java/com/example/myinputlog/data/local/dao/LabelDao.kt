@@ -22,6 +22,9 @@ interface LabelDao {
     @Query("SELECT * FROM labels")
     fun getAllLabelsAsList(): List<LabelEntity>
 
+    @Query("SELECT * FROM labels WHERE isDeleted = 0 ORDER BY title ASC")
+    fun getActiveLabelsAsList(): List<LabelEntity>
+
     // UPSERTS
     @Upsert
     suspend fun upsertLabel(label: LabelEntity)

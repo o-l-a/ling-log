@@ -19,5 +19,5 @@ data class VideoWithChannelAndLabels(
         parentColumn = "id", entityColumn = "id", associateBy = Junction(
             value = VideoLabelCrossRef::class, parentColumn = "videoId", entityColumn = "labelId"
         )
-    ) val labels: List<LabelEntity>
+    ) val labels: Set<LabelEntity>
 )

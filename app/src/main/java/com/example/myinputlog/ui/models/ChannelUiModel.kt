@@ -10,12 +10,12 @@ data class ChannelUiModel(
     val thumbnailDefaultUrl: String = "",
     val thumbnailMediumUrl: String = "",
     val thumbnailHighUrl: String = "",
-    val defaultLabels: List<LabelUiModel> = emptyList(),
+    val defaultLabels: Set<LabelUiModel> = emptySet(),
     val totalTimeInSeconds: Long = 0L,
     val totalVideoCount: Long = 0L
 )
 
-fun ChannelWithStatsAndLabels.toChannelUiModel() : ChannelUiModel = ChannelUiModel(
+fun ChannelWithStatsAndLabels.toChannelUiModel(): ChannelUiModel = ChannelUiModel(
     id = channel.id,
     title = channel.title,
     customUrl = channel.customUrl,
@@ -25,5 +25,5 @@ fun ChannelWithStatsAndLabels.toChannelUiModel() : ChannelUiModel = ChannelUiMod
     thumbnailHighUrl = channel.thumbnailHighUrl,
     totalTimeInSeconds = totalTimeInSeconds,
     totalVideoCount = totalVideoCount,
-    defaultLabels = labels.map { it.toLabelUiModel() }
+    defaultLabels = labels.map { it.toLabelUiModel() }.toSet()
 )

@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface StorageDataRepository {
     val courses: Flow<List<CourseWithStats>>
-    val labels: Flow<List<LabelEntity>>
+    val labels: Flow<Set<LabelEntity>>
     val currentCourseId: Flow<String>
     val currentUser: Flow<UserData>
     val themeMode: Flow<AppTheme>
@@ -55,6 +55,7 @@ interface StorageDataRepository {
     suspend fun getLabelById(labelId: String): LabelEntity?
     suspend fun saveLabel(label: LabelEntity)
     suspend fun deleteLabel(labelId: String)
+    suspend fun getAllLabelsAsSet(): Set<LabelEntity>
 
     // stats
     fun getMonthlyStatsFlow(courseId: String, monthId: String): Flow<MonthlyStatsUiModel?>

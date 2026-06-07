@@ -1,6 +1,7 @@
 package com.example.myinputlog.ui.screens.channel
 
 import com.example.myinputlog.ui.models.ChannelUiModel
+import com.example.myinputlog.ui.models.LabelUiModel
 
 
 sealed interface ChannelUiState {
@@ -9,6 +10,8 @@ sealed interface ChannelUiState {
     data class Success(
         val channelUiModel: ChannelUiModel = ChannelUiModel(),
         val channelLoadState: ChannelLoadState = ChannelLoadState.Loading,
+        val searchQuery: String,
+        val suggestions: Set<LabelUiModel>,
         val isDeleteEnabled: Boolean = false,
     ) : ChannelUiState
 }

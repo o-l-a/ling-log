@@ -88,7 +88,7 @@
     <string name="empty_collection_headline">Nothing to see here.</string>
     <string name="empty_course_collection_body_other_tabs">Head over to the "Profile" tab and add your first course.</string>
     <string name="empty_course_collection_body_course_tab">Add your first course.</string>
-    <string name="empty_label_collection_body">Add your first label.</string>
+    <string name="empty_label_collection_body">Your labels will appear here after you add them.</string>
     <string name="empty_video_collection_body">Your videos will appear here after you add them.</string>
     <string name="empty_channel_collection_body">Your channels will appear here after you add them.</string>
     <string name="empty_playlist">This playlist seems to be empty.</string>
@@ -118,6 +118,8 @@
     <string name="label_color_label">Background color</string>
     <string name="label_text_color_label">Text color</string>
     <string name="label_auto_text_color">Auto calculate text color</string>
+    <string name="labels_text_field_label">Labels</string>
+    <string name="labels_search_placeholder">Start typing to add labels…</string>
 
     <!--    video edit    -->
     <string name="video_watched_on_label">Set watch date</string>

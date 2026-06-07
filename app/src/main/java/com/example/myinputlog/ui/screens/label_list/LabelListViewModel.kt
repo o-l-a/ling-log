@@ -21,18 +21,18 @@ class LabelListViewModel @Inject constructor(repository: StorageDataRepository) 
     )
 
     val labelListUiState: StateFlow<LabelListUiState> = repository.labels.map { list ->
-            if (list.isEmpty()) {
-                LabelListUiState.Empty
-            } else {
-                val grouped =
-                    list.map { it.toLabelUiModel() }.groupBy { it.firstLetter }.toSortedMap()
-                LabelListUiState.Success(grouped)
-            }
-        }.flowOn(Dispatchers.Default).catch { e ->
-            emit(LabelListUiState.Error(e.localizedMessage))
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = LabelListUiState.Loading
-        )
+        if (list.isEmpty()) {
+            LabelListUiState.Empty
+        } else {
+            val grouped = list.map { it.toLabelUiModel() }.groupBy { it.firstLetter }
+                .mapValues { it.value.toSet() }.toSortedMap()
+            LabelListUiState.Success(grouped)
+        }
+    }.flowOn(Dispatchers.Default).catch { e ->
+        emit(LabelListUiState.Error(e.localizedMessage))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = LabelListUiState.Loading
+    )
 }

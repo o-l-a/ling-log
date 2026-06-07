@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.utils.composable
+package com.example.myinputlog.ui.screens.utils.composable.label
 
 
 import androidx.compose.material3.AssistChip
@@ -14,7 +14,8 @@ fun ClickableLabelChip(
     onClick: () -> Unit,
     title: String,
     backgroundColor: Color,
-    textColor: Color
+    textColor: Color,
+    trailingContent: @Composable () -> Unit = {}
 ) {
     AssistChip(
         modifier = modifier,
@@ -26,6 +27,7 @@ fun ClickableLabelChip(
             leadingIconContentColor = textColor,
             trailingIconContentColor = textColor
         ),
+        trailingIcon = trailingContent,
         border = null
     )
 }

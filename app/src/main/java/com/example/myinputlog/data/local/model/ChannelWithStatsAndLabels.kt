@@ -15,7 +15,7 @@ class ChannelWithStatsAndLabels(
             parentColumn = "channelId",
             entityColumn = "labelId"
         )
-    ) val labels: List<LabelEntity>,
+    ) val labels: Set<LabelEntity>,
     val totalTimeInSeconds: Long = 0L,
     val totalVideoCount: Long = 0L
 )
