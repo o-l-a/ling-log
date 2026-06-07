@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -63,7 +64,7 @@ fun ChannelScreen(
     val context = LocalContext.current
 
     val isFormValid = remember(channelUiState) {
-        (channelUiState as? ChannelUiState.Success)?.isFormValid ?: false
+        (channelUiState as? ChannelUiState.Success)?.uiFlags?.isFormValid ?: false
     }
 
     LaunchedEffect(Unit) {
@@ -111,7 +112,8 @@ fun ChannelScreen(
                     currentState,
                     onQueryChange = channelViewModel::onQueryChange,
                     onItemRemoved = channelViewModel::removeLabel,
-                    onItemSelected = channelViewModel::addLabel
+                    onItemSelected = channelViewModel::addLabel,
+                    onEditStart = channelViewModel::startEdit
                 )
             }
         }
@@ -126,6 +128,7 @@ fun ChannelBody(
     onQueryChange: (String) -> Unit,
     onItemSelected: (LabelUiModel) -> Unit,
     onItemRemoved: (LabelUiModel) -> Unit,
+    onEditStart: () -> Unit
 ) {
     val scrollState = rememberLazyListState()
     var clockSpinTrigger by remember { mutableIntStateOf(0) }
@@ -147,21 +150,21 @@ fun ChannelBody(
         item(key = "thumbnail") {
             ChannelThumbnail(
                 Modifier.height(MaterialTheme.spacing.doubleExtraLarge),
-                channelUiState.channelUiModel.thumbnailHighUrl
+                channelUiState.metadata.thumbnailHighUrl
             )
         }
         item(key = "channel_title") {
             Text(
                 modifier = Modifier.padding(top = MaterialTheme.spacing.extraSmall),
-                text = channelUiState.channelUiModel.title,
+                text = channelUiState.metadata.title,
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center
             )
         }
-        channelUiState.channelUiModel.customUrl?.ifEmpty { null }?.let {
+        channelUiState.metadata.customUrl?.ifEmpty { null }?.let {
             item(key = "custom_url") {
                 Text(
-                    text = channelUiState.channelUiModel.customUrl,
+                    text = channelUiState.metadata.customUrl,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
@@ -181,7 +184,7 @@ fun ChannelBody(
                     modifier = Modifier
                         .weight(1F)
                         .padding(end = MaterialTheme.spacing.small),
-                    number = channelUiState.channelUiModel.totalVideoCount.toString(),
+                    number = channelUiState.metadata.totalVideoCount.toString(),
                     label = stringResource(R.string.stats_videos_watched),
                     leadingContent = {
                         Image(
@@ -194,7 +197,7 @@ fun ChannelBody(
                     modifier = Modifier
                         .weight(1F)
                         .padding(start = MaterialTheme.spacing.small),
-                    number = formatDurationAsText(channelUiState.channelUiModel.totalTimeInSeconds),
+                    number = formatDurationAsText(channelUiState.metadata.totalTimeInSeconds),
                     label = stringResource(R.string.stats_hours_watched),
                     leadingContent = {
                         SpinningClockIcon(
@@ -218,17 +221,28 @@ fun ChannelBody(
                         )
                     )
                     .animateItem(),
-                labels = channelUiState.channelUiModel.defaultLabels,
-                onLabelClicked = onItemRemoved
-            )
+                isDeletable = channelUiState.uiFlags.isEditStarted,
+                labels = channelUiState.form.selectedLabels,
+                onLabelClicked = {
+                    if (channelUiState.uiFlags.isEditStarted) {
+                        onItemRemoved(it)
+                    } else {
+                        onEditStart()
+                    }
+                })
         }
         item(key = "picker") {
             LabelPickerTextField(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .onFocusEvent { state ->
+                        if (state.isFocused) {
+                            onEditStart()
+                        }
+                    }
                     .animateItem(),
                 placeholder = stringResource(R.string.labels_search_placeholder),
-                searchQuery = channelUiState.searchQuery,
+                searchQuery = channelUiState.form.searchQuery,
                 suggestions = channelUiState.suggestions,
                 onQueryChange = { onQueryChange(it) },
                 onItemSelected = { onItemSelected(it) },

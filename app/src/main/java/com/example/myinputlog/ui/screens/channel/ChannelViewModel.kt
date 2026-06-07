@@ -7,9 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.myinputlog.R
 import com.example.myinputlog.data.repository.StorageDataRepository
-import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
-import com.example.myinputlog.ui.models.toChannelUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.navigation.ChannelRoute
 import com.example.myinputlog.ui.screens.utils.UiText
@@ -22,9 +20,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -40,55 +41,50 @@ class ChannelViewModel @Inject constructor(
     private val channelRoute = savedStateHandle.toRoute<ChannelRoute>()
     private val channelId = channelRoute.channelId
 
-    private val _channelData = MutableStateFlow(ChannelUiModel())
+    private val _form = MutableStateFlow(ChannelForm())
+    private val _metadata = MutableStateFlow(ChannelMetadata())
     private val _loadingState = MutableStateFlow<ChannelLoadState>(ChannelLoadState.Loading)
-
-    private val _searchQuery = MutableStateFlow("")
-    private val _allLabels = MutableStateFlow<List<LabelUiModel>>(emptyList())
-
-    private val _initialLabels = MutableStateFlow<Set<LabelUiModel>>(emptySet())
+    private val _isEditStarted = MutableStateFlow(false)
 
     private val _uiEvent = Channel<ChannelUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
     @OptIn(FlowPreview::class)
-    val suggestions: StateFlow<List<LabelUiModel>> =
-        _searchQuery.debounce(100).combine(_allLabels) { query, all -> query to all }
-            .combine(_channelData) { (query, all), data ->
-                if (query.isEmpty()) emptyList()
-                else {
-                    all.filter { label ->
-                        label.title.contains(
-                            query, ignoreCase = true
-                        ) && data.defaultLabels.none { it.id == label.id }
-                    }.sortedWith(compareByDescending<LabelUiModel> {
-                        it.title.startsWith(query, ignoreCase = true)
-                    }.thenBy { it.title.lowercase() })
-                }
-            }.flowOn(Dispatchers.Default)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val suggestions: StateFlow<List<LabelUiModel>> = combine(
+        _form.map { it.searchQuery }.distinctUntilChanged().debounce(100),
+        _form.map { it.selectedLabels }.distinctUntilChanged(),
+        _metadata.map { it.allLabels }.distinctUntilChanged()
+    ) { query, selected, all ->
+        if (query.isEmpty()) emptyList()
+        else {
+            all.filter { label ->
+                label.title.contains(
+                    query, ignoreCase = true
+                ) && selected.none { it.id == label.id }
+            }.sortedWith(compareByDescending<LabelUiModel> {
+                it.title.startsWith(
+                    query, ignoreCase = true
+                )
+            }.thenBy { it.title.lowercase() })
+        }
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val channelUiState: StateFlow<ChannelUiState> = combine(
-        _channelData, _loadingState, _searchQuery, suggestions, _initialLabels
-    ) { channel, loading, query, suggestions, initialLabels ->
-        val hasChanged = channel.defaultLabels.toSet() != initialLabels
-        when (loading) {
-            is ChannelLoadState.Loading -> ChannelUiState.Loading
-            is ChannelLoadState.Error -> ChannelUiState.Error
-            else -> {
-                ChannelUiState.Success(
-                    channelUiModel = channel,
-                    searchQuery = query,
-                    suggestions = suggestions.toSet(),
-                    isFormValid = hasChanged
-                )
-            }
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ChannelUiState.Loading
-    )
+        _form, _metadata, _loadingState, _isEditStarted, suggestions
+    ) { form, meta, loading, editStarted, currentSuggestions ->
+        if (loading is ChannelLoadState.Loading) return@combine ChannelUiState.Loading
+        ChannelUiState.Success(
+            metadata = meta,
+            form = form,
+            suggestions = currentSuggestions.toSet(),
+            uiFlags = ChannelUiFlags(
+                isDeleteEnabled = meta.totalVideoCount == 0L,
+                isEditStarted = editStarted,
+                isFormValid = form.selectedLabels != meta.initialLabels
+            )
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChannelUiState.Loading)
 
     init {
         loadChannelAndLabels()
@@ -96,12 +92,12 @@ class ChannelViewModel @Inject constructor(
 
     private fun loadChannelAndLabels() {
         viewModelScope.launch {
-            val channel = storageDataRepository.getChannel(channelId)?.toChannelUiModel()
-            val allLabels = storageDataRepository.getAllLabelsAsSet().map { it.toLabelUiModel() }
+            val allLabels =
+                storageDataRepository.getAllLabelsAsSet().map { it.toLabelUiModel() }.toSet()
+            val channel = storageDataRepository.getChannel(channelId)?.toChannelMetadata(allLabels)
             if (channel != null) {
-                _allLabels.value = allLabels
-                _initialLabels.value = channel.defaultLabels.toSet()
-                _channelData.value = channel
+                _metadata.value = channel
+                _form.update { it.copy(selectedLabels = channel.initialLabels) }
                 _loadingState.value = ChannelLoadState.Success
             } else {
                 _loadingState.value = ChannelLoadState.Error
@@ -110,35 +106,42 @@ class ChannelViewModel @Inject constructor(
     }
 
     fun onQueryChange(newQuery: String) {
-        _searchQuery.value = newQuery
+        _form.update { it.copy(searchQuery = newQuery) }
+        _isEditStarted.value = true
+    }
+
+    fun startEdit() {
+        _isEditStarted.value = true
     }
 
     fun addLabel(label: LabelUiModel) {
-        val currentLabels = _channelData.value.defaultLabels
+        val currentLabels = _form.value.selectedLabels
         if (label !in currentLabels) {
-            _channelData.value = _channelData.value.copy(
-                defaultLabels = currentLabels + label
-            )
+            _form.update {
+                it.copy(selectedLabels = (currentLabels + label), searchQuery = "")
+            }
         }
-        _searchQuery.value = ""
     }
 
     fun removeLabel(label: LabelUiModel) {
-        _channelData.value = _channelData.value.copy(
-            defaultLabels = _channelData.value.defaultLabels - label
-        )
+        _form.update {
+            it.copy(
+                selectedLabels = it.selectedLabels - label
+            )
+        }
     }
 
     fun saveChannel() {
         val currentState = channelUiState.value as? ChannelUiState.Success ?: return
-        val channel = currentState.channelUiModel
+        val channel = currentState.metadata
+        val selectedLabels = currentState.form.selectedLabels
         viewModelScope.launch {
             try {
                 val channelEntity = channel.toChannelEntity()
                 storageDataRepository.saveChannel(
                     channel = channelEntity,
-                    labelIds = channel.defaultLabels.toList().map { it.id },
-                    syncLabelsToVideos = currentState.syncLabelsToVideos
+                    labelIds = selectedLabels.map { it.id },
+                    syncLabelsToVideos = currentState.form.syncLabelsToVideos
                 )
                 _uiEvent.send(ChannelUiEvent.NavigateBack)
             } catch (e: Exception) {

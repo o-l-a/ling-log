@@ -1,12 +1,23 @@
 package com.example.myinputlog.ui.screens.utils.composable.label
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -17,7 +28,8 @@ import com.example.myinputlog.ui.theme.spacing
 fun LabelChipRow(
     modifier: Modifier = Modifier,
     labels: Set<LabelUiModel>,
-    onLabelClicked: (LabelUiModel) -> Unit
+    onLabelClicked: (LabelUiModel) -> Unit,
+    isDeletable: Boolean = false
 ) {
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
         FlowRow(
@@ -27,11 +39,26 @@ fun LabelChipRow(
         ) {
             labels.forEach { label ->
                 ClickableLabelChip(
-                    onClick = { onLabelClicked(label) },
+                    modifier = Modifier.animateContentSize(),
+                    onClick = { if (!isDeletable) onLabelClicked(label) },
                     title = label.title,
                     backgroundColor = Color(label.color),
-                    textColor = Color(label.textColor)
-                )
+                    textColor = Color(label.textColor),
+                    trailingContent = {
+                        AnimatedVisibility(
+                            visible = isDeletable,
+                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+                            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start)
+                        ) {
+                            Icon(
+                                contentDescription = "delete",
+                                imageVector = Icons.Filled.Clear,
+                                modifier = Modifier.clickable {
+                                        onLabelClicked(label)
+                                    },
+                            )
+                        }
+                    })
             }
         }
     }

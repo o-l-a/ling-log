@@ -27,5 +27,6 @@ fun ChannelWithStatsAndLabels.toChannelUiModel(): ChannelUiModel = ChannelUiMode
     thumbnailHighUrl = channel.thumbnailHighUrl,
     totalTimeInSeconds = totalTimeInSeconds,
     totalVideoCount = totalVideoCount,
-    defaultLabels = labels.map { it.toLabelUiModel() }.toSet()
+    defaultLabels = labels.map { it.toLabelUiModel() }
+        .toSortedSet(compareBy { it.title.lowercase() })
 )
