@@ -46,7 +46,8 @@ interface ChannelDao {
     FROM channels AS c
     LEFT JOIN videos AS v ON c.id = v.channelId AND v.isDeleted = 0
     WHERE c.courseId = :courseId AND c.isDeleted = 0
-    GROUP BY c.id"""
+    GROUP BY c.id
+    ORDER BY totalVideoCount DESC, totalTimeInSeconds DESC, c.title ASC"""
     )
     fun getChannelsPagingSource(courseId: String): PagingSource<Int, ChannelWithStatsAndLabels>
 

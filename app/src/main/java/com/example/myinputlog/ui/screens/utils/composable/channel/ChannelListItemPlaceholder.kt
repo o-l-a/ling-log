@@ -2,6 +2,7 @@ package com.example.myinputlog.ui.screens.utils.composable.channel
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +39,7 @@ fun ChannelListItemPlaceholder(
         )
     }, leadingContent = {
         ChannelThumbnailPlaceholder(
-            modifier = Modifier.height(MaterialTheme.spacing.extraLarge + MaterialTheme.spacing.small)
+            modifier = Modifier.size(MaterialTheme.spacing.extraLarge)
         )
     }, trailingContent = {
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
