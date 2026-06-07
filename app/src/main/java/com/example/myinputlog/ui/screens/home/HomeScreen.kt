@@ -151,7 +151,7 @@ fun HomeBody(
                 horizontalArrangement = Arrangement.Center
             ) {
                 StatisticContainer(
-                    modifier = Modifier.weight(1F),
+                    modifier = Modifier.weight(1F).padding(MaterialTheme.spacing.small),
                     number = homeUiState.courseHeader.totalActiveDays,
                     label = stringResource(R.string.stats_total_days),
                     leadingContent = {
@@ -164,7 +164,7 @@ fun HomeBody(
                         )
                     })
                 StatisticContainer(
-                    modifier = Modifier.weight(1F),
+                    modifier = Modifier.weight(1F).padding(MaterialTheme.spacing.small),
                     number = formatDurationAsText(homeUiState.courseHeader.dailyAverageSeconds),
                     label = stringResource(R.string.stats_daily_average),
                     leadingContent = {
@@ -182,7 +182,7 @@ fun HomeBody(
                 horizontalArrangement = Arrangement.Center
             ) {
                 StatisticContainer(
-                    modifier = Modifier.weight(1F),
+                    modifier = Modifier.weight(1F).padding(MaterialTheme.spacing.small),
                     number = homeUiState.courseHeader.videoCount.toString(),
                     label = stringResource(R.string.stats_videos_watched),
                     leadingContent = {
@@ -193,7 +193,7 @@ fun HomeBody(
                         )
                     })
                 StatisticContainer(
-                    modifier = Modifier.weight(1F),
+                    modifier = Modifier.weight(1F).padding(MaterialTheme.spacing.small),
                     number = stringResource(R.string.yay),
                     label = stringResource(R.string.yay),
                     leadingContent = {

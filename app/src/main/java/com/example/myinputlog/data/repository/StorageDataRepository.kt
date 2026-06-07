@@ -45,6 +45,11 @@ interface StorageDataRepository {
     // channel
     fun channelPagingFlow(courseId: String): Flow<PagingData<ChannelUiModel>>
     suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels?
+    suspend fun saveChannel(
+        channel: ChannelEntity,
+        labelIds: List<String>,
+        syncLabelsToVideos: Boolean
+    )
 
     // course
     suspend fun getUserCourse(courseId: String): CourseEntity?

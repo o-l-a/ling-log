@@ -4,6 +4,7 @@ import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 
 data class ChannelUiModel(
     val id: String = "",
+    val courseId: String = "",
     val title: String = "",
     val customUrl: String? = null,
     val country: String? = null,
@@ -17,6 +18,7 @@ data class ChannelUiModel(
 
 fun ChannelWithStatsAndLabels.toChannelUiModel(): ChannelUiModel = ChannelUiModel(
     id = channel.id,
+    courseId = channel.courseId,
     title = channel.title,
     customUrl = channel.customUrl,
     country = channel.country,

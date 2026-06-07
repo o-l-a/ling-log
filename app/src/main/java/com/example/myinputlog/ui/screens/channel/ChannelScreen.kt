@@ -1,5 +1,8 @@
 package com.example.myinputlog.ui.screens.channel
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -15,11 +18,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -41,6 +47,7 @@ import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.SpinningClockIcon
 import com.example.myinputlog.ui.screens.utils.composable.StatisticContainer
 import com.example.myinputlog.ui.screens.utils.composable.channel.ChannelThumbnail
+import com.example.myinputlog.ui.screens.utils.composable.label.LabelChipRow
 import com.example.myinputlog.ui.screens.utils.composable.label.LabelPickerTextField
 import com.example.myinputlog.ui.screens.utils.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
@@ -52,6 +59,27 @@ fun ChannelScreen(
 ) {
     val channelUiState by channelViewModel.channelUiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+    val isFormValid = remember(channelUiState) {
+        (channelUiState as? ChannelUiState.Success)?.isFormValid ?: false
+    }
+
+    LaunchedEffect(Unit) {
+        channelViewModel.uiEvent.collect { event ->
+            when (event) {
+                is ChannelViewModel.ChannelUiEvent.ShowSnackbar -> {
+                    val message = event.message.asString(context)
+                    snackbarHostState.showSnackbar(message)
+                }
+
+                ChannelViewModel.ChannelUiEvent.NavigateBack -> {
+                    onNavigateUp()
+                }
+            }
+        }
+    }
 
     Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         MyInputLogTopAppBar(
@@ -60,11 +88,11 @@ fun ChannelScreen(
             navigateUp = onNavigateUp,
             hasDeleteAction = false,
             hasSaveAction = true,
-            isFormValid = true,
-            onSave = {},
+            isFormValid = isFormValid,
+            onSave = channelViewModel::saveChannel,
             scrollBehavior = scrollBehavior
         )
-    }) { innerPadding ->
+    }, snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         when (val currentState = channelUiState) {
             is ChannelUiState.Error -> {
                 EmptyCollectionBox(
@@ -87,6 +115,7 @@ fun ChannelScreen(
                 )
             }
         }
+
     }
 }
 
@@ -99,11 +128,6 @@ fun ChannelBody(
     onItemRemoved: (LabelUiModel) -> Unit,
 ) {
     val scrollState = rememberLazyListState()
-    val isScrollEnabled by remember {
-        derivedStateOf {
-            scrollState.canScrollForward || scrollState.canScrollBackward
-        }
-    }
     var clockSpinTrigger by remember { mutableIntStateOf(0) }
     val focusManager = LocalFocusManager.current
 
@@ -117,17 +141,16 @@ fun ChannelBody(
             },
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
         horizontalAlignment = Alignment.CenterHorizontally,
-        contentPadding = PaddingValues(MaterialTheme.spacing.extraSmall),
-        state = scrollState,
-        userScrollEnabled = isScrollEnabled
+        contentPadding = PaddingValues(MaterialTheme.spacing.medium),
+        state = scrollState
     ) {
-        item {
+        item(key = "thumbnail") {
             ChannelThumbnail(
                 Modifier.height(MaterialTheme.spacing.doubleExtraLarge),
                 channelUiState.channelUiModel.thumbnailHighUrl
             )
         }
-        item {
+        item(key = "channel_title") {
             Text(
                 modifier = Modifier.padding(top = MaterialTheme.spacing.extraSmall),
                 text = channelUiState.channelUiModel.title,
@@ -136,7 +159,7 @@ fun ChannelBody(
             )
         }
         channelUiState.channelUiModel.customUrl?.ifEmpty { null }?.let {
-            item {
+            item(key = "custom_url") {
                 Text(
                     text = channelUiState.channelUiModel.customUrl,
                     style = MaterialTheme.typography.bodyMedium,
@@ -144,19 +167,20 @@ fun ChannelBody(
                 )
             }
         }
-        item {
+        item(key = "stats_row") {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
                         top = MaterialTheme.spacing.small, bottom = MaterialTheme.spacing.medium
-                    )
-                    .padding(horizontal = MaterialTheme.spacing.extraSmall),
+                    ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 StatisticContainer(
-                    modifier = Modifier.weight(1F),
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(end = MaterialTheme.spacing.small),
                     number = channelUiState.channelUiModel.totalVideoCount.toString(),
                     label = stringResource(R.string.stats_videos_watched),
                     leadingContent = {
@@ -167,7 +191,9 @@ fun ChannelBody(
                         )
                     })
                 StatisticContainer(
-                    modifier = Modifier.weight(1F),
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(start = MaterialTheme.spacing.small),
                     number = formatDurationAsText(channelUiState.channelUiModel.totalTimeInSeconds),
                     label = stringResource(R.string.stats_hours_watched),
                     leadingContent = {
@@ -180,22 +206,32 @@ fun ChannelBody(
                     onClick = { clockSpinTrigger++ })
             }
         }
-        item {
+        item(key = "labels_row") {
+            LabelChipRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = MaterialTheme.spacing.medium)
+                    .animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    )
+                    .animateItem(),
+                labels = channelUiState.channelUiModel.defaultLabels,
+                onLabelClicked = onItemRemoved
+            )
+        }
+        item(key = "picker") {
             LabelPickerTextField(
-                modifier = Modifier.padding(
-                    start = MaterialTheme.spacing.medium,
-                    end = MaterialTheme.spacing.medium,
-                    top = MaterialTheme.spacing.small,
-                    bottom = MaterialTheme.spacing.small
-                ),
-                label = stringResource(R.string.labels_text_field_label),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateItem(),
                 placeholder = stringResource(R.string.labels_search_placeholder),
                 searchQuery = channelUiState.searchQuery,
-                selectedItems = channelUiState.channelUiModel.defaultLabels,
                 suggestions = channelUiState.suggestions,
                 onQueryChange = { onQueryChange(it) },
                 onItemSelected = { onItemSelected(it) },
-                onItemRemoved = { onItemRemoved(it) },
             )
         }
     }

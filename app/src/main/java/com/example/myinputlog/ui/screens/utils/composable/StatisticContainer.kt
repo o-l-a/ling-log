@@ -35,8 +35,7 @@ fun StatisticContainer(
 ) {
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(MaterialTheme.spacing.small),
+            .fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(
                 alpha = 0.6f

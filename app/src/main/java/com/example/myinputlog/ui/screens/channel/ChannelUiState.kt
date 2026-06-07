@@ -13,6 +13,8 @@ sealed interface ChannelUiState {
         val searchQuery: String,
         val suggestions: Set<LabelUiModel>,
         val isDeleteEnabled: Boolean = false,
+        val isFormValid: Boolean = false,
+        val syncLabelsToVideos: Boolean = false,
     ) : ChannelUiState
 }
 

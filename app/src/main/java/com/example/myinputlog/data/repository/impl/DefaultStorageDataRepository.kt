@@ -182,6 +182,17 @@ class DefaultStorageDataRepository @Inject constructor(
             return@withContext channelDao.getChannelWithLabelsById(channelId)
         }
 
+    override suspend fun saveChannel(
+        channel: ChannelEntity, labelIds: List<String>, syncLabelsToVideos: Boolean
+    ) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            channelDao.upsertChannelWithLabelIds(ChannelWithLabelIds(channel, labelIds))
+        }
+        // TODO: add syncing labels to video
+
+        schedulePushSync()
+    }
+
     // course
     override suspend fun getUserCourse(courseId: String): CourseEntity? =
         withContext(Dispatchers.IO) {
