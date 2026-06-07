@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.SpinningClockIcon
@@ -66,6 +67,9 @@ fun ChannelScreen(
     val isFormValid = remember(channelUiState) {
         (channelUiState as? ChannelUiState.Success)?.uiFlags?.isFormValid ?: false
     }
+    val isDeleteEnabled = remember(channelUiState) {
+        (channelUiState as? ChannelUiState.Success)?.uiFlags?.isDeleteEnabled ?: false
+    }
 
     LaunchedEffect(Unit) {
         channelViewModel.uiEvent.collect { event ->
@@ -87,10 +91,11 @@ fun ChannelScreen(
             title = stringResource(R.string.video_channel_label),
             canNavigateBack = true,
             navigateUp = onNavigateUp,
-            hasDeleteAction = false,
+            hasDeleteAction = isDeleteEnabled,
             hasSaveAction = true,
             isFormValid = isFormValid,
             onSave = channelViewModel::saveChannel,
+            onDelete = { channelViewModel.toggleDeleteDialogVisibility(true) },
             scrollBehavior = scrollBehavior
         )
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
@@ -115,9 +120,22 @@ fun ChannelScreen(
                     onItemSelected = channelViewModel::addLabel,
                     onEditStart = channelViewModel::startEdit
                 )
+                if (currentState.uiFlags.isDialogVisible) {
+                    ConfirmDeleteDialog(
+                        modifier = modifier,
+                        entityName = currentState.metadata.title,
+                        text = {
+                            Text(
+                                stringResource(
+                                    R.string.delete_channel_phrase, currentState.metadata.title
+                                )
+                            )
+                        },
+                        onConfirm = channelViewModel::deleteChannel,
+                        onDismiss = { channelViewModel.toggleDeleteDialogVisibility(false) })
+                }
             }
         }
-
     }
 }
 

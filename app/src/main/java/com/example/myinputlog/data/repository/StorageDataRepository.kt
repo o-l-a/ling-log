@@ -50,6 +50,7 @@ interface StorageDataRepository {
         labelIds: List<String>,
         syncLabelsToVideos: Boolean
     )
+    suspend fun deleteChannel(channelId: String)
 
     // course
     suspend fun getUserCourse(courseId: String): CourseEntity?

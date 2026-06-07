@@ -38,13 +38,14 @@ interface ChannelDao {
     suspend fun getChannelWithLabelsById(id: String): ChannelWithStatsAndLabels?
 
     @Transaction
-    @Query("""SELECT 
+    @Query(
+        """SELECT 
         c.*, 
         COUNT(v.id) AS totalVideoCount, 
         SUM(v.durationInSeconds) AS totalTimeInSeconds 
     FROM channels AS c
     LEFT JOIN videos AS v ON c.id = v.channelId AND v.isDeleted = 0
-    WHERE c.courseId = :courseId
+    WHERE c.courseId = :courseId AND c.isDeleted = 0
     GROUP BY c.id"""
     )
     fun getChannelsPagingSource(courseId: String): PagingSource<Int, ChannelWithStatsAndLabels>
@@ -116,7 +117,10 @@ interface ChannelDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChannelLabelRefs(refs: List<ChannelLabelCrossRef>)
 
-    // REF DELETES
+    // DELETES
+    @Query("UPDATE channels SET isDeleted = 1, lastUpdated = :timestamp WHERE id = :channelId")
+    suspend fun deleteChannelById(channelId: String, timestamp: Long = System.currentTimeMillis())
+
     @Query("DELETE FROM channel_label_cross_ref WHERE channelId = :channelId")
     suspend fun deleteLabelRefsForChannel(channelId: String)
 

@@ -41,7 +41,6 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -178,11 +177,6 @@ fun VideoEditBody(
     onUrlValueChange: (String) -> Unit
 ) {
     val scrollState = rememberLazyListState()
-    val isScrollEnabled by remember {
-        derivedStateOf {
-            scrollState.canScrollForward || scrollState.canScrollBackward
-        }
-    }
     val focusManager = LocalFocusManager.current
 
     LazyColumn(
@@ -195,7 +189,7 @@ fun VideoEditBody(
             },
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top,
-        userScrollEnabled = isScrollEnabled,
+        state = scrollState,
         contentPadding = PaddingValues(MaterialTheme.spacing.medium)
     ) {
         item(key = "course_input") {

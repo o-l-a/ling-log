@@ -95,6 +95,7 @@
     <string name="empty_playlist">Wygląda na to, że ta playlista jest pusta.</string>
     <string name="video_save_error">Nie udało się zapisać filmu. Spróbuj ponownie później.</string>
     <string name="video_delete_error">Nie udało się usunąć filmu. Spróbuj ponownie później.</string>
+    <string name="channel_delete_error">Nie udało się usunąć kanału. Spróbuj ponownie później.</string>
     <string name="unknown_language">Nieznany język</string>
 
     <!--    deleting dialog   -->

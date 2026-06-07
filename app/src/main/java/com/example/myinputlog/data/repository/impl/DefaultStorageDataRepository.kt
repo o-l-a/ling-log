@@ -193,6 +193,14 @@ class DefaultStorageDataRepository @Inject constructor(
         schedulePushSync()
     }
 
+    override suspend fun deleteChannel(channelId: String) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            channelDao.deleteChannelById(channelId)
+            channelDao.deleteLabelRefsForChannel(channelId)
+        }
+        schedulePushSync()
+    }
+
     // course
     override suspend fun getUserCourse(courseId: String): CourseEntity? =
         withContext(Dispatchers.IO) {

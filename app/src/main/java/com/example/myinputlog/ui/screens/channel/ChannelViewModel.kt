@@ -45,6 +45,7 @@ class ChannelViewModel @Inject constructor(
     private val _metadata = MutableStateFlow(ChannelMetadata())
     private val _loadingState = MutableStateFlow<ChannelLoadState>(ChannelLoadState.Loading)
     private val _isEditStarted = MutableStateFlow(false)
+    private val _isDialogVisible = MutableStateFlow(false)
 
     private val _uiEvent = Channel<ChannelUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
@@ -70,19 +71,27 @@ class ChannelViewModel @Inject constructor(
     }.flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val uiFlags: StateFlow<ChannelUiFlags> = combine(
+        _form, _metadata, _isEditStarted, _isDialogVisible
+    ) { form, meta, editStarted, isDelete ->
+        ChannelUiFlags(
+            isDeleteEnabled = meta.totalVideoCount == 0L,
+            isEditStarted = editStarted,
+            isFormValid = form.selectedLabels != meta.initialLabels,
+            isDialogVisible = isDelete
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChannelUiFlags())
+
+
     val channelUiState: StateFlow<ChannelUiState> = combine(
-        _form, _metadata, _loadingState, _isEditStarted, suggestions
-    ) { form, meta, loading, editStarted, currentSuggestions ->
+        _form, _metadata, _loadingState, uiFlags, suggestions
+    ) { form, meta, loading, uiFlags, currentSuggestions ->
         if (loading is ChannelLoadState.Loading) return@combine ChannelUiState.Loading
         ChannelUiState.Success(
             metadata = meta,
             form = form,
             suggestions = currentSuggestions.toSet(),
-            uiFlags = ChannelUiFlags(
-                isDeleteEnabled = meta.totalVideoCount == 0L,
-                isEditStarted = editStarted,
-                isFormValid = form.selectedLabels != meta.initialLabels
-            )
+            uiFlags = uiFlags
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChannelUiState.Loading)
 
@@ -123,6 +132,10 @@ class ChannelViewModel @Inject constructor(
         }
     }
 
+    fun toggleDeleteDialogVisibility(visible: Boolean) {
+        _isDialogVisible.value = visible
+    }
+
     fun removeLabel(label: LabelUiModel) {
         _form.update {
             it.copy(
@@ -147,6 +160,19 @@ class ChannelViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e(TAG, "Save failed", e)
                 _uiEvent.send(ChannelUiEvent.ShowSnackbar(UiText.StringResource(R.string.something_went_wrong)))
+            }
+        }
+    }
+
+    fun deleteChannel() {
+        toggleDeleteDialogVisibility(false)
+        viewModelScope.launch {
+            try {
+                storageDataRepository.deleteChannel(channelId)
+                _uiEvent.send(ChannelUiEvent.NavigateBack)
+            } catch (e: Exception) {
+                Log.d(TAG, e.toString())
+                _uiEvent.send(ChannelUiEvent.ShowSnackbar(UiText.StringResource(R.string.channel_delete_error)))
             }
         }
     }
