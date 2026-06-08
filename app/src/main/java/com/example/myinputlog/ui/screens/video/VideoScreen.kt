@@ -1,5 +1,8 @@
 package com.example.myinputlog.ui.screens.video
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -61,12 +65,15 @@ import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.data.utils.LanguageUtils.getLanguageDisplayName
 import com.example.myinputlog.ui.models.CourseUiModel
+import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.MAX_URL_LENGTH
 import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.MyInputLogDropdownField
+import com.example.myinputlog.ui.screens.utils.composable.label.LabelChipRow
+import com.example.myinputlog.ui.screens.utils.composable.label.LabelPickerTextField
 import com.example.myinputlog.ui.screens.utils.composable.video.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.dateFormatter
 import com.example.myinputlog.ui.theme.spacing
@@ -139,7 +146,11 @@ fun VideoScreen(
                     onDateClearClicked = { videoViewModel.updateWatchedOn(null) },
                     onCountryValueChange = videoViewModel::updateLanguage,
                     onUrlClearClicked = videoViewModel::deleteUrlAndUrlData,
-                    onUrlValueChange = videoViewModel::updateVideoUrl
+                    onUrlValueChange = videoViewModel::updateVideoUrl,
+                    onQueryChange = videoViewModel::onQueryChange,
+                    onItemRemoved = videoViewModel::removeLabel,
+                    onItemSelected = videoViewModel::addLabel,
+                    onEditStart = videoViewModel::startEdit
                 )
             }
         }
@@ -147,8 +158,8 @@ fun VideoScreen(
     if (videoUiState is VideoUiState.Success) {
         VideoScreenDialogs(
             onDeleteConfirm = {
-            videoViewModel.deleteVideo()
-        },
+                videoViewModel.deleteVideo()
+            },
             onDeleteDismiss = {
                 videoViewModel.toggleDeleteDialogVisibility(false)
             },
@@ -174,7 +185,11 @@ fun VideoEditBody(
     onDateClearClicked: () -> Unit,
     onUrlClearClicked: () -> Unit,
     onCountryValueChange: (Country?) -> Unit,
-    onUrlValueChange: (String) -> Unit
+    onUrlValueChange: (String) -> Unit,
+    onQueryChange: (String) -> Unit,
+    onItemSelected: (LabelUiModel) -> Unit,
+    onItemRemoved: (LabelUiModel) -> Unit,
+    onEditStart: () -> Unit
 ) {
     val scrollState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
@@ -192,14 +207,16 @@ fun VideoEditBody(
         state = scrollState,
         contentPadding = PaddingValues(MaterialTheme.spacing.medium)
     ) {
-        item(key = "course_input") {
-            MyInputLogDropdownField(
-                value = videoUiState.videoForm.selectedCourse,
-                onValueChange = onCourseValueChange,
-                options = videoUiState.userCourses,
-                isInTopBar = false,
-                isEditable = videoUiState.isCourseEditable
-            )
+        if (videoUiState.isCourseEditable) {
+            item(key = "course_input") {
+                MyInputLogDropdownField(
+                    value = videoUiState.videoForm.selectedCourse,
+                    onValueChange = onCourseValueChange,
+                    options = videoUiState.userCourses,
+                    isInTopBar = false,
+                    isEditable = videoUiState.isCourseEditable
+                )
+            }
         }
 
         videoUrlSection(
@@ -219,6 +236,16 @@ fun VideoEditBody(
 
         videoMetadataSection(
             videoMetadata = videoUiState.videoForm, isVisible = videoUiState.isFormValid
+        )
+
+        labelSection(
+            videoMetadata = videoUiState.videoForm,
+            isEditStarted = videoUiState.videoUiFlags.isEditStarted,
+            suggestions = videoUiState.suggestions,
+            onQueryChange = onQueryChange,
+            onItemRemoved = onItemRemoved,
+            onItemSelected = onItemSelected,
+            onEditStart = onEditStart
         )
     }
 }
@@ -328,6 +355,7 @@ fun LazyListScope.videoMetadataSection(
         }
         item(key = "channel_info") {
             Text(
+                modifier = Modifier.padding(bottom = MaterialTheme.spacing.medium),
                 text = "${videoMetadata.channelCustomUrl} • ${videoMetadata.channelTitle} • ${
                     getLanguageDisplayName(
                         videoMetadata.defaultAudioLanguage
@@ -337,6 +365,56 @@ fun LazyListScope.videoMetadataSection(
         }
     }
 }
+
+fun LazyListScope.labelSection(
+    videoMetadata: VideoForm,
+    suggestions: Set<LabelUiModel>,
+    isEditStarted: Boolean,
+    onQueryChange: (String) -> Unit,
+    onItemSelected: (LabelUiModel) -> Unit,
+    onItemRemoved: (LabelUiModel) -> Unit,
+    onEditStart: () -> Unit
+) {
+    item(key = "labels_row") {
+        LabelChipRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = MaterialTheme.spacing.medium)
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow
+                    )
+                )
+                .animateItem(),
+            isDeletable = isEditStarted,
+            labels = videoMetadata.selectedLabels,
+            onLabelClicked = {
+                if (isEditStarted) {
+                    onItemRemoved(it)
+                } else {
+                    onEditStart()
+                }
+            })
+    }
+    item(key = "picker") {
+        LabelPickerTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusEvent { state ->
+                    if (state.isFocused) {
+                        onEditStart()
+                    }
+                }
+                .animateItem(),
+            placeholder = stringResource(R.string.labels_search_placeholder),
+            searchQuery = videoMetadata.searchQuery,
+            suggestions = suggestions,
+            onQueryChange = { onQueryChange(it) },
+            onItemSelected = { onItemSelected(it) },
+        )
+    }
+}
+
 
 @Composable
 fun VideoScreenDialogs(

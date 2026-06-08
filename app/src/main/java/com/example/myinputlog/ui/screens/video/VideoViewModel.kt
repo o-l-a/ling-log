@@ -12,13 +12,17 @@ import com.example.myinputlog.data.repository.ApiDataRepository
 import com.example.myinputlog.data.repository.DataResult
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.CourseUiModel
+import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.toCourseUiModel
+import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import com.example.myinputlog.ui.navigation.VideoRoute
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.UiText
 import com.example.myinputlog.ui.screens.utils.ext.extractYouTubeVideoId
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -26,7 +30,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -58,9 +66,30 @@ class VideoViewModel @Inject constructor(
 
     private var fetchJob: Job? = null
 
+    @OptIn(FlowPreview::class)
+    val suggestions: StateFlow<List<LabelUiModel>> = combine(
+        _videoForm.map { it.searchQuery }.distinctUntilChanged().debounce(100),
+        _videoForm.map { it.selectedLabels }.distinctUntilChanged(),
+        _videoForm.map { it.allLabels }.distinctUntilChanged()
+    ) { query, selected, all ->
+        if (query.isEmpty()) emptyList()
+        else {
+            all.filter { label ->
+                label.title.contains(
+                    query, ignoreCase = true
+                ) && selected.none { it.id == label.id }
+            }.sortedWith(compareByDescending<LabelUiModel> {
+                it.title.startsWith(
+                    query, ignoreCase = true
+                )
+            }.thenBy { it.title.lowercase() })
+        }
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val videoUiState: StateFlow<VideoUiState> = combine(
-        storageDataRepository.courses, _videoForm, _loadingState, _uiFlags
-    ) { courses, form, loadState, flags ->
+        storageDataRepository.courses, _videoForm, _loadingState, _uiFlags, suggestions
+    ) { courses, form, loadState, flags, suggestions ->
         if (flags.isDeleting) {
             VideoUiState.Loading
         } else if (loadState is VideoLoadState.StorageError) {
@@ -71,6 +100,7 @@ class VideoViewModel @Inject constructor(
                 videoLoadState = loadState,
                 userCourses = courses.map { it.toCourseUiModel() },
                 videoUiFlags = flags,
+                suggestions = suggestions.toSet(),
                 isFormValid = form.videoUrl.isNotBlank() && loadState is VideoLoadState.Success,
                 isDeleteEnabled = !isNewVideo(videoId),
                 isCourseEditable = isNewVideo(videoId)
@@ -88,9 +118,12 @@ class VideoViewModel @Inject constructor(
 
     private fun loadVideoFromStorage() {
         viewModelScope.launch {
+            val allLabels =
+                storageDataRepository.getAllLabelsAsSet().map { it.toLabelUiModel() }.toSet()
             val selectedCourse = storageDataRepository.courses.first().firstOrNull { userCourse ->
                 userCourse.course.id == defaultCourseId
             }?.toCourseUiModel() ?: CourseUiModel()
+            _videoForm.update { it.copy(allLabels = allLabels) }
             if (!isNewVideo(videoId)) {
                 loadExistingVideo(selectedCourse)
             } else {
@@ -167,6 +200,32 @@ class VideoViewModel @Inject constructor(
         }
     }
 
+    fun onQueryChange(newQuery: String) {
+        _videoForm.update { it.copy(searchQuery = newQuery) }
+        _uiFlags.update { it.copy(isEditStarted = true) }
+    }
+
+    fun startEdit() {
+        _uiFlags.update { it.copy(isEditStarted = true) }
+    }
+
+    fun addLabel(label: LabelUiModel) {
+        val currentLabels = _videoForm.value.selectedLabels
+        if (label !in currentLabels) {
+            _videoForm.update {
+                it.copy(selectedLabels = (currentLabels + label), searchQuery = "")
+            }
+        }
+    }
+
+    fun removeLabel(label: LabelUiModel) {
+        _videoForm.update {
+            it.copy(
+                selectedLabels = it.selectedLabels - label
+            )
+        }
+    }
+
     fun deleteUrlAndUrlData() {
         _videoForm.update { it.toClearedMetadata().copy(videoUrl = "") }
     }
@@ -227,7 +286,7 @@ class VideoViewModel @Inject constructor(
                     storageDataRepository.saveVideo(
                         video = videoEntity,
                         channel = channelEntity,
-                        labelIds = form.selectedLabelIds.toList(),
+                        labelIds = form.selectedLabels.map { it.id },
                         syncLabelsToChannel = form.saveLabelsForChannel
                     )
                     _uiEvent.send(VideoUiEvent.NavigateBack)

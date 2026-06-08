@@ -6,6 +6,8 @@ import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.remote.ChannelItem
 import com.example.myinputlog.data.remote.VideoItem
+import com.example.myinputlog.ui.models.toLabelUiModel
+import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.ext.stripUrl
 import java.time.Duration
 import java.util.UUID
@@ -76,14 +78,19 @@ fun VideoForm.toFormWithVideoMetadata(videoItem: VideoItem): VideoForm {
 
 fun VideoForm.toFormWithVideoMetadata(videoWithChannelAndLabels: VideoWithChannelAndLabels): VideoForm {
     return this.copy(
-        videoId = videoWithChannelAndLabels.video.id,
+        id = videoWithChannelAndLabels.video.id,
+        videoId = videoWithChannelAndLabels.video.videoId,
         title = videoWithChannelAndLabels.video.title,
         videoUrl = videoWithChannelAndLabels.video.videoUrl,
+        speakersNationality = videoWithChannelAndLabels.video.speakersNationality,
+        watchedOn = videoWithChannelAndLabels.video.watchedOn,
         durationInSeconds = videoWithChannelAndLabels.video.durationInSeconds,
         thumbnailDefaultUrl = videoWithChannelAndLabels.video.thumbnailDefaultUrl,
         thumbnailMediumUrl = videoWithChannelAndLabels.video.thumbnailMediumUrl,
         thumbnailHighUrl = videoWithChannelAndLabels.video.thumbnailHighUrl,
-        defaultAudioLanguage = videoWithChannelAndLabels.video.defaultAudioLanguage
+        defaultAudioLanguage = videoWithChannelAndLabels.video.defaultAudioLanguage,
+        initialLabels = videoWithChannelAndLabels.labels.map { it.toLabelUiModel() }.toSet(),
+        selectedLabels = videoWithChannelAndLabels.labels.map { it.toLabelUiModel() }.toSet()
     )
 }
 

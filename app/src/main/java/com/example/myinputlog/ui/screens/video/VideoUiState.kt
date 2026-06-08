@@ -1,6 +1,7 @@
 package com.example.myinputlog.ui.screens.video
 
 import com.example.myinputlog.ui.models.CourseUiModel
+import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.screens.utils.Country
 import java.util.Date
 import kotlin.Long
@@ -34,15 +35,20 @@ data class VideoForm(
     val channelThumbnailDefaultUrl: String = "",
     val channelThumbnailMediumUrl: String = "",
     val channelThumbnailHighUrl: String = "",
+    // Labels
+    val initialLabels: Set<LabelUiModel> = emptySet(),
+    val allLabels: Set<LabelUiModel> = emptySet(),
     // Selection
+    val searchQuery: String = "",
     val selectedCourse: CourseUiModel = CourseUiModel(),
-    val selectedLabelIds: Set<String> = emptySet(),
+    val selectedLabels: Set<LabelUiModel> = emptySet(),
     val saveLabelsForChannel: Boolean = false
 )
 
 data class VideoUiFlags(
     val isDeleteDialogVisible: Boolean = false,
     val isDatePickerDialogVisible: Boolean = false,
+    val isEditStarted: Boolean = false,
     val isDeleting: Boolean = false
 )
 
@@ -53,6 +59,7 @@ sealed interface VideoUiState {
         val videoForm: VideoForm,
         val videoLoadState: VideoLoadState = VideoLoadState.LoadingFromStorage,
         val userCourses: List<CourseUiModel> = listOf(),
+        val suggestions: Set<LabelUiModel> = emptySet(),
         val videoUiFlags: VideoUiFlags = VideoUiFlags(),
         val isFormValid: Boolean = false,
         val isDeleteEnabled: Boolean = false,
