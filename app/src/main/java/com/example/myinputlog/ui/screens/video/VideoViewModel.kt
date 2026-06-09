@@ -150,12 +150,14 @@ class VideoViewModel @Inject constructor(
         val channel = storageDataRepository.getChannel(channelId)
         if (channel != null) {
             _videoForm.update { it.toFormWithChannelMetadata(channel) }
+            _uiFlags.update { it.copy(isNewChannel = false) }
             Log.d(TAG, "Loaded channel ${channel.channel.id} from storage")
             return
         } else {
             when (val result = apiDataRepository.getChannelData(channelId)) {
                 is DataResult.Success -> {
                     _videoForm.update { it.toFormWithChannelMetadata(result.data) }
+                    _uiFlags.update { it.copy(isNewChannel = true) }
                     Log.d(TAG, "Loaded channel ${result.data.getChannelTitle()} from API")
                     return
                 }
@@ -236,6 +238,10 @@ class VideoViewModel @Inject constructor(
 
     fun toggleDatePickerDialogVisibility(visible: Boolean) {
         _uiFlags.update { it.copy(isDatePickerDialogVisible = visible) }
+    }
+
+    fun onSyncLabelsChange(checked: Boolean) {
+        _videoForm.update { it.copy(saveLabelsForChannel = checked) }
     }
 
     fun updateUserCourse(newCourse: CourseUiModel) {

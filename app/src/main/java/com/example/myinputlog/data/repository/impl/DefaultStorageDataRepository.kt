@@ -1,5 +1,6 @@
 package com.example.myinputlog.data.repository.impl
 
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -188,8 +189,8 @@ class DefaultStorageDataRepository @Inject constructor(
         db.withTransaction {
             channelDao.upsertChannelWithLabelIds(ChannelWithLabelIds(channel, labelIds))
         }
-        // TODO: add syncing labels to video
-
+        Log.d(TAG, "Labels will ${if (!syncLabelsToVideos) "not " else ""}be synced.")
+        // TODO
         schedulePushSync()
     }
 
@@ -319,5 +320,9 @@ class DefaultStorageDataRepository @Inject constructor(
         workManager.beginUniqueWork(
             "immediate_push_sync", ExistingWorkPolicy.APPEND_OR_REPLACE, listOf(pushSync)
         ).enqueue()
+    }
+
+    companion object {
+        private const val TAG = "StorageDataRepository"
     }
 }

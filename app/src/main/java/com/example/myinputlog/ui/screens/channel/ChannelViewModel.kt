@@ -136,6 +136,10 @@ class ChannelViewModel @Inject constructor(
         _isDialogVisible.value = visible
     }
 
+    fun onSyncLabelsChange(checked: Boolean) {
+        _form.update { it.copy(syncLabelsToVideos = checked) }
+    }
+
     fun removeLabel(label: LabelUiModel) {
         _form.update {
             it.copy(
@@ -148,13 +152,15 @@ class ChannelViewModel @Inject constructor(
         val currentState = channelUiState.value as? ChannelUiState.Success ?: return
         val channel = currentState.metadata
         val selectedLabels = currentState.form.selectedLabels
+        val labelsChanged = currentState.form.selectedLabels != currentState.metadata.initialLabels
+        Log.d(TAG, "Labels have ${if (!labelsChanged) "not " else ""}changed.")
         viewModelScope.launch {
             try {
                 val channelEntity = channel.toChannelEntity()
                 storageDataRepository.saveChannel(
                     channel = channelEntity,
                     labelIds = selectedLabels.map { it.id },
-                    syncLabelsToVideos = currentState.form.syncLabelsToVideos
+                    syncLabelsToVideos = currentState.form.syncLabelsToVideos && labelsChanged
                 )
                 _uiEvent.send(ChannelUiEvent.NavigateBack)
             } catch (e: Exception) {

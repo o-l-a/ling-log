@@ -1,5 +1,6 @@
 package com.example.myinputlog.ui.screens.channel
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -43,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.screens.utils.composable.CheckBoxWithLabel
 import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
@@ -118,7 +120,8 @@ fun ChannelScreen(
                     onQueryChange = channelViewModel::onQueryChange,
                     onItemRemoved = channelViewModel::removeLabel,
                     onItemSelected = channelViewModel::addLabel,
-                    onEditStart = channelViewModel::startEdit
+                    onEditStart = channelViewModel::startEdit,
+                    onAutoCalculateChange = channelViewModel::onSyncLabelsChange
                 )
                 if (currentState.uiFlags.isDialogVisible) {
                     ConfirmDeleteDialog(
@@ -146,7 +149,8 @@ fun ChannelBody(
     onQueryChange: (String) -> Unit,
     onItemSelected: (LabelUiModel) -> Unit,
     onItemRemoved: (LabelUiModel) -> Unit,
-    onEditStart: () -> Unit
+    onEditStart: () -> Unit,
+    onAutoCalculateChange: (Boolean) -> Unit,
 ) {
     val scrollState = rememberLazyListState()
     var clockSpinTrigger by remember { mutableIntStateOf(0) }
@@ -265,6 +269,15 @@ fun ChannelBody(
                 onQueryChange = { onQueryChange(it) },
                 onItemSelected = { onItemSelected(it) },
             )
+        }
+        item(key = "checkbox") {
+            AnimatedVisibility(channelUiState.uiFlags.isEditStarted) {
+                CheckBoxWithLabel(
+                    value = channelUiState.form.syncLabelsToVideos,
+                    onValueChange = onAutoCalculateChange,
+                    text = stringResource(R.string.channel_apply_labels_to_videos)
+                )
+            }
         }
     }
 }

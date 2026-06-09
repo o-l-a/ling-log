@@ -13,12 +13,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -38,7 +35,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
@@ -47,11 +43,12 @@ import com.example.myinputlog.ui.screens.label.LabelViewModel.LabelUiEvent
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.utils.IME_ACTION_NEXT
 import com.example.myinputlog.ui.screens.utils.MAX_LABEL_LENGTH
-import com.example.myinputlog.ui.screens.utils.composable.label.ClickableLabelChip
+import com.example.myinputlog.ui.screens.utils.composable.CheckBoxWithLabel
 import com.example.myinputlog.ui.screens.utils.composable.ColorSwatch
 import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.composable.label.ClickableLabelChip
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable
@@ -197,27 +194,12 @@ fun LabelEditBody(
                 onNext = { focusManager.moveFocus(FocusDirection.Down) })
         )
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.small))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = MaterialTheme.spacing.large + MaterialTheme.spacing.medium)
-                .toggleable(
-                    value = label.autoCalculateTextColor,
-                    role = Role.Checkbox,
-                    onValueChange = { isChecked ->
-                        onAutoCalculateChange(isChecked)
-                    })
-                .padding(horizontal = MaterialTheme.spacing.medium),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = label.autoCalculateTextColor, onCheckedChange = null
-            )
-            Spacer(modifier = Modifier.width(MaterialTheme.spacing.small))
-            Text(
-                text = stringResource(R.string.label_auto_text_color)
-            )
-        }
+        CheckBoxWithLabel(
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium),
+            value = label.autoCalculateTextColor,
+            onValueChange = onAutoCalculateChange,
+            text = stringResource(R.string.label_auto_text_color)
+        )
         OutlinedTextField(
             modifier = Modifier
                 .padding(

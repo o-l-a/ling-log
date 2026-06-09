@@ -89,7 +89,8 @@ fun VideoForm.toFormWithVideoMetadata(videoWithChannelAndLabels: VideoWithChanne
         thumbnailHighUrl = videoWithChannelAndLabels.video.thumbnailHighUrl,
         defaultAudioLanguage = videoWithChannelAndLabels.video.defaultAudioLanguage,
         initialLabels = videoWithChannelAndLabels.labels.map { it.toLabelUiModel() }.toSet(),
-        selectedLabels = videoWithChannelAndLabels.labels.map { it.toLabelUiModel() }.toSet()
+        selectedLabels = videoWithChannelAndLabels.labels.map { it.toLabelUiModel() }
+            .toSortedSet(compareBy { it.title.lowercase() }),
     )
 }
 

@@ -1,6 +1,7 @@
 package com.example.myinputlog.ui.screens.video
 
 import android.content.ClipData
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -77,6 +78,7 @@ import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.MAX_URL_LENGTH
+import com.example.myinputlog.ui.screens.utils.composable.CheckBoxWithLabel
 import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
@@ -171,7 +173,8 @@ fun VideoScreen(
                     onQueryChange = videoViewModel::onQueryChange,
                     onItemRemoved = videoViewModel::removeLabel,
                     onItemSelected = videoViewModel::addLabel,
-                    onEditStart = videoViewModel::startEdit
+                    onEditStart = videoViewModel::startEdit,
+                    onCreateChannelToggle = videoViewModel::onSyncLabelsChange
                 )
             }
         }
@@ -211,7 +214,8 @@ fun VideoEditBody(
     onQueryChange: (String) -> Unit,
     onItemSelected: (LabelUiModel) -> Unit,
     onItemRemoved: (LabelUiModel) -> Unit,
-    onEditStart: () -> Unit
+    onEditStart: () -> Unit,
+    onCreateChannelToggle: (Boolean) -> Unit
 ) {
     val scrollState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
@@ -264,11 +268,14 @@ fun VideoEditBody(
         labelSection(
             videoMetadata = videoUiState.videoForm,
             isEditStarted = videoUiState.videoUiFlags.isEditStarted,
+            isNewChannel = videoUiState.videoUiFlags.isNewChannel,
+            createChannelWithLabels = videoUiState.videoForm.saveLabelsForChannel,
             suggestions = videoUiState.suggestions,
             onQueryChange = onQueryChange,
             onItemRemoved = onItemRemoved,
             onItemSelected = onItemSelected,
-            onEditStart = onEditStart
+            onEditStart = onEditStart,
+            onCreateChannelToggle = onCreateChannelToggle
         )
     }
 }
@@ -414,10 +421,13 @@ fun LazyListScope.labelSection(
     videoMetadata: VideoForm,
     suggestions: Set<LabelUiModel>,
     isEditStarted: Boolean,
+    isNewChannel: Boolean,
+    createChannelWithLabels: Boolean,
     onQueryChange: (String) -> Unit,
     onItemSelected: (LabelUiModel) -> Unit,
     onItemRemoved: (LabelUiModel) -> Unit,
-    onEditStart: () -> Unit
+    onEditStart: () -> Unit,
+    onCreateChannelToggle: (Boolean) -> Unit
 ) {
     item(key = "labels_row") {
         LabelChipRow(
@@ -456,6 +466,15 @@ fun LazyListScope.labelSection(
             onQueryChange = { onQueryChange(it) },
             onItemSelected = { onItemSelected(it) },
         )
+    }
+    item(key = "checkbox") {
+        AnimatedVisibility(isEditStarted && isNewChannel && videoMetadata.selectedLabels.isNotEmpty()) {
+            CheckBoxWithLabel(
+                value = createChannelWithLabels,
+                onValueChange = onCreateChannelToggle,
+                text = stringResource(R.string.video_create_channel_with_labels)
+            )
+        }
     }
 }
 

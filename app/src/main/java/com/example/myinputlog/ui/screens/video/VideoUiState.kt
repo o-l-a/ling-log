@@ -49,6 +49,7 @@ data class VideoUiFlags(
     val isDeleteDialogVisible: Boolean = false,
     val isDatePickerDialogVisible: Boolean = false,
     val isEditStarted: Boolean = false,
+    val isNewChannel: Boolean = false,
     val isDeleting: Boolean = false
 )
 
