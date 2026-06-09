@@ -1,10 +1,13 @@
 package com.example.myinputlog.ui.screens.video
 
+import android.content.ClipData
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
@@ -21,6 +24,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.DatePicker
@@ -31,9 +35,11 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -47,12 +53,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -77,6 +86,7 @@ import com.example.myinputlog.ui.screens.utils.composable.label.LabelPickerTextF
 import com.example.myinputlog.ui.screens.utils.composable.video.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.dateFormatter
 import com.example.myinputlog.ui.theme.spacing
+import kotlinx.coroutines.launch
 import java.util.Date
 
 @Composable
@@ -89,6 +99,8 @@ fun VideoScreen(
     val videoUiState by videoViewModel.videoUiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val datePickerState = rememberDatePickerState()
+    val coroutineScope = rememberCoroutineScope()
+    val clipboardManager = LocalClipboard.current
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
@@ -147,6 +159,15 @@ fun VideoScreen(
                     onCountryValueChange = videoViewModel::updateLanguage,
                     onUrlClearClicked = videoViewModel::deleteUrlAndUrlData,
                     onUrlValueChange = videoViewModel::updateVideoUrl,
+                    onCopyClicked = { url ->
+                        coroutineScope.launch {
+                            clipboardManager.setClipEntry(
+                                ClipEntry(
+                                    ClipData.newPlainText(url, url)
+                                )
+                            )
+                        }
+                    },
                     onQueryChange = videoViewModel::onQueryChange,
                     onItemRemoved = videoViewModel::removeLabel,
                     onItemSelected = videoViewModel::addLabel,
@@ -158,8 +179,8 @@ fun VideoScreen(
     if (videoUiState is VideoUiState.Success) {
         VideoScreenDialogs(
             onDeleteConfirm = {
-                videoViewModel.deleteVideo()
-            },
+            videoViewModel.deleteVideo()
+        },
             onDeleteDismiss = {
                 videoViewModel.toggleDeleteDialogVisibility(false)
             },
@@ -184,6 +205,7 @@ fun VideoEditBody(
     onDateChipClicked: () -> Unit,
     onDateClearClicked: () -> Unit,
     onUrlClearClicked: () -> Unit,
+    onCopyClicked: (String) -> Unit,
     onCountryValueChange: (Country?) -> Unit,
     onUrlValueChange: (String) -> Unit,
     onQueryChange: (String) -> Unit,
@@ -223,7 +245,8 @@ fun VideoEditBody(
             videoUrl = videoUiState.videoForm.videoUrl,
             isEditable = videoUiState.isCourseEditable,
             onUrlClearClicked = onUrlClearClicked,
-            onUrlValueChange = onUrlValueChange
+            onUrlValueChange = onUrlValueChange,
+            onCopyClicked = onCopyClicked,
         )
 
         videoAttributesSection(
@@ -255,10 +278,18 @@ fun LazyListScope.videoUrlSection(
     videoUrl: String,
     isEditable: Boolean,
     onUrlClearClicked: () -> Unit,
-    onUrlValueChange: (String) -> Unit
+    onUrlValueChange: (String) -> Unit,
+    onCopyClicked: (String) -> Unit,
 ) {
     item(key = "url_input") {
         val keyboardController = LocalSoftwareKeyboardController.current
+        val interactionSource = remember { MutableInteractionSource() }
+        val isFocused by interactionSource.collectIsFocusedAsState()
+
+        val iconColor = OutlinedTextFieldDefaults.colors().trailingIconColor(
+            enabled = true, isError = false, focused = isFocused
+        )
+
         OutlinedTextField(
             modifier = modifier
                 .padding(
@@ -268,12 +299,24 @@ fun LazyListScope.videoUrlSection(
             enabled = isEditable,
             label = { Text(stringResource(R.string.video_link_label)) },
             trailingIcon = {
-                if (videoUrl.isNotBlank() && isEditable) {
-                    Icon(
-                        modifier = Modifier.clickable(onClick = onUrlClearClicked),
-                        imageVector = Icons.Filled.Clear,
-                        contentDescription = null
-                    )
+                IconButton(onClick = {
+                    if (!isEditable) {
+                        onCopyClicked(videoUrl)
+                    } else if (videoUrl.isNotBlank()) {
+                        onUrlClearClicked()
+                    }
+                }) {
+                    if (!isEditable) {
+                        Icon(
+                            imageVector = Icons.Filled.ContentCopy,
+                            contentDescription = null,
+                            tint = iconColor
+                        )
+                    } else if (videoUrl.isNotBlank()) {
+                        Icon(
+                            imageVector = Icons.Filled.Clear, contentDescription = null
+                        )
+                    }
                 }
             },
             keyboardOptions = KeyboardOptions(
@@ -360,7 +403,8 @@ fun LazyListScope.videoMetadataSection(
                     getLanguageDisplayName(
                         videoMetadata.defaultAudioLanguage
                     ) ?: stringResource(R.string.unknown_language)
-                }", style = MaterialTheme.typography.bodyMedium
+                }",
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }
