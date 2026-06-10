@@ -184,13 +184,22 @@ class DefaultStorageDataRepository @Inject constructor(
         }
 
     override suspend fun saveChannel(
-        channel: ChannelEntity, labelIds: List<String>, syncLabelsToVideos: Boolean
+        channel: ChannelEntity,
+        labelIds: List<String>,
+        initialLabelIds: List<String>,
+        syncLabelsToVideos: Boolean
     ) = withContext(Dispatchers.IO) {
+        Log.d(TAG, "Labels will ${if (!syncLabelsToVideos) "not " else ""}be synced.")
+        Log.d(TAG, "Channel id: ${channel.id}, channel name: ${channel.title}")
+        val addedLabels = labelIds - initialLabelIds.toSet()
+        val removedLabels = initialLabelIds - labelIds.toSet()
+        Log.d(TAG, "Labels to add: $addedLabels, labels to remove: $removedLabels")
         db.withTransaction {
             channelDao.upsertChannelWithLabelIds(ChannelWithLabelIds(channel, labelIds))
+            if (syncLabelsToVideos && (addedLabels.isNotEmpty() || removedLabels.isNotEmpty())) {
+                videoDao.syncLabelsToChannel(channel.id, addedLabels, removedLabels)
+            }
         }
-        Log.d(TAG, "Labels will ${if (!syncLabelsToVideos) "not " else ""}be synced.")
-        // TODO
         schedulePushSync()
     }
 

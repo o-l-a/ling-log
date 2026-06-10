@@ -152,7 +152,8 @@ class ChannelViewModel @Inject constructor(
         val currentState = channelUiState.value as? ChannelUiState.Success ?: return
         val channel = currentState.metadata
         val selectedLabels = currentState.form.selectedLabels
-        val labelsChanged = currentState.form.selectedLabels != currentState.metadata.initialLabels
+        val initialLabels = currentState.metadata.initialLabels
+        val labelsChanged = selectedLabels != initialLabels
         Log.d(TAG, "Labels have ${if (!labelsChanged) "not " else ""}changed.")
         viewModelScope.launch {
             try {
@@ -160,6 +161,7 @@ class ChannelViewModel @Inject constructor(
                 storageDataRepository.saveChannel(
                     channel = channelEntity,
                     labelIds = selectedLabels.map { it.id },
+                    initialLabelIds = initialLabels.map { it.id },
                     syncLabelsToVideos = currentState.form.syncLabelsToVideos && labelsChanged
                 )
                 _uiEvent.send(ChannelUiEvent.NavigateBack)

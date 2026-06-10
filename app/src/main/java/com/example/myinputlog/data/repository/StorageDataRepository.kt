@@ -48,6 +48,7 @@ interface StorageDataRepository {
     suspend fun saveChannel(
         channel: ChannelEntity,
         labelIds: List<String>,
+        initialLabelIds: List<String>,
         syncLabelsToVideos: Boolean
     )
     suspend fun deleteChannel(channelId: String)

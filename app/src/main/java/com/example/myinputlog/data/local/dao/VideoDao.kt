@@ -12,7 +12,6 @@ import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.entities.VideoLabelCrossRef
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
-import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
 @Dao
@@ -35,10 +34,6 @@ interface VideoDao {
     @Transaction
     @Query("SELECT * FROM videos WHERE id = :videoId AND isDeleted = 0")
     suspend fun getVideoWithChannelAndLabelsById(videoId: String): VideoWithChannelAndLabels?
-
-    @Transaction
-    @Query("SELECT * FROM videos WHERE isDeleted = 0 ORDER BY watchedOn DESC")
-    fun getAllVideosFullDetails(): Flow<List<VideoWithChannelAndLabels>>
 
     @Transaction
     @Query(
@@ -115,12 +110,57 @@ interface VideoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertVideoLabelRefs(refs: List<VideoLabelCrossRef>)
 
+    @Query(
+        """
+        INSERT OR IGNORE INTO video_label_cross_ref (videoId, labelId)
+        SELECT id, :labelId 
+        FROM videos 
+        WHERE channelId = :channelId
+    """
+    )
+    suspend fun insertLabelRefForChannelVideos(channelId: String, labelId: String)
+
+    // UPDATES
+    @Query("UPDATE videos SET lastUpdated = :timestamp WHERE channelId = :channelId")
+    suspend fun updateVideosTimestampForChannel(channelId: String, timestamp: Long)
+
+    @Transaction
+    suspend fun syncLabelsToChannel(
+        channelId: String,
+        addedLabels: List<String>,
+        removedLabels: List<String>,
+        timestamp: Long = System.currentTimeMillis()
+    ) {
+        if (removedLabels.isNotEmpty()) {
+            deleteVideoLabelRefsForChannel(channelId, removedLabels)
+        }
+        if (addedLabels.isNotEmpty()) {
+            addedLabels.forEach { labelId ->
+                insertLabelRefForChannelVideos(channelId, labelId)
+            }
+        }
+        updateVideosTimestampForChannel(channelId, timestamp)
+    }
+
     // DELETES
     @Query("UPDATE videos SET isDeleted = 1, lastUpdated = :timestamp WHERE id = :videoId")
     suspend fun deleteVideoById(videoId: String, timestamp: Long = System.currentTimeMillis())
 
     @Query("DELETE FROM video_label_cross_ref WHERE videoId = :videoId")
     suspend fun deleteLabelRefsForVideo(videoId: String)
+
+    @Query(
+        """
+        DELETE FROM video_label_cross_ref 
+        WHERE labelId IN (:labelIds) 
+        AND videoId IN (
+            SELECT id 
+            FROM videos 
+            WHERE channelId = :channelId
+        )
+    """
+    )
+    suspend fun deleteVideoLabelRefsForChannel(channelId: String, labelIds: List<String>)
 
     @Query("DELETE FROM video_label_cross_ref WHERE videoId IN (:videoIds)")
     suspend fun bulkDeleteLabelRefsForVideos(videoIds: List<String>)
