@@ -20,6 +20,7 @@ import com.example.myinputlog.ui.navigation.VideoRoute
 import com.example.myinputlog.ui.screens.utils.Country
 import com.example.myinputlog.ui.screens.utils.UiText
 import com.example.myinputlog.ui.screens.utils.ext.extractYouTubeVideoId
+import com.example.myinputlog.ui.screens.utils.ext.stripUrl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -101,7 +102,7 @@ class VideoViewModel @Inject constructor(
                 userCourses = courses.map { it.toCourseUiModel() },
                 videoUiFlags = flags,
                 suggestions = suggestions.toSet(),
-                isFormValid = form.videoUrl.isNotBlank() && loadState is VideoLoadState.Success,
+                isFormValid = form.videoId.isNotBlank() && loadState is VideoLoadState.Success,
                 isDeleteEnabled = !isNewVideo(videoId),
                 isCourseEditable = isNewVideo(videoId)
             )
@@ -249,11 +250,15 @@ class VideoViewModel @Inject constructor(
     }
 
     fun updateVideoUrl(newUrl: String) {
-        _videoForm.update { it.toClearedMetadata().copy(videoUrl = newUrl) }
-        fetchJob?.cancel()
-        fetchJob = viewModelScope.launch {
-            delay(600) // Wait for user to stop typing
-            loadVideoMetadata()
+        val oldUrl = _videoForm.value.videoUrl
+        _videoForm.update { it.copy(videoUrl = newUrl) }
+        if (oldUrl.stripUrl() != newUrl.stripUrl()) {
+            _videoForm.update { it.toClearedMetadata().copy(videoUrl = newUrl) }
+            fetchJob?.cancel()
+            fetchJob = viewModelScope.launch {
+                delay(300) // Wait for user to stop typing
+                loadVideoMetadata()
+            }
         }
     }
 

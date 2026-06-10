@@ -197,7 +197,7 @@ fun ChannelBody(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        top = MaterialTheme.spacing.small, bottom = MaterialTheme.spacing.medium
+                        top = MaterialTheme.spacing.small, bottom = MaterialTheme.spacing.small
                     ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -235,7 +235,9 @@ fun ChannelBody(
             LabelChipRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = MaterialTheme.spacing.medium)
+                    .padding(
+                        bottom = MaterialTheme.spacing.small, top = MaterialTheme.spacing.extraSmall
+                    )
                     .animateContentSize(
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioLowBouncy,
@@ -257,6 +259,7 @@ fun ChannelBody(
             LabelPickerTextField(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(top = MaterialTheme.spacing.extraExtraSmall)
                     .onFocusEvent { state ->
                         if (state.isFocused) {
                             onEditStart()

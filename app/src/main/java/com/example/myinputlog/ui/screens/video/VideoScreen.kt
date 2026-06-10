@@ -5,12 +5,17 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,6 +75,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.MyInputLogTopAppBar
 import com.example.myinputlog.R
@@ -300,7 +306,7 @@ fun LazyListScope.videoUrlSection(
         OutlinedTextField(
             modifier = modifier
                 .padding(
-                    top = MaterialTheme.spacing.small, bottom = MaterialTheme.spacing.small
+                    top = MaterialTheme.spacing.small
                 )
                 .fillMaxWidth(),
             enabled = isEditable,
@@ -350,11 +356,12 @@ fun LazyListScope.videoAttributesSection(
         FlowRow(
             modifier
                 .fillMaxWidth(1f)
+                .padding(vertical = MaterialTheme.spacing.small)
                 .wrapContentHeight(align = Alignment.Top),
             horizontalArrangement = Arrangement.Start,
         ) {
             InputChip(
-                modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
+                modifier = Modifier.padding(end = MaterialTheme.spacing.extraSmall),
                 onClick = onDateChipClicked,
                 label = {
                     if (watchedOn != null && watchedOn != Date(
@@ -388,31 +395,48 @@ fun LazyListScope.videoAttributesSection(
 fun LazyListScope.videoMetadataSection(
     videoMetadata: VideoForm, isVisible: Boolean
 ) {
+    val springSpec = spring<IntSize>(
+        dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow
+    )
     if (isVisible) {
-        item(key = "video_thumbnail") {
-            VideoThumbnail(
-                videoThumbnailUrl = videoMetadata.thumbnailHighUrl,
-                duration = videoMetadata.durationInSeconds
-            )
-        }
-        item(key = "video_title") {
-            Text(
-                modifier = Modifier.padding(top = MaterialTheme.spacing.small),
-                text = videoMetadata.title,
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Left
-            )
-        }
-        item(key = "channel_info") {
-            Text(
-                modifier = Modifier.padding(bottom = MaterialTheme.spacing.medium),
-                text = "${videoMetadata.channelCustomUrl} • ${videoMetadata.channelTitle} • ${
-                    getLanguageDisplayName(
-                        videoMetadata.defaultAudioLanguage
-                    ) ?: stringResource(R.string.unknown_language)
-                }",
-                style = MaterialTheme.typography.bodyMedium
-            )
+        item(key = "video_metadata") {
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(animationSpec = spring()) + expandVertically(animationSpec = springSpec),
+                exit = fadeOut(animationSpec = spring()) + shrinkVertically(animationSpec = springSpec),
+                modifier = Modifier.animateItem()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
+                        )
+                ) {
+                    VideoThumbnail(
+                        videoThumbnailUrl = videoMetadata.thumbnailHighUrl,
+                        duration = videoMetadata.durationInSeconds
+                    )
+                    Text(
+                        modifier = Modifier.padding(top = MaterialTheme.spacing.small),
+                        text = videoMetadata.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Left
+                    )
+                    Text(
+                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.small),
+                        text = "${videoMetadata.channelCustomUrl} • ${videoMetadata.channelTitle} • ${
+                            getLanguageDisplayName(
+                                videoMetadata.defaultAudioLanguage
+                            ) ?: stringResource(R.string.unknown_language)
+                        }",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
         }
     }
 }
@@ -433,7 +457,9 @@ fun LazyListScope.labelSection(
         LabelChipRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = MaterialTheme.spacing.medium)
+                .padding(
+                    top = MaterialTheme.spacing.extraSmall, bottom = MaterialTheme.spacing.small
+                )
                 .animateContentSize(
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow
@@ -454,6 +480,7 @@ fun LazyListScope.labelSection(
         LabelPickerTextField(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(top = MaterialTheme.spacing.extraSmall)
                 .onFocusEvent { state ->
                     if (state.isFocused) {
                         onEditStart()
@@ -539,7 +566,7 @@ fun CountryChoiceDropdownField(
         modifier = modifier.wrapContentSize(Alignment.TopStart)
     ) {
         InputChip(
-            modifier = Modifier.padding(MaterialTheme.spacing.extraSmall),
+            modifier = Modifier.padding(start = MaterialTheme.spacing.extraSmall),
             onClick = { expanded = !expanded },
             label = {
                 if (speakersNationality != null) {
