@@ -52,7 +52,7 @@ fun ChannelListBody(
             ) { index ->
                 channels[index]?.let { channel ->
                     ChannelContainer(
-                        channel = channel, onChannelClicked = {
+                        channel = channel.copy(rank = index + 1), onChannelClicked = {
                             navigateToYouTubeChannel(
                                 currentCourseId, channel.id
                             )
@@ -96,7 +96,7 @@ fun ChannelContainer(
     ListItem(modifier = modifier.clickable { onChannelClicked(channel.id) }, headlineContent = {
         Column {
             Text(
-                text = channel.title,
+                text = channel.title + channel.rank.toString(),
                 maxLines = channel.titleLines(),
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium
@@ -114,7 +114,8 @@ fun ChannelContainer(
     }, leadingContent = {
         ChannelThumbnail(
             modifier = Modifier.height(MaterialTheme.spacing.extraLarge),
-            channelThumbnailUrl = channel.thumbnailMediumUrl
+            channelThumbnailUrl = channel.thumbnailMediumUrl,
+            rank = channel.rank
         )
     })
 }
