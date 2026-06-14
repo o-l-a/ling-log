@@ -2,7 +2,9 @@ package com.example.myinputlog.ui.screens.media_list
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -23,7 +24,7 @@ import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
 import com.example.myinputlog.ui.screens.utils.composable.channel.ChannelListItemPlaceholder
 import com.example.myinputlog.ui.screens.utils.composable.channel.ChannelThumbnail
-import com.example.myinputlog.ui.screens.utils.formatDurationAsText
+import com.example.myinputlog.ui.screens.utils.composable.label.SmallLabelChipRow
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable
@@ -51,9 +52,11 @@ fun ChannelListBody(
             ) { index ->
                 channels[index]?.let { channel ->
                     ChannelContainer(
-                        channel = channel,
-                        onChannelClicked = { navigateToYouTubeChannel(currentCourseId, channel.id) }
-                    )
+                        channel = channel, onChannelClicked = {
+                            navigateToYouTubeChannel(
+                                currentCourseId, channel.id
+                            )
+                        })
                 }
             }
             when (channels.loadState.append) {
@@ -91,23 +94,23 @@ fun ChannelContainer(
     modifier: Modifier = Modifier, channel: ChannelUiModel, onChannelClicked: (String) -> Unit = {}
 ) {
     ListItem(modifier = modifier.clickable { onChannelClicked(channel.id) }, headlineContent = {
-        Text(
-            text = channel.title,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }, supportingContent = {
-        Text(
-            text = "${stringResource(R.string.channel_video_count)}: ${channel.totalVideoCount} (${
-                formatDurationAsText(
-                    channel.totalTimeInSeconds
-                )
-            })",
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodySmall
-        )
+        Column {
+            Text(
+                text = channel.title,
+                maxLines = channel.titleLines(),
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraExtraSmall))
+            Text(
+                text = channel.supportingLine(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
+            SmallLabelChipRow(labels = channel.defaultLabels.toList())
+        }
     }, leadingContent = {
         ChannelThumbnail(
             modifier = Modifier.height(MaterialTheme.spacing.extraLarge),

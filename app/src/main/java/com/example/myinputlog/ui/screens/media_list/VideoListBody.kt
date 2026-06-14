@@ -2,7 +2,9 @@ package com.example.myinputlog.ui.screens.media_list
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +22,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.utils.composable.label.SmallLabelChipRow
 import com.example.myinputlog.ui.screens.utils.composable.video.VideoListItemPlaceholder
 import com.example.myinputlog.ui.screens.utils.composable.video.VideoThumbnail
 import com.example.myinputlog.ui.screens.utils.ext.formatAsListHeader
@@ -96,19 +99,23 @@ fun VideoContainer(
 ) {
     if (!isSeparator) {
         ListItem(modifier = modifier.clickable { onVideoClicked(video.id) }, headlineContent = {
-            Text(
-                text = video.title,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }, supportingContent = {
-            Text(
-                text = "${video.channelTitle}${if (video.speakersNationality != null) " • " + video.speakersNationality.flagEmoji else ""}",
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodySmall
-            )
+            Column {
+                Text(
+                    text = video.title,
+                    maxLines = video.titleLines(),
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraExtraSmall))
+                Text(
+                    text = video.supportingLine(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
+                SmallLabelChipRow(labels = video.labels.toList())
+            }
         }, leadingContent = {
             VideoThumbnail(
                 modifier = Modifier.height(MaterialTheme.spacing.extraLarge + MaterialTheme.spacing.small),

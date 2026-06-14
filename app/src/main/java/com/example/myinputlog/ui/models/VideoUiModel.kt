@@ -16,8 +16,13 @@ data class VideoUiModel(
     val thumbnailMediumUrl: String = "",
     val thumbnailHighUrl: String = "",
     val defaultAudioLanguage: String = "",
-    val labels: List<LabelUiModel> = emptyList()
-)
+    val labels: Set<LabelUiModel> = emptySet()
+) {
+    fun supportingLine(): String =
+        "${channelTitle}${if (speakersNationality != null) " • " + speakersNationality.flagEmoji else ""}"
+
+    fun titleLines(): Int = if (labels.isNotEmpty()) 1 else 2
+}
 
 fun VideoWithChannelAndLabels.toVideoUiModel(): VideoUiModel = VideoUiModel(
     id = video.id,
@@ -31,4 +36,5 @@ fun VideoWithChannelAndLabels.toVideoUiModel(): VideoUiModel = VideoUiModel(
     thumbnailMediumUrl = video.thumbnailMediumUrl,
     thumbnailHighUrl = video.thumbnailHighUrl,
     defaultAudioLanguage = video.defaultAudioLanguage,
-    labels = labels.map { it.toLabelUiModel() })
+    labels = labels.map { it.toLabelUiModel() }.toSortedSet(compareBy { it.title.lowercase() })
+)
