@@ -104,6 +104,7 @@ class VideoViewModel @Inject constructor(
                 suggestions = suggestions.toSet(),
                 isFormValid = form.videoId.isNotBlank() && loadState is VideoLoadState.Success,
                 isDeleteEnabled = !isNewVideo(videoId),
+                isSaveEnabled = flags.isEditStarted,
                 isCourseEditable = isNewVideo(videoId)
             )
         }
@@ -151,6 +152,12 @@ class VideoViewModel @Inject constructor(
         val channel = storageDataRepository.getChannel(channelId)
         if (channel != null) {
             _videoForm.update { it.toFormWithChannelMetadata(channel) }
+            if (isNewVideo(videoId)) {
+                _videoForm.update {
+                    it.copy(selectedLabels = channel.labels.map { label -> label.toLabelUiModel() }
+                        .toSet())
+                }
+            }
             _uiFlags.update { it.copy(isNewChannel = false) }
             Log.d(TAG, "Loaded channel ${channel.channel.id} from storage")
             return
@@ -247,6 +254,7 @@ class VideoViewModel @Inject constructor(
 
     fun updateUserCourse(newCourse: CourseUiModel) {
         _videoForm.update { it.copy(selectedCourse = newCourse) }
+        startEdit()
     }
 
     fun updateVideoUrl(newUrl: String) {
@@ -256,18 +264,21 @@ class VideoViewModel @Inject constructor(
             _videoForm.update { it.toClearedMetadata().copy(videoUrl = newUrl) }
             fetchJob?.cancel()
             fetchJob = viewModelScope.launch {
-                delay(300) // Wait for user to stop typing
+                delay(100) // Wait for user to stop typing
                 loadVideoMetadata()
             }
         }
+        startEdit()
     }
 
     fun updateLanguage(newLanguage: Country? = null) {
         _videoForm.update { it.copy(speakersNationality = newLanguage) }
+        startEdit()
     }
 
     fun updateWatchedOn(milliseconds: Long?) {
         _videoForm.update { it.copy(watchedOn = milliseconds?.let { date -> Date(date) } as Date) }
+        startEdit()
     }
 
     fun deleteVideo() {

@@ -139,7 +139,7 @@ fun VideoScreen(
             navigateUp = onNavigateUp,
             hasDeleteAction = successState?.isDeleteEnabled ?: false,
             hasSaveAction = true,
-            isFormValid = isFormValid,
+            isFormValid = isFormValid && successState?.isSaveEnabled ?: false,
             onDelete = { videoViewModel.toggleDeleteDialogVisibility(true) },
             onSave = videoViewModel::saveVideo,
             scrollBehavior = scrollBehavior

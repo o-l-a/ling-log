@@ -64,6 +64,7 @@ sealed interface VideoUiState {
         val videoUiFlags: VideoUiFlags = VideoUiFlags(),
         val isFormValid: Boolean = false,
         val isDeleteEnabled: Boolean = false,
+        val isSaveEnabled: Boolean = false,
         val isCourseEditable: Boolean = false
     ) : VideoUiState
 }
