@@ -39,7 +39,7 @@ import com.example.myinputlog.ui.models.MonthlyStatsUiModel
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.models.toChannelUiModel
 import com.example.myinputlog.ui.models.toVideoUiModel
-import com.example.myinputlog.ui.screens.utils.ConfettiOptions
+import com.example.myinputlog.ui.screens.common.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
 import com.example.myinputlog.worker.PushSyncWorker
 import kotlinx.coroutines.Dispatchers

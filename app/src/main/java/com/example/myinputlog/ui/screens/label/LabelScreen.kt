@@ -37,18 +37,18 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.MyInputLogTopAppBar
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.label.LabelViewModel.LabelUiEvent
-import com.example.myinputlog.ui.screens.utils.IME_ACTION_DONE
-import com.example.myinputlog.ui.screens.utils.IME_ACTION_NEXT
-import com.example.myinputlog.ui.screens.utils.MAX_LABEL_LENGTH
-import com.example.myinputlog.ui.screens.utils.composable.CheckBoxWithLabel
-import com.example.myinputlog.ui.screens.utils.composable.ColorSwatch
-import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
-import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.label.ClickableLabelChip
+import com.example.myinputlog.ui.screens.common.IME_ACTION_DONE
+import com.example.myinputlog.ui.screens.common.IME_ACTION_NEXT
+import com.example.myinputlog.ui.screens.common.MAX_LABEL_LENGTH
+import com.example.myinputlog.ui.screens.common.composable.CheckBoxWithLabel
+import com.example.myinputlog.ui.screens.common.composable.ColorSwatch
+import com.example.myinputlog.ui.screens.common.composable.ConfirmDeleteDialog
+import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.label.ClickableLabelChip
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable

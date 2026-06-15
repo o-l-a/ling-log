@@ -1,6 +1,6 @@
 package com.example.myinputlog.data.service
 
-import com.example.myinputlog.ui.screens.utils.ConfettiOptions
+import com.example.myinputlog.ui.screens.common.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
 import kotlinx.coroutines.flow.Flow
 

@@ -1,7 +1,7 @@
 package com.example.myinputlog.ui.models
 
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
-import com.example.myinputlog.ui.screens.utils.Country
+import com.example.myinputlog.ui.screens.common.Country
 import java.util.Date
 
 data class VideoUiModel(

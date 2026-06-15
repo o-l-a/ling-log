@@ -7,7 +7,7 @@ import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.remote.ChannelItem
 import com.example.myinputlog.data.remote.VideoItem
 import com.example.myinputlog.ui.models.toLabelUiModel
-import com.example.myinputlog.ui.screens.utils.ext.stripUrl
+import com.example.myinputlog.ui.screens.common.ext.stripUrl
 import java.time.Duration
 import java.util.UUID
 

@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.myinputlog.data.service.PreferenceStorageService
-import com.example.myinputlog.ui.screens.utils.ConfettiOptions
+import com.example.myinputlog.ui.screens.common.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

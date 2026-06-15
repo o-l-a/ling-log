@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.R
 import com.example.myinputlog.data.repository.StorageDataRepository
-import com.example.myinputlog.ui.screens.utils.ext.isValidEmail
-import com.example.myinputlog.ui.screens.utils.ext.isValidPassword
-import com.example.myinputlog.ui.screens.utils.ext.isValidUsername
+import com.example.myinputlog.ui.screens.common.ext.isValidEmail
+import com.example.myinputlog.ui.screens.common.ext.isValidPassword
+import com.example.myinputlog.ui.screens.common.ext.isValidUsername
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import dagger.hilt.android.lifecycle.HiltViewModel

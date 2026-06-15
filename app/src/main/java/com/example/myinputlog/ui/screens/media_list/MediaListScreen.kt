@@ -44,14 +44,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.myinputlog.CourseTopAppBar
-import com.example.myinputlog.MyInputLogBottomNavBar
+import com.example.myinputlog.ui.screens.common.composable.bars.CourseTopAppBar
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.CourseHeaderUiModel
 import com.example.myinputlog.ui.navigation.Screen
-import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.video.VideoListItemPlaceholder
+import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.video.VideoListItemPlaceholder
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
 

@@ -17,12 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.MyInputLogTopAppBar
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.LabelUiModel
-import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.label.LabelChipRow
+import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.label.LabelChipRow
 import com.example.myinputlog.ui.theme.spacing
 
 

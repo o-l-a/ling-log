@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
+import com.example.myinputlog.ui.screens.common.composable.MyInputLogAppIcon
 
 @Composable
 fun LandingScreen(

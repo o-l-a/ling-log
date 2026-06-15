@@ -11,7 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.R
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.worker.SyncManager
-import com.example.myinputlog.ui.screens.utils.UiText
+import com.example.myinputlog.ui.screens.common.UiText
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext

@@ -36,9 +36,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.screens.utils.MAX_USER_LENGTH
-import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
-import com.example.myinputlog.ui.screens.utils.composable.SomethingWentWrongBox
+import com.example.myinputlog.ui.screens.common.MAX_USER_LENGTH
+import com.example.myinputlog.ui.screens.common.composable.MyInputLogAppIcon
+import com.example.myinputlog.ui.screens.common.composable.SomethingWentWrongBox
 
 @Composable
 fun LoginScreen(

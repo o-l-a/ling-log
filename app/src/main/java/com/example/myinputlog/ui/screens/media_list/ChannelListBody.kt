@@ -20,11 +20,11 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.ChannelUiModel
-import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.channel.ChannelListItemPlaceholder
-import com.example.myinputlog.ui.screens.utils.composable.channel.ChannelThumbnail
-import com.example.myinputlog.ui.screens.utils.composable.label.SmallLabelChipRow
+import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.channel.ChannelListItemPlaceholder
+import com.example.myinputlog.ui.screens.common.composable.channel.ChannelThumbnail
+import com.example.myinputlog.ui.screens.common.composable.label.SmallLabelChipRow
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable

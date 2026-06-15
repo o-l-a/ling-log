@@ -24,15 +24,15 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.MyInputLogBottomNavBar
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.navigation.SettingsScreen
-import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.LeadingIconWithText
-import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.SettingsCard
-import com.example.myinputlog.ui.screens.utils.composable.channel.ProfilePicture
+import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.LeadingIconWithText
+import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.SettingsCard
+import com.example.myinputlog.ui.screens.common.composable.channel.ProfilePicture
 import com.example.myinputlog.ui.theme.spacing
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -41,19 +41,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.MyInputLogTopAppBar
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.LabelUiModel
-import com.example.myinputlog.ui.screens.utils.composable.CheckBoxWithLabel
-import com.example.myinputlog.ui.screens.utils.composable.ConfirmDeleteDialog
-import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.SpinningClockIcon
-import com.example.myinputlog.ui.screens.utils.composable.StatisticContainer
-import com.example.myinputlog.ui.screens.utils.composable.channel.ChannelThumbnail
-import com.example.myinputlog.ui.screens.utils.composable.label.LabelChipRow
-import com.example.myinputlog.ui.screens.utils.composable.label.LabelPickerTextField
-import com.example.myinputlog.ui.screens.utils.formatDurationAsText
+import com.example.myinputlog.ui.screens.common.composable.CheckBoxWithLabel
+import com.example.myinputlog.ui.screens.common.composable.ConfirmDeleteDialog
+import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.SpinningClockIcon
+import com.example.myinputlog.ui.screens.common.composable.StatisticContainer
+import com.example.myinputlog.ui.screens.common.composable.channel.ChannelThumbnail
+import com.example.myinputlog.ui.screens.common.composable.label.LabelChipRow
+import com.example.myinputlog.ui.screens.common.composable.label.LabelPickerTextField
+import com.example.myinputlog.ui.screens.common.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -12,7 +12,7 @@ import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.MonthlyStatsUiModel
 import com.example.myinputlog.ui.models.VideoUiModel
-import com.example.myinputlog.ui.screens.utils.ConfettiOptions
+import com.example.myinputlog.ui.screens.common.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
 import kotlinx.coroutines.flow.Flow
 

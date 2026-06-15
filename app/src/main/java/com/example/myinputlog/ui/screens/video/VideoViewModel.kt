@@ -17,10 +17,10 @@ import com.example.myinputlog.ui.models.toCourseUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import com.example.myinputlog.ui.navigation.VideoRoute
-import com.example.myinputlog.ui.screens.utils.Country
-import com.example.myinputlog.ui.screens.utils.UiText
-import com.example.myinputlog.ui.screens.utils.ext.extractYouTubeVideoId
-import com.example.myinputlog.ui.screens.utils.ext.stripUrl
+import com.example.myinputlog.ui.screens.common.Country
+import com.example.myinputlog.ui.screens.common.UiText
+import com.example.myinputlog.ui.screens.common.ext.extractYouTubeVideoId
+import com.example.myinputlog.ui.screens.common.ext.stripUrl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview

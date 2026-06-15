@@ -30,17 +30,17 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.CourseTopAppBar
-import com.example.myinputlog.MyInputLogBottomNavBar
+import com.example.myinputlog.ui.screens.common.composable.bars.CourseTopAppBar
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.Screen
-import com.example.myinputlog.ui.screens.utils.composable.ConfettiOverlay
-import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.SpinningClockIcon
-import com.example.myinputlog.ui.screens.utils.composable.StatisticContainer
-import com.example.myinputlog.ui.screens.utils.composable.calendar.SwipeableCalendar
-import com.example.myinputlog.ui.screens.utils.formatDurationAsText
+import com.example.myinputlog.ui.screens.common.composable.ConfettiOverlay
+import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.SpinningClockIcon
+import com.example.myinputlog.ui.screens.common.composable.StatisticContainer
+import com.example.myinputlog.ui.screens.common.composable.calendar.SwipeableCalendar
+import com.example.myinputlog.ui.screens.common.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.flow.Flow
 

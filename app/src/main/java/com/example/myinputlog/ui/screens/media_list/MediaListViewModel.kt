@@ -10,7 +10,7 @@ import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.models.mapToCourseUiModel
 import com.example.myinputlog.ui.models.toCourseUiModel
-import com.example.myinputlog.ui.screens.utils.ext.asStartOfDay
+import com.example.myinputlog.ui.screens.common.ext.asStartOfDay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

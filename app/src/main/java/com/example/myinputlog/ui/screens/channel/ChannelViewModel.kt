@@ -10,7 +10,7 @@ import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.navigation.ChannelRoute
-import com.example.myinputlog.ui.screens.utils.UiText
+import com.example.myinputlog.ui.screens.common.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview

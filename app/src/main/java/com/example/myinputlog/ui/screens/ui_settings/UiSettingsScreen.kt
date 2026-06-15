@@ -51,13 +51,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.MyInputLogTopAppBar
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.screens.utils.ConfettiOptions
-import com.example.myinputlog.ui.screens.utils.composable.ColorSwatch
-import com.example.myinputlog.ui.screens.utils.composable.ConfettiOverlay
-import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.ConfettiOptions
+import com.example.myinputlog.ui.screens.common.composable.ColorSwatch
+import com.example.myinputlog.ui.screens.common.composable.ConfettiOverlay
+import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.LoadingBox
 import com.example.myinputlog.ui.theme.AppTheme
 import com.example.myinputlog.ui.theme.spacing
 

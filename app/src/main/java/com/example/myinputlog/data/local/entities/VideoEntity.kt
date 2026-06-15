@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.myinputlog.ui.screens.utils.Country
+import com.example.myinputlog.ui.screens.common.Country
 import java.util.Date
 
 @Entity(

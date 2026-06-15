@@ -1,6 +1,6 @@
 package com.example.myinputlog.data.remote.dto
 
-import com.example.myinputlog.ui.screens.utils.Country
+import com.example.myinputlog.ui.screens.common.Country
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.PropertyName
 

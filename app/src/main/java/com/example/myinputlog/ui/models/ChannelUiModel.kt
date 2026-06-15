@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.example.myinputlog.R
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
-import com.example.myinputlog.ui.screens.utils.formatDurationAsText
+import com.example.myinputlog.ui.screens.common.formatDurationAsText
 
 data class ChannelUiModel(
     val id: String = "",

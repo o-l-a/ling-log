@@ -1,6 +1,6 @@
 package com.example.myinputlog.ui.screens.ui_settings
 
-import com.example.myinputlog.ui.screens.utils.ConfettiOptions
+import com.example.myinputlog.ui.screens.common.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
 
 sealed interface UiSettingsUiState {

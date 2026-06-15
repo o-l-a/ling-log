@@ -20,12 +20,12 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.VideoUiModel
-import com.example.myinputlog.ui.screens.utils.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.utils.composable.LoadingBox
-import com.example.myinputlog.ui.screens.utils.composable.label.SmallLabelChipRow
-import com.example.myinputlog.ui.screens.utils.composable.video.VideoListItemPlaceholder
-import com.example.myinputlog.ui.screens.utils.composable.video.VideoThumbnail
-import com.example.myinputlog.ui.screens.utils.ext.formatAsListHeader
+import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.label.SmallLabelChipRow
+import com.example.myinputlog.ui.screens.common.composable.video.VideoListItemPlaceholder
+import com.example.myinputlog.ui.screens.common.composable.video.VideoThumbnail
+import com.example.myinputlog.ui.screens.common.ext.formatAsListHeader
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable
