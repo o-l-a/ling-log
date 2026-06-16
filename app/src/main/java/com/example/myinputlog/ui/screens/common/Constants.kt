@@ -118,11 +118,3 @@ enum class ConfettiOptions(@get:StringRes val optionName: Int, val colors: List<
     ),
     OPTION7(R.string.confetti_option_7, listOf(0xFFFF218C, 0xFFFFD800, 0xFF21B1FF))
 }
-
-class AuthConstants {
-    companion object {
-        const val URL_AUTHORIZATION = "https://accounts.google.com/o/oauth2/v2/auth"
-        const val URL_TOKEN_EXCHANGE = "https://www.googleapis.com/oauth2/v4/token"
-        const val URL_LOGOUT = "https://oauth2.googleapis.com/revoke"
-    }
-}

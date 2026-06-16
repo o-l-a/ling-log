@@ -8,13 +8,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -44,13 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.myinputlog.ui.screens.common.composable.bars.CourseTopAppBar
-import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.models.CourseUiModel
-import com.example.myinputlog.ui.models.CourseHeaderUiModel
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.bars.MediaListTopAppBar
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.ui.screens.common.composable.video.VideoListItemPlaceholder
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
@@ -96,38 +96,43 @@ fun MediaListScreen(
         derivedStateOf { activeListState.firstVisibleItemIndex > 0 }
     }
 
-    Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
-        if (videoListUiState is MediaListUiState.Success) {
-            MediaListHeader(
-                courseHeader = (videoListUiState as MediaListUiState.Success).courseHeader,
-                onValueChange = mediaListViewModel::changeCurrentCourseId,
-                options = (videoListUiState as MediaListUiState.Success).userCourses,
-                scrollBehavior = scrollBehavior,
-                pagerState = pagerState,
-                tabs = tabs
-            )
-        }
-    }, bottomBar = {
-        MyInputLogBottomNavBar(
-            selectedScreen = Screen.Videos,
-            onBottomNavClicked = onBottomNavClicked,
-            navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
-    }, floatingActionButton = {
-        AnimatedVisibility(
-            visible = showFab,
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
-            SmallFloatingActionButton(
-                onClick = {
-                    coroutineScope.launch {
-                        activeListState.animateScrollToItem(0)
-                    }
-                }) {
-                Icon(imageVector = Icons.Filled.ArrowUpward, contentDescription = null)
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
+        topBar = {
+            if (videoListUiState is MediaListUiState.Success) {
+                MediaListHeader(
+                    onSearch = {},
+                    scrollBehavior = scrollBehavior,
+                    pagerState = pagerState,
+                    tabs = tabs
+                )
             }
-        }
-    }) { innerPadding ->
+        },
+        bottomBar = {
+            MyInputLogBottomNavBar(
+                selectedScreen = Screen.Videos,
+                onBottomNavClicked = onBottomNavClicked,
+                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
+        },
+        floatingActionButton = {
+            AnimatedVisibility(
+                visible = showFab,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                SmallFloatingActionButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            activeListState.animateScrollToItem(0)
+                        }
+                    }) {
+                    Icon(imageVector = Icons.Filled.ArrowUpward, contentDescription = null)
+                }
+            }
+        }) { innerPadding ->
         when (val currentState = videoListUiState) {
             is MediaListUiState.Loading -> {
                 LazyColumn(
@@ -200,12 +205,10 @@ fun MediaListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaListHeader(
-    courseHeader: CourseHeaderUiModel,
-    options: List<CourseUiModel>,
     scrollBehavior: TopAppBarScrollBehavior,
     pagerState: PagerState,
     tabs: List<MediaTab>,
-    onValueChange: (CourseUiModel) -> Unit,
+    onSearch: (String) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -218,19 +221,19 @@ fun MediaListHeader(
     )
 
     val elevation = lerp(0.dp, 3.dp, fraction)
+    val textFieldState = rememberTextFieldState()
 
     Surface(
         color = backgroundColor, tonalElevation = elevation
     ) {
-        Column(modifier = Modifier.windowInsetsPadding(TopAppBarDefaults.windowInsets)) {
-            CourseTopAppBar(
-                courseHeader = courseHeader,
-                onValueChange = onValueChange,
-                options = options,
-                scrollBehavior = scrollBehavior,
+        Column(modifier = Modifier.fillMaxWidth()) {
+            MediaListTopAppBar(
+                textFieldState = textFieldState,
+                onSearch = onSearch,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent
-                )
+                ),
+                scrollBehavior = scrollBehavior
             )
             PrimaryTabRow(
                 selectedTabIndex = pagerState.currentPage,

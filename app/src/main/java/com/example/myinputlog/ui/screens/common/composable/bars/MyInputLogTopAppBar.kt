@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import com.example.myinputlog.R
 
 /**
@@ -43,7 +44,9 @@ fun MyInputLogTopAppBar(
                 title,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontSize = 20.sp
+                )
             )
         }, navigationIcon = {
             IconButton(onClick = navigateUp) {
