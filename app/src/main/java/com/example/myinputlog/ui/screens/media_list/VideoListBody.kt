@@ -1,10 +1,20 @@
 package com.example.myinputlog.ui.screens.media_list
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
@@ -36,53 +47,73 @@ fun VideoListBody(
     navigateToYouTubeVideo: (String, String) -> Unit,
     lazyColumnListState: LazyListState
 ) {
-    LazyColumn(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
-        contentPadding = PaddingValues(
-            top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
-            bottom = MaterialTheme.spacing.extraExtraSmall,
-            start = MaterialTheme.spacing.extraExtraSmall,
-            end = MaterialTheme.spacing.extraExtraSmall
-        ),
-        state = lazyColumnListState
-    ) {
-        if (videos.itemCount > 0) {
-            items(
-                count = videos.itemCount, key = videos.itemKey()
-            ) { index ->
-                videos[index]?.let { video ->
-                    VideoContainer(
-                        video = video, isSeparator = video.id.isBlank(), onVideoClicked = {
-                            navigateToYouTubeVideo(currentCourseId, video.id)
-                        })
-                }
-            }
-            when (videos.loadState.append) {
-                is LoadState.NotLoading -> Unit
-                is LoadState.Loading -> {
-                    item {
-                        LoadingBox()
+    AnimatedContent(
+        targetState = videos.itemCount > 0, transitionSpec = {
+            fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+        }, label = "ListStateTransition"
+    ) { hasItems ->
+        if (hasItems) {
+            LazyColumn(
+                modifier = modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
+                contentPadding = PaddingValues(
+                    top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
+                    bottom = MaterialTheme.spacing.extraExtraSmall,
+                    start = MaterialTheme.spacing.extraExtraSmall,
+                    end = MaterialTheme.spacing.extraExtraSmall
+                ),
+                state = lazyColumnListState
+            ) {
+                if (videos.itemCount > 0) {
+                    items(
+                        count = videos.itemCount,
+                        key = videos.itemKey { "${it.id}${it.watchedOn}" }) { index ->
+                        videos[index]?.let { video ->
+                            VideoContainer(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateItem(
+                                        fadeInSpec = tween(300),
+                                        fadeOutSpec = tween(300),
+                                        placementSpec = spring(
+                                            stiffness = Spring.StiffnessMediumLow,
+                                            visibilityThreshold = IntOffset.VisibilityThreshold
+                                        )
+                                    ),
+                                video = video,
+                                isSeparator = video.id.isBlank(),
+                                onVideoClicked = {
+                                    navigateToYouTubeVideo(currentCourseId, video.id)
+                                })
+                        }
                     }
-                }
+                    when (videos.loadState.append) {
+                        is LoadState.NotLoading -> Unit
+                        is LoadState.Loading -> {
+                            item {
+                                LoadingBox()
+                            }
+                        }
 
-                is LoadState.Error -> {
-                    item {
-                        Text("Some error occurred")
+                        is LoadState.Error -> {
+                            item {
+                                Text("Some error occurred")
+                            }
+                        }
+                    }
+                } else if (videos.loadState.refresh is LoadState.Loading) {
+                    items(10) {
+                        VideoListItemPlaceholder()
                     }
                 }
-            }
-        } else if (videos.loadState.refresh is LoadState.Loading) {
-            items(10) {
-                VideoListItemPlaceholder()
             }
         } else {
-            item {
-                EmptyCollectionBox(
-                    modifier = modifier.padding(MaterialTheme.spacing.medium),
-                    bodyMessage = R.string.empty_video_collection_body
-                )
-            }
+            EmptyCollectionBox(
+                modifier = modifier
+                    .padding(MaterialTheme.spacing.medium)
+                    .fillMaxSize(),
+                bodyMessage = R.string.empty_video_collection_body
+            )
         }
     }
 }

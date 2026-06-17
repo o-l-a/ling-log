@@ -6,21 +6,25 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import com.example.myinputlog.data.repository.StorageDataRepository
-import com.example.myinputlog.ui.models.CourseUiModel
+import com.example.myinputlog.ui.models.ChannelUiModel
+import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.models.mapToCourseUiModel
 import com.example.myinputlog.ui.models.toCourseUiModel
 import com.example.myinputlog.ui.screens.common.ext.asStartOfDay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,9 +35,13 @@ class MediaListViewModel @Inject constructor(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = ""
     )
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val videoFlow = currentCourseId.flatMapLatest { cid ->
-        repository.videoPagingFlow(cid).insertHeaderAndSeparators()
+    private val filters = MutableStateFlow(MediaFilters())
+
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    val videoFlow = combine(currentCourseId, filters) { courseId, filters ->
+        courseId to filters
+    }.debounce(300L).flatMapLatest { (courseId, filters) ->
+        repository.videoPagingFlow(courseId, filters).insertHeaderAndSeparators()
     }.cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -42,8 +50,8 @@ class MediaListViewModel @Inject constructor(
     }.cachedIn(viewModelScope)
 
     val mediaListUiState: StateFlow<MediaListUiState> = combine(
-        repository.courses, currentCourseId
-    ) { courses, id ->
+        repository.courses, currentCourseId, filters
+    ) { courses, id, filters ->
 
         when {
             courses.isEmpty() -> MediaListUiState.Empty
@@ -54,18 +62,27 @@ class MediaListViewModel @Inject constructor(
 
                 MediaListUiState.Success(
                     courseHeader = courseHeader,
-                    userCourses = courses.map { it.toCourseUiModel() }
+                    userCourses = courses.map { it.toCourseUiModel() },
+                    filters = filters
                 )
             }
         }
     }.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000),
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
         initialValue = MediaListUiState.Loading
     )
 
-    fun changeCurrentCourseId(newCourse: CourseUiModel) {
-        viewModelScope.launch {
-            repository.setCurrentCourse(newCourse.id)
+    fun updateSearchQuery(query: String) {
+        filters.update { it.copy(searchQuery = query) }
+    }
+
+    fun updateFilters(channels: List<ChannelUiModel>, labels: List<LabelUiModel>) {
+        filters.update {
+            it.copy(
+                selectedChannels = channels.map { channel -> channel.id }.toSet(),
+                selectedLabels = labels.map { label -> label.id }.toSet()
+            )
         }
     }
 

@@ -26,6 +26,8 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
@@ -46,6 +48,12 @@ fun MediaListTopAppBar(
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors()
 ) {
     val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(textFieldState) {
+        snapshotFlow { textFieldState.text }.collect { newText ->
+                onSearch(newText.toString())
+            }
+    }
 
     TopAppBar(
         scrollBehavior = scrollBehavior, modifier = modifier, colors = colors, title = {
@@ -96,7 +104,10 @@ fun MediaListTopAppBar(
                             }
                             if (textFieldState.text.isNotEmpty()) {
                                 IconButton(
-                                    onClick = { textFieldState.edit { delete(0, length) } },
+                                    onClick = {
+                                        textFieldState.edit { delete(0, length) }
+                                        onSearch("")
+                                    },
                                 ) {
                                     Icon(
                                         Icons.Default.Clear,

@@ -5,9 +5,13 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.RewriteQueriesToDropUnusedColumns
 import androidx.room.Transaction
 import androidx.room.Upsert
+import androidx.sqlite.db.SupportSQLiteQuery
+import com.example.myinputlog.data.local.entities.ChannelEntity
+import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.entities.VideoLabelCrossRef
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
@@ -35,13 +39,10 @@ interface VideoDao {
     @Query("SELECT * FROM videos WHERE id = :videoId AND isDeleted = 0")
     suspend fun getVideoWithChannelAndLabelsById(videoId: String): VideoWithChannelAndLabels?
 
-    @Transaction
-    @Query(
-        """SELECT * FROM videos 
-        WHERE isDeleted = 0 AND courseId = :courseId 
-        ORDER BY watchedOn DESC, lastUpdated DESC"""
+    @RawQuery(
+        observedEntities = [VideoEntity::class, ChannelEntity::class, LabelEntity::class, VideoLabelCrossRef::class]
     )
-    fun getVideosPagingSource(courseId: String): PagingSource<Int, VideoWithChannelAndLabels>
+    fun getVideosPagingSource(query: SupportSQLiteQuery): PagingSource<Int, VideoWithChannelAndLabels>
 
     // UPSERTS
     @Upsert

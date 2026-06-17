@@ -13,6 +13,7 @@ import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.MonthlyStatsUiModel
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.screens.common.ConfettiOptions
+import com.example.myinputlog.ui.screens.media_list.MediaFilters
 import com.example.myinputlog.ui.theme.AppTheme
 import kotlinx.coroutines.flow.Flow
 
@@ -31,7 +32,10 @@ interface StorageDataRepository {
     suspend fun deleteAccount()
 
     // video
-    fun videoPagingFlow(courseId: String): Flow<PagingData<VideoUiModel>>
+    fun videoPagingFlow(
+        courseId: String, filters: MediaFilters
+    ): Flow<PagingData<VideoUiModel>>
+
     suspend fun getVideo(videoId: String): VideoWithChannelAndLabels?
     suspend fun saveVideo(
         video: VideoEntity,
@@ -51,6 +55,7 @@ interface StorageDataRepository {
         initialLabelIds: List<String>,
         syncLabelsToVideos: Boolean
     )
+
     suspend fun deleteChannel(channelId: String)
 
     // course

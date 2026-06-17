@@ -89,8 +89,8 @@
     <string name="empty_course_collection_body_other_tabs">Head over to the "Profile" tab and add your first course.</string>
     <string name="empty_course_collection_body_course_tab">Add your first course.</string>
     <string name="empty_label_collection_body">Your labels will appear here after you add them.</string>
-    <string name="empty_video_collection_body">Your videos will appear here after you add them.</string>
-    <string name="empty_channel_collection_body">Your channels will appear here after you add them.</string>
+    <string name="empty_video_collection_body">No videos match your criteria. Add videos or change criteria.</string>
+    <string name="empty_channel_collection_body">No channels match your criteria. Add videos or change criteria.</string>
     <string name="empty_playlist">This playlist seems to be empty.</string>
     <string name="video_save_error">Failed to save the video. Try again later.</string>
     <string name="video_delete_error">Failed to delete the video. Try again later.</string>

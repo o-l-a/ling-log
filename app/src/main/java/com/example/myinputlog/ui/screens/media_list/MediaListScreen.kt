@@ -104,7 +104,7 @@ fun MediaListScreen(
         topBar = {
             if (videoListUiState is MediaListUiState.Success) {
                 MediaListHeader(
-                    onSearch = {},
+                    onSearch = mediaListViewModel::updateSearchQuery,
                     scrollBehavior = scrollBehavior,
                     pagerState = pagerState,
                     tabs = tabs

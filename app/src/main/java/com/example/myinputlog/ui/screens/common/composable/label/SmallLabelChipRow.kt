@@ -40,13 +40,15 @@ fun SmallLabelChipRow(
                     )
                 }
             }) { index ->
-            val label = labels[index]
-            SmallLabelChip(
-                modifier = Modifier.height(MaterialTheme.spacing.medium),
-                title = label.title,
-                backgroundColor = Color(label.color),
-                textColor = Color(label.textColor)
-            )
+            val label = labels.getOrNull(index)
+            label?.let {
+                SmallLabelChip(
+                    modifier = Modifier.height(MaterialTheme.spacing.medium),
+                    title = label.title,
+                    backgroundColor = Color(label.color),
+                    textColor = Color(label.textColor)
+                )
+            }
         }
     }
 }

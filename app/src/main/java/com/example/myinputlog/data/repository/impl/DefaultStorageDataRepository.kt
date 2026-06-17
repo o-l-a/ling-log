@@ -27,6 +27,7 @@ import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.CourseWithStats
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
+import com.example.myinputlog.data.local.query.VideoQueryBuilder
 import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.service.AccountService
@@ -40,6 +41,7 @@ import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.models.toChannelUiModel
 import com.example.myinputlog.ui.models.toVideoUiModel
 import com.example.myinputlog.ui.screens.common.ConfettiOptions
+import com.example.myinputlog.ui.screens.media_list.MediaFilters
 import com.example.myinputlog.ui.theme.AppTheme
 import com.example.myinputlog.worker.PushSyncWorker
 import kotlinx.coroutines.Dispatchers
@@ -122,12 +124,17 @@ class DefaultStorageDataRepository @Inject constructor(
         accountService.deleteAccount()
     }
 
-    // video
-    override fun videoPagingFlow(courseId: String): Flow<PagingData<VideoUiModel>> {
+    override fun videoPagingFlow(
+        courseId: String,
+        filters: MediaFilters
+    ): Flow<PagingData<VideoUiModel>> {
         return Pager(
-            config = pagingConfig, pagingSourceFactory = {
-                videoDao.getVideosPagingSource(courseId)
-            }).flow.map { pagingData ->
+            config = pagingConfig,
+            pagingSourceFactory = {
+                val query = VideoQueryBuilder.build(courseId, filters)
+                videoDao.getVideosPagingSource(query)
+            }
+        ).flow.map { pagingData ->
             pagingData.map { entity ->
                 entity.toVideoUiModel()
             }
