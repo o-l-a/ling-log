@@ -1,5 +1,6 @@
 package com.example.myinputlog.ui.screens.media_list
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,22 +37,26 @@ class MediaListViewModel @Inject constructor(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = ""
     )
 
-    private val filters = MutableStateFlow(MediaFilters())
+    private val _filters = MutableStateFlow(MediaFilters())
+    private val _channelRanking = MutableStateFlow<Map<String, Int>>(emptyMap())
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val videoFlow = combine(currentCourseId, filters) { courseId, filters ->
+    val videoFlow = combine(currentCourseId, _filters) { courseId, filters ->
         courseId to filters
     }.debounce(300L).flatMapLatest { (courseId, filters) ->
         repository.videoPagingFlow(courseId, filters).insertHeaderAndSeparators()
     }.cachedIn(viewModelScope)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val channelFlow = currentCourseId.flatMapLatest { cid ->
-        repository.channelPagingFlow(cid)
-    }.cachedIn(viewModelScope)
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    val channelFlow =
+        combine(currentCourseId, _filters, _channelRanking) { courseId, filters, ranking ->
+            Triple(courseId, filters, ranking)
+        }.debounce(300L).flatMapLatest { (courseId, filters, ranking) ->
+            repository.channelPagingFlow(courseId, filters, ranking)
+        }.cachedIn(viewModelScope)
 
     val mediaListUiState: StateFlow<MediaListUiState> = combine(
-        repository.courses, currentCourseId, filters
+        repository.courses, currentCourseId, _filters
     ) { courses, id, filters ->
 
         when {
@@ -73,12 +79,19 @@ class MediaListViewModel @Inject constructor(
         initialValue = MediaListUiState.Loading
     )
 
+    init {
+        viewModelScope.launch {
+            _channelRanking.value = repository.getChannelGlobalRanking()
+        }
+    }
+
     fun updateSearchQuery(query: String) {
-        filters.update { it.copy(searchQuery = query) }
+        _filters.update { it.copy(searchQuery = query) }
+        Log.d(TAG, "Channel ranking: ${_channelRanking.value}")
     }
 
     fun updateFilters(channels: List<ChannelUiModel>, labels: List<LabelUiModel>) {
-        filters.update {
+        _filters.update {
             it.copy(
                 selectedChannels = channels.map { channel -> channel.id }.toSet(),
                 selectedLabels = labels.map { label -> label.id }.toSet()

@@ -1,10 +1,20 @@
 package com.example.myinputlog.ui.screens.media_list
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
@@ -35,55 +46,71 @@ fun ChannelListBody(
     currentCourseId: String,
     lazyColumnListState: LazyListState
 ) {
-    LazyColumn(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
-        contentPadding = PaddingValues(
-            top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
-            bottom = MaterialTheme.spacing.extraExtraSmall,
-            start = MaterialTheme.spacing.extraExtraSmall,
-            end = MaterialTheme.spacing.extraExtraSmall
-        ),
-        state = lazyColumnListState
-    ) {
-        if (channels.itemCount > 0) {
-            items(
-                count = channels.itemCount, key = channels.itemKey()
-            ) { index ->
-                channels[index]?.let { channel ->
-                    ChannelContainer(
-                        channel = channel.copy(rank = index + 1), onChannelClicked = {
-                            navigateToYouTubeChannel(
-                                currentCourseId, channel.id
-                            )
-                        })
-                }
-            }
-            when (channels.loadState.append) {
-                is LoadState.NotLoading -> Unit
-                is LoadState.Loading -> {
-                    item {
-                        LoadingBox()
+    AnimatedContent(
+        targetState = channels.itemCount > 0, transitionSpec = {
+            fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+        }, label = "ListStateTransition"
+    ) { hasItems ->
+        if (hasItems) {
+            LazyColumn(
+                modifier = modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
+                contentPadding = PaddingValues(
+                    top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
+                    bottom = MaterialTheme.spacing.extraExtraSmall,
+                    start = MaterialTheme.spacing.extraExtraSmall,
+                    end = MaterialTheme.spacing.extraExtraSmall
+                ),
+                state = lazyColumnListState
+            ) {
+                if (channels.itemCount > 0) {
+                    items(
+                        count = channels.itemCount, key = channels.itemKey { it.id }) { index ->
+                        channels[index]?.let { channel ->
+                            ChannelContainer(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateItem(
+                                        fadeInSpec = tween(300),
+                                        fadeOutSpec = tween(300),
+                                        placementSpec = spring(
+                                            stiffness = Spring.StiffnessMediumLow,
+                                            visibilityThreshold = IntOffset.VisibilityThreshold
+                                        )
+                                    ), channel = channel, onChannelClicked = {
+                                    navigateToYouTubeChannel(
+                                        currentCourseId, channel.id
+                                    )
+                                })
+                        }
                     }
-                }
+                    when (channels.loadState.append) {
+                        is LoadState.NotLoading -> Unit
+                        is LoadState.Loading -> {
+                            item {
+                                LoadingBox()
+                            }
+                        }
 
-                is LoadState.Error -> {
-                    item {
-                        Text("Some error occurred")
+                        is LoadState.Error -> {
+                            item {
+                                Text("Some error occurred")
+                            }
+                        }
+                    }
+                } else if (channels.loadState.refresh is LoadState.Loading) {
+                    items(10) {
+                        ChannelListItemPlaceholder()
                     }
                 }
-            }
-        } else if (channels.loadState.refresh is LoadState.Loading) {
-            items(10) {
-                ChannelListItemPlaceholder()
             }
         } else {
-            item {
-                EmptyCollectionBox(
-                    modifier = modifier.padding(MaterialTheme.spacing.medium),
-                    bodyMessage = R.string.empty_channel_collection_body
-                )
-            }
+            EmptyCollectionBox(
+                modifier = modifier
+                    .padding(MaterialTheme.spacing.medium)
+                    .fillMaxSize(),
+                bodyMessage = R.string.empty_channel_collection_body
+            )
         }
     }
 }
@@ -96,7 +123,7 @@ fun ChannelContainer(
     ListItem(modifier = modifier.clickable { onChannelClicked(channel.id) }, headlineContent = {
         Column {
             Text(
-                text = channel.title + channel.rank.toString(),
+                text = channel.title,
                 maxLines = channel.titleLines(),
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium

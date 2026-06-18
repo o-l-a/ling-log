@@ -19,4 +19,9 @@ data class MediaFilters(
     val searchQuery: String = "",
     val selectedChannels: Set<String> = emptySet(),
     val selectedLabels: Set<String> = emptySet()
-)
+) {
+    fun hasActiveFilters(isChannel: Boolean = false): Boolean {
+        val common = searchQuery.isNotEmpty() || selectedLabels.isNotEmpty()
+        return if (isChannel) common else common || selectedChannels.isNotEmpty()
+    }
+}

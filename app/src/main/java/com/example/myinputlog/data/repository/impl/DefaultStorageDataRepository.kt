@@ -27,6 +27,7 @@ import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.CourseWithStats
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
+import com.example.myinputlog.data.local.query.ChannelQueryBuilder
 import com.example.myinputlog.data.local.query.VideoQueryBuilder
 import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.data.repository.StorageDataRepository
@@ -125,16 +126,13 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     override fun videoPagingFlow(
-        courseId: String,
-        filters: MediaFilters
+        courseId: String, filters: MediaFilters
     ): Flow<PagingData<VideoUiModel>> {
         return Pager(
-            config = pagingConfig,
-            pagingSourceFactory = {
+            config = pagingConfig, pagingSourceFactory = {
                 val query = VideoQueryBuilder.build(courseId, filters)
                 videoDao.getVideosPagingSource(query)
-            }
-        ).flow.map { pagingData ->
+            }).flow.map { pagingData ->
             pagingData.map { entity ->
                 entity.toVideoUiModel()
             }
@@ -174,13 +172,17 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     // channel
-    override fun channelPagingFlow(courseId: String): Flow<PagingData<ChannelUiModel>> {
+    override fun channelPagingFlow(
+        courseId: String, filters: MediaFilters, podium: Map<String, Int>
+    ): Flow<PagingData<ChannelUiModel>> {
         return Pager(
             config = pagingConfig, pagingSourceFactory = {
-                channelDao.getChannelsPagingSource(courseId)
+                val query = ChannelQueryBuilder.build(courseId, filters)
+                channelDao.getChannelsPagingSource(query)
             }).flow.map { pagingData ->
             pagingData.map { entity ->
-                entity.toChannelUiModel()
+                val rank = podium.getOrDefault(entity.channel.id, 0)
+                entity.toChannelUiModel(rank)
             }
         }
     }
@@ -189,6 +191,11 @@ class DefaultStorageDataRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             return@withContext channelDao.getChannelWithLabelsById(channelId)
         }
+
+    override suspend fun getChannelGlobalRanking(): Map<String, Int> {
+        return channelDao.getGlobalChannelRanking(limit = 3)
+            .mapIndexed { index, id -> id to (index + 1) }.toMap()
+    }
 
     override suspend fun saveChannel(
         channel: ChannelEntity,

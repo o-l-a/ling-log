@@ -2,10 +2,12 @@ package com.example.myinputlog.ui.screens.common.composable.bars
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,7 +17,11 @@ import androidx.compose.foundation.text.input.delete
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +49,8 @@ import com.example.myinputlog.ui.theme.spacing
 fun MediaListTopAppBar(
     textFieldState: TextFieldState,
     onSearch: (String) -> Unit,
+    onFilterClick: () -> Unit,
+    hasActiveFilters: Boolean,
     scrollBehavior: TopAppBarScrollBehavior?,
     modifier: Modifier = Modifier,
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors()
@@ -51,72 +59,90 @@ fun MediaListTopAppBar(
 
     LaunchedEffect(textFieldState) {
         snapshotFlow { textFieldState.text }.collect { newText ->
-                onSearch(newText.toString())
-            }
+            onSearch(newText.toString())
+        }
     }
 
     TopAppBar(
         scrollBehavior = scrollBehavior, modifier = modifier, colors = colors, title = {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(MaterialTheme.spacing.large + MaterialTheme.spacing.small)
-                    .padding(end = MaterialTheme.spacing.small)
+            Row(
+                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
             ) {
-                BasicTextField(
-                    state = textFieldState,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Search, keyboardType = KeyboardType.Text
-                    ),
-                    onKeyboardAction = {
-                        onSearch(textFieldState.text.toString())
-                        focusManager.clearFocus()
-                    },
-                    lineLimits = TextFieldLineLimits.SingleLine,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    modifier = Modifier.fillMaxSize(),
-                    decorator = { innerTextField ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                enabled = false, onClick = {}) {
-                                Icon(
-                                    Icons.Default.Search,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Box(modifier = Modifier.weight(1f)) {
-                                if (textFieldState.text.isEmpty()) {
-                                    Text(
-                                        text = stringResource(R.string.search_text),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                innerTextField()
-                            }
-                            if (textFieldState.text.isNotEmpty()) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(MaterialTheme.spacing.large + MaterialTheme.spacing.small)
+                ) {
+                    BasicTextField(
+                        state = textFieldState,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Search, keyboardType = KeyboardType.Text
+                        ),
+                        onKeyboardAction = {
+                            onSearch(textFieldState.text.toString())
+                            focusManager.clearFocus()
+                        },
+                        lineLimits = TextFieldLineLimits.SingleLine,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        modifier = Modifier.fillMaxSize(),
+                        decorator = { innerTextField ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 IconButton(
-                                    onClick = {
-                                        textFieldState.edit { delete(0, length) }
-                                        onSearch("")
-                                    },
-                                ) {
+                                    enabled = false, onClick = {}) {
                                     Icon(
-                                        Icons.Default.Clear,
-                                        contentDescription = "Clear",
+                                        Icons.Default.Search,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
+                                Box(modifier = Modifier.weight(1f)) {
+                                    if (textFieldState.text.isEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.search_text),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                                if (textFieldState.text.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = {
+                                            textFieldState.edit { delete(0, length) }
+                                            onSearch("")
+                                        },
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Clear,
+                                            contentDescription = "Clear",
+                                        )
+                                    }
+                                }
                             }
-                        }
-                    })
+                        })
+                }
+                FilledTonalIconButton(
+                    onClick = onFilterClick,
+                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.extraSmall)
+                ) {
+                    BadgedBox(
+                        badge = {
+                            if (hasActiveFilters) {
+                                Badge(modifier = Modifier.size(MaterialTheme.spacing.extraExtraSmall))
+                            }
+                        }) {
+                        Icon(
+                            imageVector = Icons.Default.Tune, contentDescription = "Filters"
+                        )
+                    }
+                }
             }
         })
 }

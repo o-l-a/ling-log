@@ -7,8 +7,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -21,22 +23,29 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -74,7 +83,7 @@ fun MediaListScreen(
     navigateToYouTubeVideo: (String, String) -> Unit,
     navigateToYouTubeChannel: (String, String) -> Unit
 ) {
-    val videoListUiState by mediaListViewModel.mediaListUiState.collectAsStateWithLifecycle()
+    val mediaListUiState by mediaListViewModel.mediaListUiState.collectAsStateWithLifecycle()
     val currentCourseId by mediaListViewModel.currentCourseId.collectAsStateWithLifecycle()
 
     val videos = mediaListViewModel.videoFlow.collectAsLazyPagingItems()
@@ -92,6 +101,8 @@ fun MediaListScreen(
         }
     }
 
+    var showFilterSheet by remember { mutableStateOf(false) }
+
     val showFab by remember {
         derivedStateOf { activeListState.firstVisibleItemIndex > 0 }
     }
@@ -102,12 +113,16 @@ fun MediaListScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
         topBar = {
-            if (videoListUiState is MediaListUiState.Success) {
+            if (mediaListUiState is MediaListUiState.Success) {
                 MediaListHeader(
                     onSearch = mediaListViewModel::updateSearchQuery,
+                    onFilterClick = { showFilterSheet = true },
                     scrollBehavior = scrollBehavior,
                     pagerState = pagerState,
-                    tabs = tabs
+                    tabs = tabs,
+                    hasActiveFilters = (mediaListUiState as MediaListUiState.Success).filters.hasActiveFilters(
+                        pagerState.currentPage == 1
+                    )
                 )
             }
         },
@@ -133,7 +148,7 @@ fun MediaListScreen(
                 }
             }
         }) { innerPadding ->
-        when (val currentState = videoListUiState) {
+        when (val currentState = mediaListUiState) {
             is MediaListUiState.Loading -> {
                 LazyColumn(
                     modifier = modifier,
@@ -200,6 +215,15 @@ fun MediaListScreen(
             }
         }
     }
+
+    if (showFilterSheet) {
+        MediaFilterBottomSheet(
+            currentTabIndex = pagerState.currentPage,
+            filters = (mediaListUiState as MediaListUiState.Success).filters,
+            onLabelsChanged = { },
+            onChannelsChanged = { },
+            onDismiss = { showFilterSheet = false })
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -209,6 +233,8 @@ fun MediaListHeader(
     pagerState: PagerState,
     tabs: List<MediaTab>,
     onSearch: (String) -> Unit,
+    onFilterClick: () -> Unit,
+    hasActiveFilters: Boolean,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -230,6 +256,8 @@ fun MediaListHeader(
             MediaListTopAppBar(
                 textFieldState = textFieldState,
                 onSearch = onSearch,
+                onFilterClick = onFilterClick,
+                hasActiveFilters = hasActiveFilters,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent
                 ),
@@ -249,6 +277,58 @@ fun MediaListHeader(
                     Tab(selected = pagerState.currentPage == index, onClick = {
                         coroutineScope.launch { pagerState.animateScrollToPage(index) }
                     }, text = { Text(stringResource(tab.resourceId)) })
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MediaFilterBottomSheet(
+    currentTabIndex: Int,
+    filters: MediaFilters,
+    onLabelsChanged: (Set<String>) -> Unit,
+    onChannelsChanged: (Set<String>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+        confirmValueChange = { true })
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss, sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(MaterialTheme.spacing.medium)
+                .padding(bottom = MaterialTheme.spacing.large)
+        ) {
+            Text(
+                text = "Filters",
+                modifier = Modifier.padding(bottom = MaterialTheme.spacing.medium)
+            )
+
+            Text("Labels")
+
+            if (currentTabIndex == 0) {
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+
+                Text("Channels")
+            }
+
+            if (filters.hasActiveFilters(currentTabIndex == 1)) {
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+                TextButton(
+                    onClick = {
+                        onLabelsChanged(emptySet())
+                        onChannelsChanged(emptySet())
+                        onDismiss()
+                    }, modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Clear Filters")
                 }
             }
         }

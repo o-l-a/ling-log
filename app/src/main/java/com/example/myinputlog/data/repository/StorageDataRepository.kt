@@ -32,9 +32,7 @@ interface StorageDataRepository {
     suspend fun deleteAccount()
 
     // video
-    fun videoPagingFlow(
-        courseId: String, filters: MediaFilters
-    ): Flow<PagingData<VideoUiModel>>
+    fun videoPagingFlow(courseId: String, filters: MediaFilters): Flow<PagingData<VideoUiModel>>
 
     suspend fun getVideo(videoId: String): VideoWithChannelAndLabels?
     suspend fun saveVideo(
@@ -47,8 +45,12 @@ interface StorageDataRepository {
     suspend fun deleteVideo(videoId: String)
 
     // channel
-    fun channelPagingFlow(courseId: String): Flow<PagingData<ChannelUiModel>>
+    fun channelPagingFlow(
+        courseId: String, filters: MediaFilters, podium: Map<String, Int> = emptyMap()
+    ): Flow<PagingData<ChannelUiModel>>
+
     suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels?
+    suspend fun getChannelGlobalRanking(): Map<String, Int>
     suspend fun saveChannel(
         channel: ChannelEntity,
         labelIds: List<String>,

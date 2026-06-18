@@ -5,10 +5,14 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Transaction
 import androidx.room.Upsert
+import androidx.sqlite.db.SupportSQLiteQuery
 import com.example.myinputlog.data.local.entities.ChannelEntity
 import com.example.myinputlog.data.local.entities.ChannelLabelCrossRef
+import com.example.myinputlog.data.local.entities.LabelEntity
+import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithLabelIds
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 
@@ -37,19 +41,22 @@ interface ChannelDao {
     )
     suspend fun getChannelWithLabelsById(id: String): ChannelWithStatsAndLabels?
 
-    @Transaction
     @Query(
-        """SELECT 
-        c.*, 
-        COUNT(v.id) AS totalVideoCount, 
-        SUM(v.durationInSeconds) AS totalTimeInSeconds 
-    FROM channels AS c
-    LEFT JOIN videos AS v ON c.id = v.channelId AND v.isDeleted = 0
-    WHERE c.courseId = :courseId AND c.isDeleted = 0
-    GROUP BY c.id
-    ORDER BY totalVideoCount DESC, totalTimeInSeconds DESC, c.title ASC"""
+        """SELECT c.id 
+        FROM channels c
+        LEFT JOIN videos v ON c.id = v.channelId AND v.isDeleted = 0
+        WHERE c.isDeleted = 0
+        GROUP BY c.id
+        ORDER BY COUNT(v.id) DESC, COALESCE(SUM(v.durationInSeconds), 0) DESC, c.title ASC
+        LIMIT :limit"""
     )
-    fun getChannelsPagingSource(courseId: String): PagingSource<Int, ChannelWithStatsAndLabels>
+    suspend fun getGlobalChannelRanking(limit: Int = 3): List<String>
+
+    @Transaction
+    @RawQuery(
+        observedEntities = [ChannelEntity::class, VideoEntity::class, LabelEntity::class, ChannelLabelCrossRef::class]
+    )
+    fun getChannelsPagingSource(query: SupportSQLiteQuery): PagingSource<Int, ChannelWithStatsAndLabels>
 
     // UPSERTS
     @Upsert

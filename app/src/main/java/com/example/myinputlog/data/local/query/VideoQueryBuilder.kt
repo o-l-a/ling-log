@@ -34,6 +34,9 @@ object VideoQueryBuilder {
             )
         }
 
-        return sql.build(orderBy = "watchedOn DESC, lastUpdated DESC")
+        sql.orderBy("watchedOn DESC")
+        sql.orderBy("lastUpdated DESC")
+
+        return sql.build()
     }
 }

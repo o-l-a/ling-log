@@ -31,7 +31,7 @@ data class ChannelUiModel(
     fun titleLines(): Int = if (defaultLabels.isNotEmpty()) 1 else 2
 }
 
-fun ChannelWithStatsAndLabels.toChannelUiModel(): ChannelUiModel = ChannelUiModel(
+fun ChannelWithStatsAndLabels.toChannelUiModel(rank: Int = 0): ChannelUiModel = ChannelUiModel(
     id = channel.id,
     courseId = channel.courseId,
     title = channel.title,
@@ -42,6 +42,7 @@ fun ChannelWithStatsAndLabels.toChannelUiModel(): ChannelUiModel = ChannelUiMode
     thumbnailHighUrl = channel.thumbnailHighUrl,
     totalTimeInSeconds = totalTimeInSeconds,
     totalVideoCount = totalVideoCount,
+    rank = rank,
     defaultLabels = labels.map { it.toLabelUiModel() }
         .toSortedSet(compareBy { it.title.lowercase() })
 )

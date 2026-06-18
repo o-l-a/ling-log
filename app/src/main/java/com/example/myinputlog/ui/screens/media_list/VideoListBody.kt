@@ -150,7 +150,7 @@ fun VideoContainer(
         }, leadingContent = {
             VideoThumbnail(
                 modifier = Modifier.height(MaterialTheme.spacing.extraLarge + MaterialTheme.spacing.small),
-                videoThumbnailUrl = video.thumbnailMediumUrl,
+                videoThumbnailUrl = video.thumbnailHighUrl,
                 duration = video.durationInSeconds,
                 isListItemLeading = true
             )
