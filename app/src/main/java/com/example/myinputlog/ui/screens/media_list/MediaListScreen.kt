@@ -325,7 +325,7 @@ fun MediaFilterBottomSheet(
                 .fillMaxSize()
                 .padding(MaterialTheme.spacing.small)
                 .padding(bottom = MaterialTheme.spacing.large), contentPadding = PaddingValues(
-                MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
+                MaterialTheme.spacing.extraSmall,
             ), state = scrollState
         ) {
             item {
@@ -359,7 +359,7 @@ fun MediaFilterBottomSheet(
             }
 
             item {
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
             }
 
             filterArea(
@@ -385,7 +385,7 @@ fun MediaFilterBottomSheet(
 
             if (filters.hasActiveFilters(currentTabIndex == 1)) {
                 item {
-                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
