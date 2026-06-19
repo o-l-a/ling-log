@@ -35,8 +35,8 @@ import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottom
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.ConfettiOverlay
-import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.SpinningClockIcon
 import com.example.myinputlog.ui.screens.common.composable.StatisticContainer
 import com.example.myinputlog.ui.screens.common.composable.calendar.SwipeableCalendar

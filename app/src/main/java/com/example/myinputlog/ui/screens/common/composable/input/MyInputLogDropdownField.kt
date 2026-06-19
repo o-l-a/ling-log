@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.common.composable
+package com.example.myinputlog.ui.screens.common.composable.input
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem

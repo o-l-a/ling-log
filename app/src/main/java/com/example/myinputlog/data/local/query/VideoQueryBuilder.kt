@@ -25,8 +25,8 @@ object VideoQueryBuilder {
             val placeholders = filters.selectedLabels.joinToString(",") { "?" }
             sql.andIf(
                 true, """
-                    AND EXISTS (
-                        SELECT 1 FROM VideoLabelCrossRef vlc 
+                    EXISTS (
+                        SELECT 1 FROM video_label_cross_ref vlc 
                         WHERE vlc.videoId = videos.id 
                         AND vlc.labelId IN ($placeholders)
                     ) 

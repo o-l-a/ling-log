@@ -31,8 +31,8 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.VideoUiModel
-import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.label.SmallLabelChipRow
 import com.example.myinputlog.ui.screens.common.composable.video.VideoListItemPlaceholder
 import com.example.myinputlog.ui.screens.common.composable.video.VideoThumbnail

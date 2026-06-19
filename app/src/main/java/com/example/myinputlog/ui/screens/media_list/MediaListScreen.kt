@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,12 +55,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.myinputlog.R
+import com.example.myinputlog.ui.models.ChannelUiModel
+import com.example.myinputlog.ui.models.FilterContentType
+import com.example.myinputlog.ui.models.FilterValueUiModel
+import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.navigation.Screen
-import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.bars.MediaListTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
+import com.example.myinputlog.ui.screens.common.composable.input.FilterItemRow
+import com.example.myinputlog.ui.screens.common.composable.input.filterArea
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.video.VideoListItemPlaceholder
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
@@ -88,6 +96,7 @@ fun MediaListScreen(
 
     val videos = mediaListViewModel.videoFlow.collectAsLazyPagingItems()
     val channels = mediaListViewModel.channelFlow.collectAsLazyPagingItems()
+    val filterChannels = mediaListViewModel.filterChannelFlow.collectAsLazyPagingItems()
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val coroutineScope = rememberCoroutineScope()
@@ -212,17 +221,18 @@ fun MediaListScreen(
                         )
                     }
                 }
+                if (showFilterSheet) {
+                    MediaFilterBottomSheet(
+                        currentTabIndex = pagerState.currentPage,
+                        filters = currentState.filters,
+                        labels = currentState.allLabels,
+                        channels = filterChannels,
+                        onLabelsChanged = mediaListViewModel::updateSelectedLabels,
+                        onChannelsChanged = mediaListViewModel::updateSelectedChannels,
+                        onDismiss = { showFilterSheet = false })
+                }
             }
         }
-    }
-
-    if (showFilterSheet) {
-        MediaFilterBottomSheet(
-            currentTabIndex = pagerState.currentPage,
-            filters = (mediaListUiState as MediaListUiState.Success).filters,
-            onLabelsChanged = { },
-            onChannelsChanged = { },
-            onDismiss = { showFilterSheet = false })
     }
 }
 
@@ -288,6 +298,8 @@ fun MediaListHeader(
 fun MediaFilterBottomSheet(
     currentTabIndex: Int,
     filters: MediaFilters,
+    labels: Set<LabelUiModel>,
+    channels: LazyPagingItems<ChannelUiModel>,
     onLabelsChanged: (Set<String>) -> Unit,
     onChannelsChanged: (Set<String>) -> Unit,
     onDismiss: () -> Unit
@@ -297,38 +309,103 @@ fun MediaFilterBottomSheet(
         enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
         confirmValueChange = { true })
 
+    val scrollState = rememberLazyListState()
+
+    var isLabelsExpanded by remember { mutableStateOf(false) }
+    var isChannelsExpanded by remember { mutableStateOf(false) }
+
+    val labelTitle = stringResource(R.string.label_list_nav_description)
+    val channelTitle = stringResource(R.string.channel_list_screen_title)
+
     ModalBottomSheet(
         onDismissRequest = onDismiss, sheetState = sheetState
     ) {
-        Column(
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(MaterialTheme.spacing.medium)
-                .padding(bottom = MaterialTheme.spacing.large)
+                .fillMaxSize()
+                .padding(MaterialTheme.spacing.small)
+                .padding(bottom = MaterialTheme.spacing.large), contentPadding = PaddingValues(
+                MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
+            ), state = scrollState
         ) {
-            Text(
-                text = "Filters",
-                modifier = Modifier.padding(bottom = MaterialTheme.spacing.medium)
-            )
+            item {
+                Text(
+                    text = stringResource(R.string.filters_text),
+                    modifier = Modifier.padding(bottom = MaterialTheme.spacing.medium)
+                )
+            }
 
-            Text("Labels")
+            filterArea(
+                title = labelTitle,
+                items = labels.toList(),
+                isExpanded = isLabelsExpanded,
+                onHeaderClick = { isLabelsExpanded = !isLabelsExpanded },
+                key = { it.id }) { label ->
+                FilterItemRow(
+                    filter = FilterValueUiModel(
+                        id = label.id, content = FilterContentType.Labeled(
+                            text = label.title,
+                            colorRes = Color(label.color),
+                            textColorRes = Color(label.textColor)
+                        ), selected = filters.selectedLabels.contains(label.id)
+                    ), onCheckedChange = { id ->
+                        val newSet = if (filters.selectedLabels.contains(id)) {
+                            filters.selectedLabels - id
+                        } else {
+                            filters.selectedLabels + id
+                        }
+                        onLabelsChanged(newSet)
+                    })
+            }
 
-            if (currentTabIndex == 0) {
+            item {
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+            }
 
-                Text("Channels")
+            filterArea(
+                title = channelTitle,
+                pagingItems = channels,
+                isExpanded = isChannelsExpanded,
+                onHeaderClick = { isChannelsExpanded = !isChannelsExpanded },
+                key = { it.id }) { channel ->
+                FilterItemRow(
+                    filter = FilterValueUiModel(
+                        id = channel.id,
+                        content = FilterContentType.Basic(text = channel.title),
+                        selected = filters.selectedChannels.contains(channel.id)
+                    ), onCheckedChange = { id ->
+                        val newSet = if (filters.selectedChannels.contains(id)) {
+                            filters.selectedChannels - id
+                        } else {
+                            filters.selectedChannels + id
+                        }
+                        onChannelsChanged(newSet)
+                    })
             }
 
             if (filters.hasActiveFilters(currentTabIndex == 1)) {
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
-                TextButton(
-                    onClick = {
-                        onLabelsChanged(emptySet())
-                        onChannelsChanged(emptySet())
-                        onDismiss()
-                    }, modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text("Clear Filters")
+                item {
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        TextButton(
+                            onClick = {
+                                onLabelsChanged(emptySet())
+                                onChannelsChanged(emptySet())
+                                onDismiss()
+                            }) {
+                            Text(stringResource(R.string.clear_filters_text))
+                        }
+                        TextButton(
+                            onClick = {
+                                onDismiss()
+                            }) {
+                            Text(stringResource(R.string.apply_filters_text))
+                        }
+                    }
                 }
             }
         }

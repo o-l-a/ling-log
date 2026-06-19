@@ -22,8 +22,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.CourseUiModel
-import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.SettingsCard
 import com.example.myinputlog.ui.theme.spacing
 

@@ -7,11 +7,11 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import com.example.myinputlog.data.repository.StorageDataRepository
-import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.models.mapToCourseUiModel
 import com.example.myinputlog.ui.models.toCourseUiModel
+import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.screens.common.ext.asStartOfDay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -39,25 +40,30 @@ class MediaListViewModel @Inject constructor(
 
     private val _filters = MutableStateFlow(MediaFilters())
     private val _channelRanking = MutableStateFlow<Map<String, Int>>(emptyMap())
+    private val _allLabels: Flow<List<LabelUiModel>> =
+        repository.labels.map { list -> list.map { it.toLabelUiModel() } }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val videoFlow = combine(currentCourseId, _filters) { courseId, filters ->
-        courseId to filters
-    }.debounce(300L).flatMapLatest { (courseId, filters) ->
-        repository.videoPagingFlow(courseId, filters).insertHeaderAndSeparators()
-    }.cachedIn(viewModelScope)
+    val videoFlow = combine(currentCourseId, _filters, ::Pair).debounce(300L)
+        .flatMapLatest { (courseId, filters) ->
+            repository.videoPagingFlow(courseId, filters).insertHeaderAndSeparators()
+        }.cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val channelFlow =
-        combine(currentCourseId, _filters, _channelRanking) { courseId, filters, ranking ->
-            Triple(courseId, filters, ranking)
-        }.debounce(300L).flatMapLatest { (courseId, filters, ranking) ->
-            repository.channelPagingFlow(courseId, filters, ranking)
-        }.cachedIn(viewModelScope)
+        combine(currentCourseId, _filters, _channelRanking, ::ChannelQuery).debounce(300L)
+            .flatMapLatest { query ->
+                repository.channelPagingFlow(query.courseId, query.filters, query.ranking)
+            }.cachedIn(viewModelScope)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val filterChannelFlow = currentCourseId.flatMapLatest { courseId ->
+        repository.channelPagingFlow(courseId, MediaFilters())
+    }.cachedIn(viewModelScope)
 
     val mediaListUiState: StateFlow<MediaListUiState> = combine(
-        repository.courses, currentCourseId, _filters
-    ) { courses, id, filters ->
+        repository.courses, currentCourseId, _filters, _allLabels
+    ) { courses, id, filters, labels ->
 
         when {
             courses.isEmpty() -> MediaListUiState.Empty
@@ -69,7 +75,8 @@ class MediaListViewModel @Inject constructor(
                 MediaListUiState.Success(
                     courseHeader = courseHeader,
                     userCourses = courses.map { it.toCourseUiModel() },
-                    filters = filters
+                    filters = filters,
+                    allLabels = labels.toSet()
                 )
             }
         }
@@ -90,14 +97,25 @@ class MediaListViewModel @Inject constructor(
         Log.d(TAG, "Channel ranking: ${_channelRanking.value}")
     }
 
-    fun updateFilters(channels: List<ChannelUiModel>, labels: List<LabelUiModel>) {
+    fun updateSelectedChannels(channelIds: Set<String>) {
         _filters.update {
             it.copy(
-                selectedChannels = channels.map { channel -> channel.id }.toSet(),
-                selectedLabels = labels.map { label -> label.id }.toSet()
+                selectedChannels = channelIds
             )
         }
     }
+
+    fun updateSelectedLabels(labelIds: Set<String>) {
+        _filters.update {
+            it.copy(
+                selectedLabels = labelIds
+            )
+        }
+    }
+
+    private data class ChannelQuery(
+        val courseId: String, val filters: MediaFilters, val ranking: Map<String, Int>
+    )
 
     companion object {
         private const val TAG = "MediaListViewModel"

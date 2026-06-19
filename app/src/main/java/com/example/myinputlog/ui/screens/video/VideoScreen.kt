@@ -84,11 +84,11 @@ import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.screens.common.Country
 import com.example.myinputlog.ui.screens.common.MAX_URL_LENGTH
-import com.example.myinputlog.ui.screens.common.composable.CheckBoxWithLabel
-import com.example.myinputlog.ui.screens.common.composable.ConfirmDeleteDialog
-import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.LoadingBox
-import com.example.myinputlog.ui.screens.common.composable.MyInputLogDropdownField
+import com.example.myinputlog.ui.screens.common.composable.input.CheckBoxWithLabel
+import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.input.MyInputLogDropdownField
 import com.example.myinputlog.ui.screens.common.composable.label.LabelChipRow
 import com.example.myinputlog.ui.screens.common.composable.label.LabelPickerTextField
 import com.example.myinputlog.ui.screens.common.composable.video.VideoThumbnail

@@ -44,10 +44,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.LabelUiModel
-import com.example.myinputlog.ui.screens.common.composable.CheckBoxWithLabel
-import com.example.myinputlog.ui.screens.common.composable.ConfirmDeleteDialog
-import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.input.CheckBoxWithLabel
+import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.SpinningClockIcon
 import com.example.myinputlog.ui.screens.common.composable.StatisticContainer
 import com.example.myinputlog.ui.screens.common.composable.channel.ChannelThumbnail

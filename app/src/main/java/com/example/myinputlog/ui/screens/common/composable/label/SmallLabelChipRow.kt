@@ -22,7 +22,7 @@ fun SmallLabelChipRow(
     modifier: Modifier = Modifier,
     labels: List<LabelUiModel>,
 ) {
-    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides MaterialTheme.spacing.default) {
         ContextualFlowRow(
             modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),

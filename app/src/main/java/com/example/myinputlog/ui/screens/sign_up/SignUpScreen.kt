@@ -42,7 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.common.MAX_USER_LENGTH
 import com.example.myinputlog.ui.screens.common.composable.MyInputLogAppIcon
-import com.example.myinputlog.ui.screens.common.composable.SomethingWentWrongBox
+import com.example.myinputlog.ui.screens.common.composable.state.SomethingWentWrongBox
 
 @Composable
 fun SignUpScreen(

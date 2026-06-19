@@ -53,6 +53,9 @@
     <string name="yesterday_text">Yesterday</string>
     <string name="long_ago_text">Long ago</string>
     <string name="preview_text">Preview:</string>
+    <string name="filters_text">Filters</string>
+    <string name="clear_filters_text">Clear</string>
+    <string name="apply_filters_text">Apply</string>
 
     <!--    routine screen field labels    -->
     <string name="date_placeholder">dd/mm/yyyy</string>

@@ -56,8 +56,8 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.common.ConfettiOptions
 import com.example.myinputlog.ui.screens.common.composable.ColorSwatch
 import com.example.myinputlog.ui.screens.common.composable.ConfettiOverlay
-import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.theme.AppTheme
 import com.example.myinputlog.ui.theme.spacing
 

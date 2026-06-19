@@ -20,7 +20,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.theme.spacing
 
@@ -31,7 +30,7 @@ fun LabelChipRow(
     onLabelClicked: (LabelUiModel) -> Unit,
     isDeletable: Boolean = false
 ) {
-    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides MaterialTheme.spacing.default) {
         FlowRow(
             modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
@@ -54,8 +53,8 @@ fun LabelChipRow(
                                 contentDescription = "delete",
                                 imageVector = Icons.Filled.Clear,
                                 modifier = Modifier.clickable {
-                                        onLabelClicked(label)
-                                    },
+                                    onLabelClicked(label)
+                                },
                             )
                         }
                     })

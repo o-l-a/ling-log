@@ -43,6 +43,7 @@ class QueryBuilder(private val baseQuery: String) {
 
         }
         Log.d(TAG, finalSql)
+        Log.d(TAG, args.toString())
         return SimpleSQLiteQuery(finalSql, args.toTypedArray())
     }
 

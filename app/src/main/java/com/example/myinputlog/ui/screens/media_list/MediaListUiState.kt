@@ -2,6 +2,7 @@ package com.example.myinputlog.ui.screens.media_list
 
 import com.example.myinputlog.ui.models.CourseHeaderUiModel
 import com.example.myinputlog.ui.models.CourseUiModel
+import com.example.myinputlog.ui.models.LabelUiModel
 
 sealed interface MediaListUiState {
     data object Loading : MediaListUiState
@@ -10,7 +11,8 @@ sealed interface MediaListUiState {
     data object NetworkError : MediaListUiState
     data class Success(
         val courseHeader: CourseHeaderUiModel = CourseHeaderUiModel(),
-        val userCourses: List<CourseUiModel> = listOf(),
+        val userCourses: List<CourseUiModel> = emptyList(),
+        val allLabels: Set<LabelUiModel> = emptySet(),
         val filters: MediaFilters = MediaFilters()
     ) : MediaListUiState
 }

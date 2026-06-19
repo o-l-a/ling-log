@@ -43,11 +43,11 @@ import com.example.myinputlog.ui.screens.label.LabelViewModel.LabelUiEvent
 import com.example.myinputlog.ui.screens.common.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.common.IME_ACTION_NEXT
 import com.example.myinputlog.ui.screens.common.MAX_LABEL_LENGTH
-import com.example.myinputlog.ui.screens.common.composable.CheckBoxWithLabel
+import com.example.myinputlog.ui.screens.common.composable.input.CheckBoxWithLabel
 import com.example.myinputlog.ui.screens.common.composable.ColorSwatch
-import com.example.myinputlog.ui.screens.common.composable.ConfirmDeleteDialog
-import com.example.myinputlog.ui.screens.common.composable.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.label.ClickableLabelChip
 import com.example.myinputlog.ui.theme.spacing
 

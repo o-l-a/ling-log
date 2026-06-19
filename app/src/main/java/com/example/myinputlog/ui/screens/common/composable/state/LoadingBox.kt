@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.common.composable
+package com.example.myinputlog.ui.screens.common.composable.state
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

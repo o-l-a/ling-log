@@ -28,7 +28,7 @@ object ChannelQueryBuilder {
             sql.andIf(
                 true, """
                     EXISTS (
-                        SELECT 1 FROM ChannelLabelCrossRef clc 
+                        SELECT 1 FROM channel_label_cross_ref clc 
                         WHERE clc.channelId = c.id 
                         AND clc.labelId IN ($placeholders)
                     ) 
@@ -38,8 +38,10 @@ object ChannelQueryBuilder {
 
         sql.groupBy("c.id")
 
-        sql.orderBy("totalVideoCount DESC")
-        sql.orderBy("totalTimeInSeconds DESC")
+        if (filters.hasActiveFilters()) {
+            sql.orderBy("totalVideoCount DESC")
+            sql.orderBy("totalTimeInSeconds DESC")
+        }
         sql.orderBy("c.title ASC")
 
         return sql.build()
