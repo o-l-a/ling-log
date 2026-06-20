@@ -56,6 +56,16 @@
     <string name="filters_text">Filters</string>
     <string name="clear_filters_text">Clear</string>
     <string name="apply_filters_text">Apply</string>
+    <string name="select_all_text">Select all</string>
+
+    <!--    sort options    -->
+    <string name="sort_header">Sort</string>
+    <string name="sort_default">Default</string>
+    <string name="sort_watch_date">Watched on</string>
+    <string name="sort_title">Title</string>
+    <string name="sort_channel_title">Channel name</string>
+    <string name="sort_video_count">Total videos</string>
+    <string name="sort_total_time">Total time</string>
 
     <!--    routine screen field labels    -->
     <string name="date_placeholder">dd/mm/yyyy</string>

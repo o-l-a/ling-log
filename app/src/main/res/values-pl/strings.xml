@@ -57,6 +57,16 @@
     <string name="filters_text">Filtry</string>
     <string name="clear_filters_text">Wyczyść</string>
     <string name="apply_filters_text">Zastosuj</string>
+    <string name="select_all_text">Zaznacz wszystko</string>
+
+    <!--    sort options    -->
+    <string name="sort_header">Sortuj</string>
+    <string name="sort_default">Domyślnie</string>
+    <string name="sort_watch_date">Data obejrzenia</string>
+    <string name="sort_title">Tytuł</string>
+    <string name="sort_channel_title">Nazwa kanału</string>
+    <string name="sort_video_count">Liczba filmów</string>
+    <string name="sort_total_time">Łączny czas</string>
 
     <!--    routine screen field labels    -->
     <string name="date_placeholder">dd/mm/yyyy</string>

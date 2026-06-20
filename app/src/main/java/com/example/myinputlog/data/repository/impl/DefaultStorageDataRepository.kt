@@ -79,7 +79,8 @@ class DefaultStorageDataRepository @Inject constructor(
 
     override val courses: Flow<List<CourseWithStats>> = scoped {
         Log.d(TAG, "course flow with user $uid")
-        courseDao.getAllCourses() }
+        courseDao.getAllCourses()
+    }
 
     override val labels: Flow<Set<LabelEntity>> = scoped {
         labelDao.getAllLabels().map { list -> list.toSet() }
@@ -211,6 +212,10 @@ class DefaultStorageDataRepository @Inject constructor(
     override suspend fun getChannelGlobalRanking(): Map<String, Int> = withScope {
         channelDao.getGlobalChannelRanking(limit = 3).mapIndexed { index, id -> id to (index + 1) }
             .toMap()
+    }
+
+    override suspend fun getChannelIdsForCourse(courseId: String): Set<String> = withScope {
+        channelDao.getAllChannelIdsForCourse(courseId).toSet()
     }
 
     override suspend fun saveChannel(

@@ -28,6 +28,9 @@ interface ChannelDao {
     @Query("SELECT id FROM channels")
     suspend fun getAllIds(): List<String>
 
+    @Query("SELECT id FROM channels WHERE courseId = :courseId")
+    suspend fun getAllChannelIdsForCourse(courseId: String): List<String>
+
     @Transaction
     @Query(
         """SELECT 

@@ -11,5 +11,8 @@ sealed class FilterContentType {
 }
 
 data class FilterValueUiModel(
-    val id: String, val content: FilterContentType, val selected: Boolean
+    val id: String,
+    val content: FilterContentType,
+    val selected: Boolean,
+    val isToggleType: Boolean = false
 )

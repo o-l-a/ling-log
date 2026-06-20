@@ -65,6 +65,7 @@ import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.bars.MediaListTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
+import com.example.myinputlog.ui.screens.common.composable.input.FilterChange
 import com.example.myinputlog.ui.screens.common.composable.input.FilterItemRow
 import com.example.myinputlog.ui.screens.common.composable.input.filterArea
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
@@ -228,7 +229,9 @@ fun MediaListScreen(
                         labels = currentState.allLabels,
                         channels = filterChannels,
                         onLabelsChanged = mediaListViewModel::updateSelectedLabels,
+                        onSelectAllLabels = mediaListViewModel::onSelectAllLabelsChange,
                         onChannelsChanged = mediaListViewModel::updateSelectedChannels,
+                        onSelectAllChannels = mediaListViewModel::onSelectAllChannelsChange,
                         onApplyClicked = mediaListViewModel::applyFilters,
                         onClearClicked = mediaListViewModel::clearFilters,
                         onDismiss = { showFilterSheet = false })
@@ -303,11 +306,14 @@ fun MediaFilterBottomSheet(
     labels: Set<LabelUiModel>,
     channels: LazyPagingItems<ChannelUiModel>,
     onLabelsChanged: (Set<String>) -> Unit,
+    onSelectAllLabels: (FilterChange) -> Unit,
     onChannelsChanged: (Set<String>) -> Unit,
+    onSelectAllChannels: (FilterChange) -> Unit,
     onApplyClicked: () -> Unit,
     onClearClicked: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(
         initialValue = SheetValue.Hidden,
         enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
@@ -321,6 +327,16 @@ fun MediaFilterBottomSheet(
     val labelTitle = stringResource(R.string.label_list_nav_description)
     val channelTitle = stringResource(R.string.channel_list_screen_title)
 
+    val dismiss = {
+        coroutineScope.launch {
+            sheetState.hide()
+        }.invokeOnCompletion {
+            if (!sheetState.isVisible) {
+                onDismiss()
+            }
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss, sheetState = sheetState
     ) {
@@ -328,9 +344,7 @@ fun MediaFilterBottomSheet(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(MaterialTheme.spacing.small)
-                .padding(bottom = MaterialTheme.spacing.large), contentPadding = PaddingValues(
-                MaterialTheme.spacing.extraSmall,
-            ), state = scrollState
+                .padding(bottom = MaterialTheme.spacing.large), state = scrollState
         ) {
             item {
                 Text(
@@ -343,7 +357,9 @@ fun MediaFilterBottomSheet(
                 title = labelTitle,
                 items = labels.toList(),
                 isExpanded = isLabelsExpanded,
+                isAllSelected = filters.allLabelsSelected,
                 onHeaderClick = { isLabelsExpanded = !isLabelsExpanded },
+                onSelectAll = onSelectAllLabels,
                 key = { it.id }) { label ->
                 FilterItemRow(
                     filter = FilterValueUiModel(
@@ -352,13 +368,20 @@ fun MediaFilterBottomSheet(
                             colorRes = Color(label.color),
                             textColorRes = Color(label.textColor)
                         ), selected = filters.selectedLabels.contains(label.id)
-                    ), onCheckedChange = { id ->
-                        val newSet = if (filters.selectedLabels.contains(id)) {
-                            filters.selectedLabels - id
-                        } else {
-                            filters.selectedLabels + id
+                    ), onCheckedChange = { filterChange ->
+                        when (filterChange) {
+                            is FilterChange.Selection -> {
+                                val newSet =
+                                    if (filters.selectedLabels.contains(filterChange.value)) {
+                                        filters.selectedLabels - filterChange.value
+                                    } else {
+                                        filters.selectedLabels + filterChange.value
+                                    }
+                                onLabelsChanged(newSet)
+                            }
+
+                            else -> {}
                         }
-                        onLabelsChanged(newSet)
                     })
             }
 
@@ -370,21 +393,32 @@ fun MediaFilterBottomSheet(
                 title = channelTitle,
                 pagingItems = channels,
                 isExpanded = isChannelsExpanded,
+                isAllSelected = filters.allChannelsSelected,
                 onHeaderClick = { isChannelsExpanded = !isChannelsExpanded },
+                onSelectAll = onSelectAllChannels,
                 key = { it.id }) { channel ->
                 FilterItemRow(
                     filter = FilterValueUiModel(
                         id = channel.id,
                         content = FilterContentType.Basic(text = channel.title),
                         selected = filters.selectedChannels.contains(channel.id)
-                    ), onCheckedChange = { id ->
-                        val newSet = if (filters.selectedChannels.contains(id)) {
-                            filters.selectedChannels - id
-                        } else {
-                            filters.selectedChannels + id
+                    ),
+                    onCheckedChange = { filterChange ->
+                        when (filterChange) {
+                            is FilterChange.Selection -> {
+                                val newSet =
+                                    if (filters.selectedChannels.contains(filterChange.value)) {
+                                        filters.selectedChannels - filterChange.value
+                                    } else {
+                                        filters.selectedChannels + filterChange.value
+                                    }
+                                onChannelsChanged(newSet)
+                            }
+
+                            else -> {}
                         }
-                        onChannelsChanged(newSet)
-                    })
+                    },
+                )
             }
 
             if (filters.hasActiveFilters(currentTabIndex == 1)) {
@@ -398,16 +432,22 @@ fun MediaFilterBottomSheet(
                         TextButton(
                             onClick = {
                                 onClearClicked()
-                                onDismiss()
+                                dismiss()
                             }) {
-                            Text(stringResource(R.string.clear_filters_text))
+                            Text(
+                                stringResource(R.string.clear_filters_text),
+                                style = MaterialTheme.typography.titleMedium
+                            )
                         }
                         TextButton(
                             onClick = {
                                 onApplyClicked()
-                                onDismiss()
+                                dismiss()
                             }) {
-                            Text(stringResource(R.string.apply_filters_text))
+                            Text(
+                                stringResource(R.string.apply_filters_text),
+                                style = MaterialTheme.typography.titleMedium
+                            )
                         }
                     }
                 }

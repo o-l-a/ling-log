@@ -51,6 +51,7 @@ interface StorageDataRepository {
 
     suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels?
     suspend fun getChannelGlobalRanking(): Map<String, Int>
+    suspend fun getChannelIdsForCourse(courseId: String): Set<String>
     suspend fun saveChannel(
         channel: ChannelEntity,
         labelIds: List<String>,

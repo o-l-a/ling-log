@@ -1,33 +1,30 @@
 package com.example.myinputlog.ui.screens.common.composable.input
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
+import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.FilterContentType
 import com.example.myinputlog.ui.models.FilterValueUiModel
 import com.example.myinputlog.ui.screens.common.composable.label.ClickableLabelChip
@@ -35,32 +32,9 @@ import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.theme.spacing
 
 
-@Composable
-fun FilterCardBackground(
-    isFirst: Boolean,
-    isLast: Boolean,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    val topRadius by animateDpAsState(
-        targetValue = if (isFirst) MaterialTheme.spacing.medium else MaterialTheme.spacing.default,
-        label = "top_corner"
-    )
-    val bottomRadius by animateDpAsState(
-        targetValue = if (isLast) MaterialTheme.spacing.medium else MaterialTheme.spacing.default,
-        label = "bottom_corner"
-    )
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(
-            topStart = topRadius, topEnd = topRadius,
-            bottomStart = bottomRadius, bottomEnd = bottomRadius
-        ),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        content = content
-    )
+sealed interface FilterChange {
+    data class Toggle(val isChecked: Boolean) : FilterChange
+    data class Selection(val value: String) : FilterChange
 }
 
 @Composable
@@ -100,7 +74,9 @@ fun FilterAreaHeader(
 
 @Composable
 fun FilterItemRow(
-    filter: FilterValueUiModel, onCheckedChange: (String) -> Unit, modifier: Modifier = Modifier
+    filter: FilterValueUiModel,
+    onCheckedChange: (FilterChange) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
@@ -127,7 +103,13 @@ fun FilterItemRow(
         }
 
         Checkbox(
-            onCheckedChange = { onCheckedChange(filter.id) }, checked = filter.selected
+            onCheckedChange = { isChecked ->
+                if (filter.isToggleType) {
+                    onCheckedChange(FilterChange.Toggle(isChecked))
+                } else {
+                    onCheckedChange(FilterChange.Selection(filter.id))
+                }
+            }, checked = filter.selected
         )
     }
 }
@@ -139,33 +121,35 @@ inline fun <T : Any> LazyListScope.filterArea(
     title: String,
     items: List<T>,
     isExpanded: Boolean,
+    isAllSelected: Boolean,
     noinline onHeaderClick: () -> Unit,
+    noinline onSelectAll: (FilterChange) -> Unit,
     crossinline key: (T) -> Any,
     crossinline itemContent: @Composable (item: T) -> Unit
 ) {
     item(key = "header_$title") {
-        FilterCardBackground(
-            isFirst = true,
-            isLast = !isExpanded || items.isEmpty(),
-            modifier = Modifier.animateItem()
-        ) {
-            FilterAreaHeader(title, isExpanded, onHeaderClick)
-        }
+        FilterAreaHeader(title, isExpanded, onHeaderClick, modifier = Modifier.animateItem())
     }
 
     if (isExpanded) {
-        itemsIndexed(items, key = { _, it -> key(it) }) { index, item ->
-            FilterCardBackground(
-                isFirst = false,
-                isLast = index == items.lastIndex,
-                modifier = Modifier.animateItem()
-            ) {
+        item {
+            FilterItemRow(
+                filter = FilterValueUiModel(
+                    id = "selectAll",
+                    content = FilterContentType.Basic(stringResource(R.string.select_all_text)),
+                    selected = isAllSelected,
+                    isToggleType = true
+                ),
+                onCheckedChange = onSelectAll,
+            )
+        }
+        items(
+            items = items, key = { item -> key(item) }) { item ->
+            Box(modifier = Modifier.animateItem()) {
                 itemContent(item)
             }
         }
     }
-
-    item(key = "spacer_$title") { Spacer(Modifier.height(MaterialTheme.spacing.small)) }
 }
 
 /**
@@ -175,33 +159,34 @@ fun <T : Any> LazyListScope.filterArea(
     title: String,
     pagingItems: LazyPagingItems<T>,
     isExpanded: Boolean,
+    isAllSelected: Boolean,
     onHeaderClick: () -> Unit,
+    onSelectAll: (FilterChange) -> Unit,
     key: (T) -> Any,
     itemContent: @Composable (item: T) -> Unit
 ) {
     item(key = "header_$title") {
-        FilterCardBackground(
-            isFirst = true,
-            isLast = !isExpanded || pagingItems.itemCount == 0,
-            modifier = Modifier.animateItem()
-        ) {
-            FilterAreaHeader(title, isExpanded, onHeaderClick)
-        }
+        FilterAreaHeader(title, isExpanded, onHeaderClick, modifier = Modifier.animateItem())
     }
 
     if (isExpanded) {
+        item {
+            FilterItemRow(
+                filter = FilterValueUiModel(
+                    id = "selectAll",
+                    content = FilterContentType.Basic(stringResource(R.string.select_all_text)),
+                    selected = isAllSelected,
+                    isToggleType = true
+                ),
+                onCheckedChange = onSelectAll,
+            )
+        }
         items(
             count = pagingItems.itemCount, key = pagingItems.itemKey { key(it) }) { index ->
             val item = pagingItems[index]
 
-            val isLastItem = index == pagingItems.itemCount - 1
-            val isLoadingMore = pagingItems.loadState.append is LoadState.Loading
-            val isLast = isLastItem && !isLoadingMore
-
-            FilterCardBackground(
-                isFirst = false, isLast = isLast, modifier = Modifier.animateItem()
-            ) {
-                if (item != null) {
+            if (item != null) {
+                Box(modifier = Modifier.animateItem()) {
                     itemContent(item)
                 }
             }
@@ -209,12 +194,8 @@ fun <T : Any> LazyListScope.filterArea(
 
         if (pagingItems.loadState.append is LoadState.Loading) {
             item(key = "loading_$title") {
-                FilterCardBackground(
-                    isFirst = false, isLast = true, modifier = Modifier.animateItem()
-                ) {
-                    Box(modifier = Modifier.padding(MaterialTheme.spacing.extraSmall)) {
-                        LoadingBox()
-                    }
+                Box(modifier = Modifier.padding(MaterialTheme.spacing.extraSmall)) {
+                    LoadingBox()
                 }
             }
         }

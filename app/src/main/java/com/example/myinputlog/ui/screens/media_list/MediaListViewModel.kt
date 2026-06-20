@@ -12,6 +12,7 @@ import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.models.mapToCourseUiModel
 import com.example.myinputlog.ui.models.toCourseUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
+import com.example.myinputlog.ui.screens.common.composable.input.FilterChange
 import com.example.myinputlog.ui.screens.common.ext.asStartOfDay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -101,7 +102,7 @@ class MediaListViewModel @Inject constructor(
     fun updateSelectedChannels(channelIds: Set<String>) {
         _draftFilters.update {
             it.copy(
-                selectedChannels = channelIds
+                selectedChannels = channelIds, allChannelsSelected = false
             )
         }
     }
@@ -109,8 +110,58 @@ class MediaListViewModel @Inject constructor(
     fun updateSelectedLabels(labelIds: Set<String>) {
         _draftFilters.update {
             it.copy(
-                selectedLabels = labelIds
+                selectedLabels = labelIds, allLabelsSelected = false
             )
+        }
+    }
+
+    fun onSelectAllLabelsChange(filterChange: FilterChange) {
+        viewModelScope.launch {
+            when (filterChange) {
+                is FilterChange.Toggle -> {
+                    if (filterChange.isChecked) {
+                        val allLabels = repository.getAllLabelsAsSet().map { it.id }
+                        _draftFilters.update {
+                            it.copy(
+                                selectedLabels = allLabels.toSet(), allLabelsSelected = true
+                            )
+                        }
+                    } else {
+                        _draftFilters.update {
+                            it.copy(
+                                selectedLabels = emptySet(), allLabelsSelected = false
+                            )
+                        }
+                    }
+                }
+
+                else -> {}
+            }
+        }
+    }
+
+    fun onSelectAllChannelsChange(filterChange: FilterChange) {
+        viewModelScope.launch {
+            when (filterChange) {
+                is FilterChange.Toggle -> {
+                    if (filterChange.isChecked) {
+                        val allChannels = repository.getChannelIdsForCourse(currentCourseId.value)
+                        _draftFilters.update {
+                            it.copy(
+                                selectedChannels = allChannels.toSet(), allChannelsSelected = true
+                            )
+                        }
+                    } else {
+                        _draftFilters.update {
+                            it.copy(
+                                selectedChannels = emptySet(), allChannelsSelected = false
+                            )
+                        }
+                    }
+                }
+
+                else -> {}
+            }
         }
     }
 

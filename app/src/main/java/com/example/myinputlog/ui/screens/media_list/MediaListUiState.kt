@@ -20,7 +20,9 @@ sealed interface MediaListUiState {
 data class MediaFilters(
     val searchQuery: String = "",
     val selectedChannels: Set<String> = emptySet(),
-    val selectedLabels: Set<String> = emptySet()
+    val selectedLabels: Set<String> = emptySet(),
+    val allChannelsSelected: Boolean = false,
+    val allLabelsSelected: Boolean = false
 ) {
     fun hasActiveFilters(isChannel: Boolean = false): Boolean {
         val common = searchQuery.isNotEmpty() || selectedLabels.isNotEmpty()
