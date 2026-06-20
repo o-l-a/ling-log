@@ -208,14 +208,14 @@ fun MediaListScreen(
                 ) { pageIndex ->
                     when (pageIndex) {
                         0 -> VideoListBody(
-                            currentCourseId = currentState.courseHeader.id,
+                            currentCourseId = currentState.currentCourseId,
                             navigateToYouTubeVideo = navigateToYouTubeVideo,
                             lazyColumnListState = videoLazyListState,
                             videos = videos
                         )
 
                         1 -> ChannelListBody(
-                            currentCourseId = currentState.courseHeader.id,
+                            currentCourseId = currentState.currentCourseId,
                             navigateToYouTubeChannel = navigateToYouTubeChannel,
                             lazyColumnListState = channelLazyListState,
                             channels = channels
