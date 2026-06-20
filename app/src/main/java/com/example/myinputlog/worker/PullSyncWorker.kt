@@ -5,13 +5,10 @@ import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.myinputlog.data.local.dao.ChannelDao
-import com.example.myinputlog.data.local.dao.CourseDao
-import com.example.myinputlog.data.local.dao.LabelDao
-import com.example.myinputlog.data.local.dao.VideoDao
 import com.example.myinputlog.data.local.model.SyncPointers
 import com.example.myinputlog.data.local.toEntity
 import com.example.myinputlog.data.service.AccountService
+import com.example.myinputlog.data.service.AppDatabaseManager
 import com.example.myinputlog.data.service.PreferenceStorageService
 import com.example.myinputlog.data.service.StorageService
 import dagger.assisted.Assisted
@@ -24,10 +21,7 @@ import java.util.Date
 class PullSyncWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
-    private val videoDao: VideoDao,
-    private val courseDao: CourseDao,
-    private val labelDao: LabelDao,
-    private val channelDao: ChannelDao,
+    private val dbManager: AppDatabaseManager,
     private val accountService: AccountService,
     private val preferences: PreferenceStorageService,
     private val storageService: StorageService
@@ -39,6 +33,13 @@ class PullSyncWorker @AssistedInject constructor(
         Log.d(TAG, "Last pull: ${Date(lastPull)}")
 
         try {
+            val db = dbManager.getDatabase(userId)
+
+            val videoDao = db.videoDao()
+            val courseDao = db.courseDao()
+            val labelDao = db.labelDao()
+            val channelDao = db.channelDao()
+
             val pointers = storageService.getSyncPointers(userId)?.toDomain() ?: SyncPointers()
             Log.d(TAG, "Sync pointers: labels ${Date(pointers.labelsLastUpdated)}")
             Log.d(TAG, "Sync pointers: channels ${Date(pointers.channelsLastUpdated)}")

@@ -26,11 +26,11 @@ interface StatsDao {
             SUM(durationInSeconds) as totalSeconds,
             COUNT(*) as videoCount
         FROM videos
-        WHERE watchedOn BETWEEN :start AND :end AND isDeleted = 0
+        WHERE courseId = :courseId AND watchedOn BETWEEN :start AND :end AND isDeleted = 0
         GROUP BY dayOfMonth
     """
     )
-    fun getDailyStats(start: Long, end: Long): Flow<List<DailyStatRow>>
+    fun getDailyStats(courseId: String, start: Long, end: Long): Flow<List<DailyStatRow>>
 }
 
 data class LabelStat(val labelName: String, val totalSeconds: Long)

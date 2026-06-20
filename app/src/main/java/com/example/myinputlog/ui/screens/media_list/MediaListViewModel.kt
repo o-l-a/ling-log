@@ -38,20 +38,21 @@ class MediaListViewModel @Inject constructor(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = ""
     )
 
-    private val _filters = MutableStateFlow(MediaFilters())
+    private val _draftFilters = MutableStateFlow(MediaFilters())
+    private val _appliedFilters = MutableStateFlow(MediaFilters())
     private val _channelRanking = MutableStateFlow<Map<String, Int>>(emptyMap())
     private val _allLabels: Flow<List<LabelUiModel>> =
         repository.labels.map { list -> list.map { it.toLabelUiModel() } }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val videoFlow = combine(currentCourseId, _filters, ::Pair).debounce(300L)
+    val videoFlow = combine(currentCourseId, _appliedFilters, ::Pair).debounce(300L)
         .flatMapLatest { (courseId, filters) ->
             repository.videoPagingFlow(courseId, filters).insertHeaderAndSeparators()
         }.cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val channelFlow =
-        combine(currentCourseId, _filters, _channelRanking, ::ChannelQuery).debounce(300L)
+        combine(currentCourseId, _appliedFilters, _channelRanking, ::ChannelQuery).debounce(300L)
             .flatMapLatest { query ->
                 repository.channelPagingFlow(query.courseId, query.filters, query.ranking)
             }.cachedIn(viewModelScope)
@@ -62,7 +63,7 @@ class MediaListViewModel @Inject constructor(
     }.cachedIn(viewModelScope)
 
     val mediaListUiState: StateFlow<MediaListUiState> = combine(
-        repository.courses, currentCourseId, _filters, _allLabels
+        repository.courses, currentCourseId, _draftFilters, _allLabels
     ) { courses, id, filters, labels ->
 
         when {
@@ -93,12 +94,12 @@ class MediaListViewModel @Inject constructor(
     }
 
     fun updateSearchQuery(query: String) {
-        _filters.update { it.copy(searchQuery = query) }
+        _draftFilters.update { it.copy(searchQuery = query) }
         Log.d(TAG, "Channel ranking: ${_channelRanking.value}")
     }
 
     fun updateSelectedChannels(channelIds: Set<String>) {
-        _filters.update {
+        _draftFilters.update {
             it.copy(
                 selectedChannels = channelIds
             )
@@ -106,11 +107,20 @@ class MediaListViewModel @Inject constructor(
     }
 
     fun updateSelectedLabels(labelIds: Set<String>) {
-        _filters.update {
+        _draftFilters.update {
             it.copy(
                 selectedLabels = labelIds
             )
         }
+    }
+
+    fun clearFilters() {
+        _appliedFilters.value = MediaFilters()
+        _draftFilters.value = MediaFilters()
+    }
+
+    fun applyFilters() {
+        _appliedFilters.value = _draftFilters.value
     }
 
     private data class ChannelQuery(

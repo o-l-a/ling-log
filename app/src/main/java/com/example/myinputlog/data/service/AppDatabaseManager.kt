@@ -10,18 +10,13 @@ import jakarta.inject.Singleton
 
 @Singleton
 class AppDatabaseManager @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-    private val accountService: AccountService
+    @param:ApplicationContext private val context: Context
 ) {
     private var instance: AppDatabase? = null
     private var currentUserId: String? = null
 
-    fun getDatabase(): AppDatabase {
-        val userId = accountService.currentUserId
-
-        if (userId.isBlank()) {
-            throw UnauthenticatedAccessException()
-        }
+    fun getDatabase(userId: String): AppDatabase {
+        if (userId.isBlank()) throw UnauthenticatedAccessException()
 
         if (userId != currentUserId) {
             synchronized(this) {

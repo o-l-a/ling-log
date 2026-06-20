@@ -229,6 +229,8 @@ fun MediaListScreen(
                         channels = filterChannels,
                         onLabelsChanged = mediaListViewModel::updateSelectedLabels,
                         onChannelsChanged = mediaListViewModel::updateSelectedChannels,
+                        onApplyClicked = mediaListViewModel::applyFilters,
+                        onClearClicked = mediaListViewModel::clearFilters,
                         onDismiss = { showFilterSheet = false })
                 }
             }
@@ -302,6 +304,8 @@ fun MediaFilterBottomSheet(
     channels: LazyPagingItems<ChannelUiModel>,
     onLabelsChanged: (Set<String>) -> Unit,
     onChannelsChanged: (Set<String>) -> Unit,
+    onApplyClicked: () -> Unit,
+    onClearClicked: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberBottomSheetState(
@@ -393,14 +397,14 @@ fun MediaFilterBottomSheet(
                     ) {
                         TextButton(
                             onClick = {
-                                onLabelsChanged(emptySet())
-                                onChannelsChanged(emptySet())
+                                onClearClicked()
                                 onDismiss()
                             }) {
                             Text(stringResource(R.string.clear_filters_text))
                         }
                         TextButton(
                             onClick = {
+                                onApplyClicked()
                                 onDismiss()
                             }) {
                             Text(stringResource(R.string.apply_filters_text))

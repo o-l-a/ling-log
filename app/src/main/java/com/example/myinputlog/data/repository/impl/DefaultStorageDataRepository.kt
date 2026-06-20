@@ -13,11 +13,6 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import com.example.myinputlog.data.local.AppDatabase
-import com.example.myinputlog.data.local.dao.ChannelDao
-import com.example.myinputlog.data.local.dao.CourseDao
-import com.example.myinputlog.data.local.dao.LabelDao
-import com.example.myinputlog.data.local.dao.StatsDao
-import com.example.myinputlog.data.local.dao.VideoDao
 import com.example.myinputlog.data.local.entities.ChannelEntity
 import com.example.myinputlog.data.local.entities.CourseEntity
 import com.example.myinputlog.data.local.entities.LabelEntity
@@ -32,6 +27,7 @@ import com.example.myinputlog.data.local.query.VideoQueryBuilder
 import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.service.AccountService
+import com.example.myinputlog.data.service.AppDatabaseManager
 import com.example.myinputlog.data.service.PreferenceStorageService
 import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.data.utils.DateUtils.toMonthKey
@@ -65,18 +61,29 @@ class DefaultStorageDataRepository @Inject constructor(
     private val storageService: StorageService,
     private val pagingConfig: PagingConfig,
     private val workManager: WorkManager,
-    private val db: AppDatabase,
-    private val courseDao: CourseDao,
-    private val labelDao: LabelDao,
-    private val videoDao: VideoDao,
-    private val channelDao: ChannelDao,
-    private val statsDao: StatsDao
+    private val dbManager: AppDatabaseManager
 ) : StorageDataRepository {
 
-    override val courses: Flow<List<CourseWithStats>> = courseDao.getAllCourses()
+    private val userScope: Flow<UserScope> =
+        accountService.currentUser.map { it.id }.distinctUntilChanged()
+            .map { uid -> UserScope(uid, dbManager.getDatabase(uid)) }
 
-    override val labels: Flow<Set<LabelEntity>> =
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun <T> scoped(block: UserScope.() -> Flow<T>): Flow<T> =
+        userScope.flatMapLatest { it.block() }
+
+    private suspend fun <T> withScope(block: suspend UserScope.() -> T): T {
+        val uid = accountService.currentUserId
+        return UserScope(uid, dbManager.getDatabase(uid)).block()
+    }
+
+    override val courses: Flow<List<CourseWithStats>> = scoped {
+        Log.d(TAG, "course flow with user $uid")
+        courseDao.getAllCourses() }
+
+    override val labels: Flow<Set<LabelEntity>> = scoped {
         labelDao.getAllLabels().map { list -> list.toSet() }
+    }
 
     override val currentUser: Flow<UserData> = accountService.currentUser
 
@@ -113,22 +120,25 @@ class DefaultStorageDataRepository @Inject constructor(
         uid?.let { storageService.initializeUser(uid) }
     }
 
-    override suspend fun deleteAccount() = withContext(Dispatchers.IO) {
-        val uid = accountService.currentUserId
+    override suspend fun deleteAccount() = withScope {
+        withContext(Dispatchers.IO) {
+            val uid = accountService.currentUserId
 
-        val courseIds = courseDao.getAllIds()
-        val channelIds = channelDao.getAllIds()
-        val monthKeys = videoDao.getAllUniqueMonthKeys().map { it.toMonthKey() }
+            val courseIds = courseDao.getAllIds()
+            val channelIds = channelDao.getAllIds()
+            val monthKeys = videoDao.getAllUniqueMonthKeys().map { it.toMonthKey() }
 
-        storageService.deleteAllForUser(uid, courseIds, channelIds, monthKeys)
-        db.clearAllTables()
-        accountService.deleteAccount()
+            storageService.deleteAllForUser(uid, courseIds, channelIds, monthKeys)
+            db.clearAllTables()
+            accountService.deleteAccount()
+        }
     }
 
     override fun videoPagingFlow(
         courseId: String, filters: MediaFilters
-    ): Flow<PagingData<VideoUiModel>> {
-        return Pager(
+    ): Flow<PagingData<VideoUiModel>> = scoped {
+        Log.d(TAG, "paging flow with user $uid")
+        Pager(
             config = pagingConfig, pagingSourceFactory = {
                 val query = VideoQueryBuilder.build(courseId, filters)
                 videoDao.getVideosPagingSource(query)
@@ -139,43 +149,48 @@ class DefaultStorageDataRepository @Inject constructor(
         }
     }
 
-    override suspend fun getVideo(videoId: String): VideoWithChannelAndLabels? =
+    override suspend fun getVideo(videoId: String): VideoWithChannelAndLabels? = withScope {
         withContext(Dispatchers.IO) {
             return@withContext videoDao.getVideoWithChannelAndLabelsById(videoId)
         }
+    }
 
     override suspend fun saveVideo(
         video: VideoEntity,
         channel: ChannelEntity,
         labelIds: List<String>,
         syncLabelsToChannel: Boolean
-    ) = withContext(Dispatchers.IO) {
-        db.withTransaction {
-            channelDao.upsertChannel(channel)
-            videoDao.upsertVideoWithLabelIds(VideoWithLabelIds(video, labelIds))
-            if (syncLabelsToChannel) {
-                channelDao.upsertChannelWithLabelIds(ChannelWithLabelIds(channel, labelIds))
-            } else {
+    ) = withScope {
+        withContext(Dispatchers.IO) {
+            db.withTransaction {
                 channelDao.upsertChannel(channel)
+                videoDao.upsertVideoWithLabelIds(VideoWithLabelIds(video, labelIds))
+                if (syncLabelsToChannel) {
+                    channelDao.upsertChannelWithLabelIds(ChannelWithLabelIds(channel, labelIds))
+                } else {
+                    channelDao.upsertChannel(channel)
+                }
             }
-        }
 
-        schedulePushSync()
+            schedulePushSync()
+        }
     }
 
-    override suspend fun deleteVideo(videoId: String) = withContext(Dispatchers.IO) {
-        db.withTransaction {
-            videoDao.deleteVideoById(videoId)
-            videoDao.deleteLabelRefsForVideo(videoId)
+    override suspend fun deleteVideo(videoId: String) = withScope {
+        withContext(Dispatchers.IO) {
+            db.withTransaction {
+                videoDao.deleteVideoById(videoId)
+                videoDao.deleteLabelRefsForVideo(videoId)
+            }
+            schedulePushSync()
         }
-        schedulePushSync()
     }
 
     // channel
     override fun channelPagingFlow(
         courseId: String, filters: MediaFilters, podium: Map<String, Int>
-    ): Flow<PagingData<ChannelUiModel>> {
-        return Pager(
+    ): Flow<PagingData<ChannelUiModel>> = scoped {
+        Pager(
             config = pagingConfig, pagingSourceFactory = {
                 val query = ChannelQueryBuilder.build(courseId, filters)
                 channelDao.getChannelsPagingSource(query)
@@ -187,14 +202,15 @@ class DefaultStorageDataRepository @Inject constructor(
         }
     }
 
-    override suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels? =
+    override suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels? = withScope {
         withContext(Dispatchers.IO) {
             return@withContext channelDao.getChannelWithLabelsById(channelId)
         }
+    }
 
-    override suspend fun getChannelGlobalRanking(): Map<String, Int> {
-        return channelDao.getGlobalChannelRanking(limit = 3)
-            .mapIndexed { index, id -> id to (index + 1) }.toMap()
+    override suspend fun getChannelGlobalRanking(): Map<String, Int> = withScope {
+        channelDao.getGlobalChannelRanking(limit = 3).mapIndexed { index, id -> id to (index + 1) }
+            .toMap()
     }
 
     override suspend fun saveChannel(
@@ -202,85 +218,103 @@ class DefaultStorageDataRepository @Inject constructor(
         labelIds: List<String>,
         initialLabelIds: List<String>,
         syncLabelsToVideos: Boolean
-    ) = withContext(Dispatchers.IO) {
-        Log.d(TAG, "Labels will ${if (!syncLabelsToVideos) "not " else ""}be synced.")
-        Log.d(TAG, "Channel id: ${channel.id}, channel name: ${channel.title}")
-        val addedLabels = labelIds - initialLabelIds.toSet()
-        val removedLabels = initialLabelIds - labelIds.toSet()
-        Log.d(TAG, "Labels to add: $addedLabels, labels to remove: $removedLabels")
-        db.withTransaction {
-            channelDao.upsertChannelWithLabelIds(ChannelWithLabelIds(channel, labelIds))
-            if (syncLabelsToVideos && (addedLabels.isNotEmpty() || removedLabels.isNotEmpty())) {
-                videoDao.syncLabelsToChannel(channel.id, addedLabels, removedLabels)
+    ) = withScope {
+        withContext(Dispatchers.IO) {
+            Log.d(TAG, "Labels will ${if (!syncLabelsToVideos) "not " else ""}be synced.")
+            Log.d(TAG, "Channel id: ${channel.id}, channel name: ${channel.title}")
+            val addedLabels = labelIds - initialLabelIds.toSet()
+            val removedLabels = initialLabelIds - labelIds.toSet()
+            Log.d(TAG, "Labels to add: $addedLabels, labels to remove: $removedLabels")
+            db.withTransaction {
+                channelDao.upsertChannelWithLabelIds(ChannelWithLabelIds(channel, labelIds))
+                if (syncLabelsToVideos && (addedLabels.isNotEmpty() || removedLabels.isNotEmpty())) {
+                    videoDao.syncLabelsToChannel(channel.id, addedLabels, removedLabels)
+                }
             }
+            schedulePushSync()
         }
-        schedulePushSync()
     }
 
-    override suspend fun deleteChannel(channelId: String) = withContext(Dispatchers.IO) {
-        db.withTransaction {
-            channelDao.deleteChannelById(channelId)
-            channelDao.deleteLabelRefsForChannel(channelId)
+    override suspend fun deleteChannel(channelId: String) = withScope {
+        withContext(Dispatchers.IO) {
+            db.withTransaction {
+                channelDao.deleteChannelById(channelId)
+                channelDao.deleteLabelRefsForChannel(channelId)
+            }
+            schedulePushSync()
         }
-        schedulePushSync()
     }
 
     // course
-    override suspend fun getUserCourse(courseId: String): CourseEntity? =
+    override suspend fun getUserCourse(courseId: String): CourseEntity? = withScope {
         withContext(Dispatchers.IO) {
             return@withContext courseDao.getCourseById(courseId)
         }
-
-    override suspend fun saveUserCourse(course: CourseEntity) = withContext(Dispatchers.IO) {
-        courseDao.upsertCourse(course)
-        setCurrentCourse(course.id)
-        schedulePushSync()
     }
 
-    override suspend fun deleteUserCourse(courseId: String) = withContext(Dispatchers.IO) {
-        val now = System.currentTimeMillis()
-        db.withTransaction {
-            courseDao.deleteCourseById(courseId, now)
-            courseDao.bulkDeleteChannelsForCourse(courseId, now)
-            courseDao.bulkDeleteVideosForCourse(courseId, now)
+    override suspend fun saveUserCourse(course: CourseEntity) = withScope {
+        withContext(Dispatchers.IO) {
+            courseDao.upsertCourse(course)
+            setCurrentCourse(course.id)
+            schedulePushSync()
         }
-        val currentCourseId = currentCourseId.firstOrNull() ?: ""
-        if (currentCourseId == courseId) {
-            val uid = accountService.currentUserId
-            val firstAvailable = courses.firstOrNull()?.getOrNull(0)
-            if (firstAvailable == null) {
-                preferenceStorageService.clearCurrentCourseId(uid)
-            } else {
-                preferenceStorageService.saveCurrentCourseId(uid, courseId)
+    }
+
+    override suspend fun deleteUserCourse(courseId: String) = withScope {
+        withContext(Dispatchers.IO) {
+            val now = System.currentTimeMillis()
+            db.withTransaction {
+                courseDao.deleteCourseById(courseId, now)
+                courseDao.bulkDeleteChannelsForCourse(courseId, now)
+                courseDao.bulkDeleteVideosForCourse(courseId, now)
             }
+            val currentCourseId = currentCourseId.firstOrNull() ?: ""
+            if (currentCourseId == courseId) {
+                val uid = accountService.currentUserId
+                val firstAvailable = courses.firstOrNull()?.getOrNull(0)
+                if (firstAvailable == null) {
+                    preferenceStorageService.clearCurrentCourseId(uid)
+                } else {
+                    preferenceStorageService.saveCurrentCourseId(uid, courseId)
+                }
+            }
+            schedulePushSync()
         }
-        schedulePushSync()
     }
 
     // label
     @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun getLabelById(labelId: String): LabelEntity? = withContext(Dispatchers.IO) {
-        return@withContext labelDao.getLabelById(labelId)
+    override suspend fun getLabelById(labelId: String): LabelEntity? = withScope {
+        withContext(Dispatchers.IO) {
+            return@withContext labelDao.getLabelById(labelId)
+        }
     }
 
-    override suspend fun getAllLabelsAsSet(): Set<LabelEntity> = withContext(Dispatchers.IO) {
-        return@withContext labelDao.getAllLabelsAsList().toSet()
+    override suspend fun getAllLabelsAsSet(): Set<LabelEntity> = withScope {
+        withContext(Dispatchers.IO) {
+            return@withContext labelDao.getAllLabelsAsList().toSet()
+        }
     }
 
-    override suspend fun saveLabel(label: LabelEntity) = withContext(Dispatchers.IO) {
-        labelDao.upsertLabel(label)
-        schedulePushSync()
+    override suspend fun saveLabel(label: LabelEntity) = withScope {
+        withContext(Dispatchers.IO) {
+            labelDao.upsertLabel(label)
+            schedulePushSync()
+        }
     }
 
-    override suspend fun deleteLabel(labelId: String) = withContext(Dispatchers.IO) {
-        labelDao.deleteLabelById(labelId)
-        schedulePushSync()
+    override suspend fun deleteLabel(labelId: String) = withScope {
+        withContext(Dispatchers.IO) {
+            labelDao.deleteLabelById(labelId)
+            schedulePushSync()
+        }
     }
 
     // stats
     override fun getMonthlyStatsFlow(
         courseId: String, monthId: String
-    ): Flow<MonthlyStatsUiModel?> {
+    ): Flow<MonthlyStatsUiModel?> = scoped {
+        Log.d(TAG, "monthly flow with user $uid")
         val yearMonth = YearMonth.parse(monthId)
         val start =
             yearMonth.atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -288,7 +322,7 @@ class DefaultStorageDataRepository @Inject constructor(
             yearMonth.atEndOfMonth().atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()
                 .toEpochMilli()
 
-        return statsDao.getDailyStats(start, end).map { rows ->
+        statsDao.getDailyStats(courseId, start, end).map { rows ->
             val daysMap = rows.associate {
                 "day_${it.dayOfMonth.toInt()}" to DayAggregation(
                     totalTimeInSeconds = it.totalSeconds, totalVideoCount = it.videoCount
@@ -304,13 +338,13 @@ class DefaultStorageDataRepository @Inject constructor(
         }
     }
 
-    override fun getTodaySecondsFlow(courseId: String): Flow<Long> {
+    override fun getTodaySecondsFlow(courseId: String): Flow<Long> = scoped {
         val today = LocalDate.now()
         val start = today.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val end =
             today.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
-        return statsDao.getDailyStats(start, end).map { rows ->
+        statsDao.getDailyStats(courseId, start, end).map { rows ->
             rows.sumOf { it.totalSeconds }
         }
     }
@@ -343,6 +377,18 @@ class DefaultStorageDataRepository @Inject constructor(
         workManager.beginUniqueWork(
             "immediate_push_sync", ExistingWorkPolicy.APPEND_OR_REPLACE, listOf(pushSync)
         ).enqueue()
+    }
+
+    private data class UserScope(
+        val id: String,
+        val db: AppDatabase,
+    ) {
+        val videoDao = db.videoDao()
+        val channelDao = db.channelDao()
+        val courseDao = db.courseDao()
+        val labelDao = db.labelDao()
+        val statsDao = db.statsDao()
+        val uid = id
     }
 
     companion object {

@@ -5,11 +5,8 @@ import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.myinputlog.data.local.dao.ChannelDao
-import com.example.myinputlog.data.local.dao.CourseDao
-import com.example.myinputlog.data.local.dao.LabelDao
-import com.example.myinputlog.data.local.dao.VideoDao
 import com.example.myinputlog.data.service.AccountService
+import com.example.myinputlog.data.service.AppDatabaseManager
 import com.example.myinputlog.data.service.StorageService
 import com.example.myinputlog.data.utils.DateUtils.toMonthKey
 import dagger.assisted.Assisted
@@ -21,10 +18,7 @@ import kotlinx.coroutines.withContext
 class PushSyncWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
-    private val videoDao: VideoDao,
-    private val courseDao: CourseDao,
-    private val labelDao: LabelDao,
-    private val channelDao: ChannelDao,
+    private val dbManager: AppDatabaseManager,
     private val accountService: AccountService,
     private val storageService: StorageService
 ) : CoroutineWorker(context, params) {
@@ -44,6 +38,9 @@ class PushSyncWorker @AssistedInject constructor(
     }
 
     private suspend fun syncVideos(userId: String): Boolean = try {
+        val db = dbManager.getDatabase(userId)
+        val videoDao = db.videoDao()
+
         val unsyncedVideos = videoDao.getUnsyncedVideosWithLabelIds()
         if (unsyncedVideos.isEmpty()) {
             Log.d(TAG, "No videos to sync. Skipping.")
@@ -62,6 +59,9 @@ class PushSyncWorker @AssistedInject constructor(
     }
 
     private suspend fun syncChannels(userId: String) = try {
+        val db = dbManager.getDatabase(userId)
+        val channelDao = db.channelDao()
+
         val unsyncedChannels = channelDao.getUnsyncedChannelsWithLabelIds()
         if (unsyncedChannels.isEmpty()) {
             Log.d(TAG, "No channels to sync. Skipping.")
@@ -79,6 +79,10 @@ class PushSyncWorker @AssistedInject constructor(
     }
 
     private suspend fun syncMetadata(userId: String) = try {
+        val db = dbManager.getDatabase(userId)
+        val courseDao = db.courseDao()
+        val labelDao = db.labelDao()
+
         val unsyncedCourses = courseDao.getUnsyncedCourses()
         val unsyncedLabels = labelDao.getUnsyncedLabels()
 
