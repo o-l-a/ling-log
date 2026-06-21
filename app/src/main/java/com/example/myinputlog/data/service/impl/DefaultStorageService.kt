@@ -6,7 +6,9 @@ import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.model.ChannelWithLabelIds
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
 import com.example.myinputlog.data.local.toFirestoreMap
+import com.example.myinputlog.data.remote.dto.AppConfigDto
 import com.example.myinputlog.data.remote.dto.ChannelDto
+import com.example.myinputlog.data.remote.dto.CountryGroupDto
 import com.example.myinputlog.data.remote.dto.CourseDto
 import com.example.myinputlog.data.remote.dto.LabelDto
 import com.example.myinputlog.data.remote.dto.LabelDtoWrapper
@@ -20,6 +22,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
@@ -39,6 +42,7 @@ class DefaultStorageService @Inject constructor(
 
         private const val DOC_SYNC_POINTERS = "syncPointers"
         private const val DOC_LABELS = "labels"
+        private const val DOC_APP_CONFIG = "app_config"
 
         private const val FIELD_LAST_UPDATED = "lastUpdated"
         private const val FIELD_LABELS_LAST_UPDATED = "labelsLastUpdated"
@@ -63,6 +67,9 @@ class DefaultStorageService @Inject constructor(
     private fun channelRef(uid: String): CollectionReference =
         userRef(uid).collection(COLL_CHANNELS)
 
+    private fun appConfigRef(): DocumentReference =
+        firestore.collection(COLL_METADATA).document(DOC_APP_CONFIG)
+
     override suspend fun pushMonths(userId: String, months: Map<String, List<VideoWithLabelIds>>) {
         val batch = firestore.batch()
         for ((monthKey, videos) in months) {
@@ -71,8 +78,7 @@ class DefaultStorageService @Inject constructor(
                 video.video.id to video.toFirestoreMap()
             }
             val updates = mapOf(
-                FIELD_VIDEOS to videosMap,
-                FIELD_LAST_UPDATED to FieldValue.serverTimestamp()
+                FIELD_VIDEOS to videosMap, FIELD_LAST_UPDATED to FieldValue.serverTimestamp()
             )
             batch.set(docRef, updates, SetOptions.merge())
         }
@@ -120,8 +126,7 @@ class DefaultStorageService @Inject constructor(
             }
 
             val updates = mapOf(
-                FIELD_LABELS to labelsMap,
-                FIELD_LAST_UPDATED to FieldValue.serverTimestamp()
+                FIELD_LABELS to labelsMap, FIELD_LAST_UPDATED to FieldValue.serverTimestamp()
             )
 
             batch.set(docRef, updates, SetOptions.merge())
@@ -185,6 +190,19 @@ class DefaultStorageService @Inject constructor(
         return channelRef(userId).whereGreaterThan(FIELD_LAST_UPDATED, Timestamp(lastPull)).get()
             .await().toObjects(ChannelDto::class.java)
     }
+
+    override suspend fun getLastUpdatedCountryGroups(lastPull: Date): List<CountryGroupDto> {
+        try {
+            return appConfigRef().get(Source.SERVER).await().toObject(AppConfigDto::class.java)
+                ?.takeIf { it.lastUpdated != null && it.lastUpdated > Timestamp(lastPull) }?.countryGroups?.map {
+                    it.value.copy(id = it.key)
+                } ?: emptyList()
+        } catch (e: Exception) {
+            Log.e(TAG, "Pull failed: ${e.message}")
+            return emptyList()
+        }
+    }
+
 
     override suspend fun initializeUser(uid: String) {
         userRef(uid).set(hashMapOf<String, Any>()).await()

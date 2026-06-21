@@ -5,6 +5,7 @@ import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.model.ChannelWithLabelIds
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
 import com.example.myinputlog.data.remote.dto.ChannelDto
+import com.example.myinputlog.data.remote.dto.CountryGroupDto
 import com.example.myinputlog.data.remote.dto.CourseDto
 import com.example.myinputlog.data.remote.dto.LabelDto
 import com.example.myinputlog.data.remote.dto.SyncPointersDto
@@ -21,6 +22,7 @@ interface StorageService {
     suspend fun getLastUpdatedLabels(userId: String): List<LabelDto>
     suspend fun getLastUpdatedVideos(userId: String, lastPull: Date): List<VideoDto>
     suspend fun getLastUpdatedChannels(userId: String, lastPull: Date): List<ChannelDto>
+    suspend fun getLastUpdatedCountryGroups(lastPull: Date): List<CountryGroupDto>
 
     suspend fun initializeUser(uid: String)
     suspend fun deleteAllForUser(

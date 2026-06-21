@@ -70,31 +70,6 @@ fun myInputLogTextFieldColors() = OutlinedTextFieldDefaults.colors(
     errorBorderColor = Color.Transparent
 )
 
-enum class Country(@get:StringRes val countryNameResId: Int, val flagEmoji: String) {
-    SPAIN(R.string.country_spain, "🇪🇸"), MEXICO(
-        R.string.country_mexico, "🇲🇽"
-    ),
-    ARGENTINA(R.string.country_argentina, "🇦🇷"), COLOMBIA(
-        R.string.country_colombia, "🇨🇴"
-    ),
-    CHILE(R.string.country_chile, "🇨🇱"), VENEZUELA(
-        R.string.country_venezuela, "🇻🇪"
-    ),
-    PERU(R.string.country_peru, "🇵🇪"), ECUADOR(
-        R.string.country_ecuador, "🇪🇨"
-    ),
-    CUBA(R.string.country_cuba, "🇨🇺"), DOMINICAN_REPUBLIC(
-        R.string.country_dominican_republic, "🇩🇴"
-    ),
-    PUERTO_RICO(R.string.country_puerto_rico, "🇵🇷"), URUGUAY(
-        R.string.country_uruguay, "🇺🇾"
-    ),
-    PARAGUAY(R.string.country_paraguay, "🇵🇾"), BOLIVIA(
-        R.string.country_bolivia, "🇧🇴"
-    ),
-    GUATEMALA(R.string.country_guatemala, "🇬🇹"),
-}
-
 enum class ConfettiOptions(@get:StringRes val optionName: Int, val colors: List<Long>) {
     OPTION1(
         R.string.confetti_option_1, listOf(0xFFfce18a, 0xFFff726d, 0xFFf4306d, 0xFFb48def)

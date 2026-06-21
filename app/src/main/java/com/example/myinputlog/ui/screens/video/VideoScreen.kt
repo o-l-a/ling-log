@@ -77,20 +77,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.data.utils.LanguageUtils.getLanguageDisplayName
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
-import com.example.myinputlog.ui.screens.common.Country
 import com.example.myinputlog.ui.screens.common.MAX_URL_LENGTH
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.input.CheckBoxWithLabel
 import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
-import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.input.MyInputLogDropdownField
 import com.example.myinputlog.ui.screens.common.composable.label.LabelChipRow
 import com.example.myinputlog.ui.screens.common.composable.label.LabelPickerTextField
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.video.VideoThumbnail
 import com.example.myinputlog.ui.screens.common.dateFormatter
 import com.example.myinputlog.ui.theme.spacing
@@ -215,7 +214,7 @@ fun VideoEditBody(
     onDateClearClicked: () -> Unit,
     onUrlClearClicked: () -> Unit,
     onCopyClicked: (String) -> Unit,
-    onCountryValueChange: (Country?) -> Unit,
+    onCountryValueChange: (String?) -> Unit,
     onUrlValueChange: (String) -> Unit,
     onQueryChange: (String) -> Unit,
     onItemSelected: (LabelUiModel) -> Unit,
@@ -347,10 +346,10 @@ fun LazyListScope.videoUrlSection(
 fun LazyListScope.videoAttributesSection(
     modifier: Modifier = Modifier,
     watchedOn: Date?,
-    speakersNationality: Country?,
+    speakersNationality: String?,
     onDateChipClicked: () -> Unit,
     onDateClearClicked: () -> Unit,
-    onCountryValueChange: (Country?) -> Unit,
+    onCountryValueChange: (String?) -> Unit,
 ) {
     item(key = "input_chips") {
         FlowRow(
@@ -557,9 +556,9 @@ fun MyDatePickerDialog(
 @Composable
 fun CountryChoiceDropdownField(
     modifier: Modifier = Modifier,
-    speakersNationality: Country?,
-    onCountryValueChange: (Country?) -> Unit,
-    options: List<Country> = Country.entries,
+    speakersNationality: String?,
+    onCountryValueChange: (String?) -> Unit,
+    options: List<String> = emptyList(),
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box(
@@ -570,7 +569,7 @@ fun CountryChoiceDropdownField(
             onClick = { expanded = !expanded },
             label = {
                 if (speakersNationality != null) {
-                    Text(stringResource(speakersNationality.countryNameResId))
+                    Text(speakersNationality)
                 } else {
                     Text(stringResource(R.string.video_country_label))
                 }
@@ -578,7 +577,7 @@ fun CountryChoiceDropdownField(
             selected = speakersNationality != null,
             leadingIcon = {
                 if (speakersNationality != null) {
-                    Text(speakersNationality.flagEmoji)
+                    Text(speakersNationality)
                 } else {
                     Icon(Icons.Filled.Language, contentDescription = null)
                 }
@@ -600,7 +599,7 @@ fun CountryChoiceDropdownField(
             }) {
             options.forEach { selectionOption ->
                 DropdownMenuItem(
-                    text = { Text("${selectionOption.flagEmoji} ${stringResource(selectionOption.countryNameResId)}") },
+                    text = { Text(selectionOption) },
                     onClick = {
                         onCountryValueChange(selectionOption)
                         expanded = false

@@ -17,7 +17,6 @@ import com.example.myinputlog.ui.models.toCourseUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import com.example.myinputlog.ui.navigation.VideoRoute
-import com.example.myinputlog.ui.screens.common.Country
 import com.example.myinputlog.ui.screens.common.UiText
 import com.example.myinputlog.ui.screens.common.ext.extractYouTubeVideoId
 import com.example.myinputlog.ui.screens.common.ext.stripUrl
@@ -271,7 +270,7 @@ class VideoViewModel @Inject constructor(
         startEdit()
     }
 
-    fun updateLanguage(newLanguage: Country? = null) {
+    fun updateLanguage(newLanguage: String? = null) {
         _videoForm.update { it.copy(speakersNationality = newLanguage) }
         startEdit()
     }

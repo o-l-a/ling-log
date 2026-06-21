@@ -1,6 +1,5 @@
 package com.example.myinputlog.data.remote.dto
 
-import com.example.myinputlog.ui.screens.common.Country
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.PropertyName
 
@@ -10,7 +9,7 @@ data class VideoDto(
     val courseId: String? = null,
     val channelId: String? = null,
     val watchedOn: Timestamp? = null,
-    val speakersNationality: Country? = null,
+    val speakersNationality: String? = null,
     val title: String? = null,
     val durationInSeconds: Long? = null,
     val videoUrl: String? = null,

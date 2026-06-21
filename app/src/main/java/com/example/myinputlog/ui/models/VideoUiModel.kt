@@ -2,14 +2,13 @@ package com.example.myinputlog.ui.models
 
 import com.example.myinputlog.R
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
-import com.example.myinputlog.ui.screens.common.Country
 import com.example.myinputlog.ui.screens.common.UiText
 import java.util.Date
 
 data class VideoUiModel(
     val id: String = "",
     val watchedOn: Date = Date(0),
-    val speakersNationality: Country? = null,
+    val speakersNationality: String? = null,
     val title: String = "",
     val channelTitle: String = "",
     val durationInSeconds: Long = 0L,
@@ -23,7 +22,7 @@ data class VideoUiModel(
     val separatorTitle: UiText = UiText.StringResource(R.string.today_text)
 ) {
     fun supportingLine(): String =
-        "${channelTitle}${if (speakersNationality != null) " • " + speakersNationality.flagEmoji else ""}"
+        "${channelTitle}${if (speakersNationality != null) " • $speakersNationality" else ""}"
 
     fun titleLines(): Int = if (labels.isNotEmpty()) 1 else 2
 

@@ -14,6 +14,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import com.example.myinputlog.data.local.AppDatabase
 import com.example.myinputlog.data.local.entities.ChannelEntity
+import com.example.myinputlog.data.local.entities.CountryGroupEntity
 import com.example.myinputlog.data.local.entities.CourseEntity
 import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
@@ -302,6 +303,20 @@ class DefaultStorageDataRepository @Inject constructor(
         }
     }
 
+    // app config
+    override suspend fun getCountryGroupById(countryGroupId: String): CountryGroupEntity? =
+        withScope {
+            withContext(Dispatchers.IO) {
+                return@withContext countryGroupDao.getCountryGroupById(countryGroupId)
+            }
+        }
+
+    override suspend fun getAllCountryGroups(): List<CountryGroupEntity> = withScope {
+        withContext(Dispatchers.IO) {
+            return@withContext countryGroupDao.getAllCountryGroups()
+        }
+    }
+
     override suspend fun saveLabel(label: LabelEntity) = withScope {
         withContext(Dispatchers.IO) {
             labelDao.upsertLabel(label)
@@ -393,6 +408,7 @@ class DefaultStorageDataRepository @Inject constructor(
         val channelDao = db.channelDao()
         val courseDao = db.courseDao()
         val labelDao = db.labelDao()
+        val countryGroupDao = db.countryGroupDao()
         val statsDao = db.statsDao()
         val uid = id
     }

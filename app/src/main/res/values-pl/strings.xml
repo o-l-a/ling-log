@@ -156,23 +156,6 @@
     <string name="channel_video_count">Filmy</string>
     <string name="channel_apply_labels_to_videos">Zastosuj do filmów z tego kanału</string>
 
-    <!-- Spanish-speaking countries -->
-    <string name="country_spain">Hiszpania</string>
-    <string name="country_mexico">Meksyk</string>
-    <string name="country_argentina">Argentyna</string>
-    <string name="country_colombia">Kolumbia</string>
-    <string name="country_chile">Chile</string>
-    <string name="country_venezuela">Wenezuela</string>
-    <string name="country_peru">Peru</string>
-    <string name="country_ecuador">Ekwador</string>
-    <string name="country_cuba">Kuba</string>
-    <string name="country_dominican_republic">Republika Dominikany</string>
-    <string name="country_puerto_rico">Portoryko</string>
-    <string name="country_uruguay">Urugwaj</string>
-    <string name="country_paraguay">Paragwaj</string>
-    <string name="country_bolivia">Boliwia</string>
-    <string name="country_guatemala">Gwatemala</string>
-
     <!--    confetti options   -->
     <string name="confetti_option_1">Domyślny</string>
     <string name="confetti_option_2">Wariant 1</string>
@@ -192,16 +175,6 @@
     <string name="progress">Postęp: %s</string>
     <string name="stats_network_error">Statystyki są dostępne tylko w trybie online.</string>
 
-    <!--    playlists    -->
-    <string name="likes_playlist_title">Polubione filmy</string>
-    <string name="switch_yt_account">Zmień konto YouTube</string>
-    <string name="logout_yt_account">Wyloguj się z YouTube</string>
-    <string name="hide_email">Ukryj adres e-mail</string>
-    <string name="show_email">Pokaż adres e-mail</string>
-    <string name="grant_access_yt_account_message">Przyznaj dostęp do swojego konta YouTube, żeby wyświetlić swoje playlisty.</string>
-    <string name="choose_account_label">Wybierz konto</string>
-    <string name="network_error_playlists">Dane playlist są dostępne tylko w trybie online.</string>
-
     <!--    color theme    -->
     <string name="theme_dark">Ciemny</string>
     <string name="theme_light">Jasny</string>
@@ -210,8 +183,3 @@
     <!--    placeholder    -->
     <string name="placeholder_long_text">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</string>
 </resources>
-
-
-
-
-

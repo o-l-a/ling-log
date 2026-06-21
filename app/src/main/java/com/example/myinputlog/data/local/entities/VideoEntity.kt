@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.myinputlog.ui.screens.common.Country
 import java.util.Date
 
 @Entity(
@@ -26,7 +25,7 @@ data class VideoEntity(
     val courseId: String,
     val channelId: String,
     val watchedOn: Date,
-    val speakersNationality: Country? = null,
+    val speakersNationality: String? = null,
     val title: String,
     val durationInSeconds: Long,
     val videoUrl: String,

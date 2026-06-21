@@ -9,6 +9,7 @@ data class CourseUiModel(
     val timestamp: Date = Date(),
     val goalInHours: Long = 0L,
     val otherSourceHours: Long = 0L,
+    val countryGroupId: String = "",
     val totalTimeInSeconds: Long = 0L,
     val videoCount: Long = 0L,
     val totalActiveDays: Long = 0L,
@@ -20,6 +21,7 @@ fun CourseWithStats.toCourseUiModel(): CourseUiModel = CourseUiModel(
     timestamp = course.timestamp,
     goalInHours = course.goalInHours,
     otherSourceHours = course.otherSourceHours,
+    countryGroupId = course.countryGroupId,
     totalTimeInSeconds = totalTimeInSeconds,
     videoCount = totalVideoCount,
     totalActiveDays = totalActiveDays

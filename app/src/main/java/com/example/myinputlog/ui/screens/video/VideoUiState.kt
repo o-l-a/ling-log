@@ -2,7 +2,6 @@ package com.example.myinputlog.ui.screens.video
 
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
-import com.example.myinputlog.ui.screens.common.Country
 import java.util.Date
 import kotlin.Long
 
@@ -21,7 +20,7 @@ data class VideoForm(
     val videoUrl: String = "",
     val title: String = "",
     val watchedOn: Date = Date(),
-    val speakersNationality: Country? = null,
+    val speakersNationality: String? = null,
     val durationInSeconds: Long = 0L,
     val thumbnailDefaultUrl: String = "",
     val thumbnailMediumUrl: String = "",

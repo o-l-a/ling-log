@@ -9,4 +9,14 @@ class Converters {
 
     @TypeConverter
     fun toDate(millis: Long?): Date? = millis?.let { Date(it) }
+
+    @TypeConverter
+    fun fromString(value: String): List<String> {
+        return if (value.isEmpty()) emptyList() else value.split(",")
+    }
+
+    @TypeConverter
+    fun fromList(list: List<String>): String {
+        return list.joinToString(separator = ",")
+    }
 }

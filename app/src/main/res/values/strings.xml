@@ -155,23 +155,6 @@
     <string name="channel_video_count">Videos</string>
     <string name="channel_apply_labels_to_videos">Apply to this channel\'s videos</string>
 
-    <!-- Spanish-speaking countries -->
-    <string name="country_spain">Spain</string>
-    <string name="country_mexico">Mexico</string>
-    <string name="country_argentina">Argentina</string>
-    <string name="country_colombia">Colombia</string>
-    <string name="country_chile">Chile</string>
-    <string name="country_venezuela">Venezuela</string>
-    <string name="country_peru">Peru</string>
-    <string name="country_ecuador">Ecuador</string>
-    <string name="country_cuba">Cuba</string>
-    <string name="country_dominican_republic">Dominican Republic</string>
-    <string name="country_puerto_rico">Puerto Rico</string>
-    <string name="country_uruguay">Uruguay</string>
-    <string name="country_paraguay">Paraguay</string>
-    <string name="country_bolivia">Bolivia</string>
-    <string name="country_guatemala">Guatemala</string>
-
     <!--    confetti options   -->
     <string name="confetti_option_1">Default</string>
     <string name="confetti_option_2">Variant 1</string>
@@ -190,16 +173,6 @@
     <string name="good_job">Good job.</string>
     <string name="progress">Progress: %s</string>
     <string name="stats_network_error">The statistics will appear when you go back online.</string>
-
-    <!--    playlists    -->
-    <string name="likes_playlist_title">Liked videos</string>
-    <string name="switch_yt_account">Switch YouTube account</string>
-    <string name="logout_yt_account">Log out from YouTube</string>
-    <string name="hide_email">Hide e-mail</string>
-    <string name="show_email">Show e-mail</string>
-    <string name="grant_access_yt_account_message">Grant access to your YouTube account to see your playlists.</string>
-    <string name="choose_account_label">Choose account</string>
-    <string name="network_error_playlists">Your playlist data will appear when you go back online.</string>
 
     <!--    color theme    -->
     <string name="theme_dark">Dark</string>

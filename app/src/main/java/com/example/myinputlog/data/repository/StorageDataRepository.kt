@@ -2,6 +2,7 @@ package com.example.myinputlog.data.repository
 
 import androidx.paging.PagingData
 import com.example.myinputlog.data.local.entities.ChannelEntity
+import com.example.myinputlog.data.local.entities.CountryGroupEntity
 import com.example.myinputlog.data.local.entities.CourseEntity
 import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
@@ -77,6 +78,10 @@ interface StorageDataRepository {
     suspend fun saveLabel(label: LabelEntity)
     suspend fun deleteLabel(labelId: String)
     suspend fun getAllLabelsAsSet(): Set<LabelEntity>
+
+    // app config
+    suspend fun getCountryGroupById(countryGroupId: String): CountryGroupEntity?
+    suspend fun getAllCountryGroups(): List<CountryGroupEntity>
 
     // stats
     fun getMonthlyStatsFlow(courseId: String, monthId: String): Flow<MonthlyStatsUiModel?>

@@ -1,12 +1,14 @@
 package com.example.myinputlog.data.local
 
 import com.example.myinputlog.data.local.entities.ChannelEntity
+import com.example.myinputlog.data.local.entities.CountryGroupEntity
 import com.example.myinputlog.data.local.entities.CourseEntity
 import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithLabelIds
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
 import com.example.myinputlog.data.remote.dto.ChannelDto
+import com.example.myinputlog.data.remote.dto.CountryGroupDto
 import com.example.myinputlog.data.remote.dto.CourseDto
 import com.example.myinputlog.data.remote.dto.LabelDto
 import com.example.myinputlog.data.remote.dto.VideoDto
@@ -121,4 +123,12 @@ fun CourseDto.toEntity(): CourseEntity = CourseEntity(
     timestamp = timestamp?.toDate() ?: Date(),
     isDeleted = isDeleted ?: false,
     lastUpdated = lastUpdated?.toDate()?.time ?: 0L
+)
+
+// APP CONFIG
+fun CountryGroupDto.toEntity(): CountryGroupEntity = CountryGroupEntity(
+    id = id,
+    nameKey = nameKey,
+    fallbackName = fallbackName,
+    isoCodes = isoCodes
 )

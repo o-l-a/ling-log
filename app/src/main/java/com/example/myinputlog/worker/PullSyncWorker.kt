@@ -39,6 +39,7 @@ class PullSyncWorker @AssistedInject constructor(
             val courseDao = db.courseDao()
             val labelDao = db.labelDao()
             val channelDao = db.channelDao()
+            val countryGroupDao = db.countryGroupDao()
 
             val pointers = storageService.getSyncPointers(userId)?.toDomain() ?: SyncPointers()
             Log.d(TAG, "Sync pointers: labels ${Date(pointers.labelsLastUpdated)}")
@@ -79,6 +80,14 @@ class PullSyncWorker @AssistedInject constructor(
                 Log.d(TAG, "${videos.count()} videos upserted.")
             } else {
                 Log.d(TAG, "No updated videos found.")
+            }
+
+            val countryGroups = storageService.getLastUpdatedCountryGroups(Date(lastPull)).map { it.toEntity() }
+            if (countryGroups.isNotEmpty()) {
+                countryGroupDao.upsertCountryGroups(countryGroups)
+                Log.d(TAG, "${countryGroups.count()} country groups upserted.")
+            } else {
+                Log.d(TAG, "No updated country groups found.")
             }
 
             preferences.saveLastPullTimestamp(userId, System.currentTimeMillis())

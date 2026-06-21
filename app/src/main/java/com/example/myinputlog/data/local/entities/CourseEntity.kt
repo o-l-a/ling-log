@@ -10,6 +10,7 @@ data class CourseEntity(
     val name: String,
     val goalInHours: Long,
     val otherSourceHours: Long = 0L,
+    val countryGroupId: String = "grp_spanish_global",
     val timestamp: Date,
     val isDeleted: Boolean = false,
     val lastUpdated: Long,
