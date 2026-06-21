@@ -13,9 +13,12 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +28,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.myinputlog.R
+import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.ui.models.FilterContentType
 import com.example.myinputlog.ui.models.FilterValueUiModel
 import com.example.myinputlog.ui.screens.common.composable.label.ClickableLabelChip
@@ -57,7 +61,7 @@ fun FilterAreaHeader(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleMediumEmphasized,
             color = MaterialTheme.colorScheme.onSurface
         )
         IconButton(onHeaderClick) {
@@ -114,6 +118,37 @@ fun FilterItemRow(
     }
 }
 
+@Composable
+fun SortItemRow(
+    sort: SortOptions,
+    isSelected: Boolean,
+    isEnabled: Boolean,
+    onClick: (SortOptions) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val contentAlpha = if (isEnabled) 1.0f else 0.38f
+
+    CompositionLocalProvider(
+        LocalContentColor provides MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha)
+    ) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(
+                    start = MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
+                    end = MaterialTheme.spacing.extraSmall
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(stringResource(sort.optionName))
+            RadioButton(
+                onClick = { onClick(sort) }, selected = isSelected, enabled = isEnabled
+            )
+        }
+    }
+}
+
 /**
  * Overload for standard list
  */
@@ -121,6 +156,7 @@ inline fun <T : Any> LazyListScope.filterArea(
     title: String,
     items: List<T>,
     isExpanded: Boolean,
+    enableSelectAll: Boolean,
     isAllSelected: Boolean,
     noinline onHeaderClick: () -> Unit,
     noinline onSelectAll: (FilterChange) -> Unit,
@@ -132,16 +168,18 @@ inline fun <T : Any> LazyListScope.filterArea(
     }
 
     if (isExpanded) {
-        item {
-            FilterItemRow(
-                filter = FilterValueUiModel(
-                    id = "selectAll",
-                    content = FilterContentType.Basic(stringResource(R.string.select_all_text)),
-                    selected = isAllSelected,
-                    isToggleType = true
-                ),
-                onCheckedChange = onSelectAll,
-            )
+        if (enableSelectAll) {
+            item {
+                FilterItemRow(
+                    filter = FilterValueUiModel(
+                        id = "selectAll",
+                        content = FilterContentType.Basic(stringResource(R.string.select_all_text)),
+                        selected = isAllSelected,
+                        isToggleType = true
+                    ),
+                    onCheckedChange = onSelectAll,
+                )
+            }
         }
         items(
             items = items, key = { item -> key(item) }) { item ->
@@ -159,6 +197,7 @@ fun <T : Any> LazyListScope.filterArea(
     title: String,
     pagingItems: LazyPagingItems<T>,
     isExpanded: Boolean,
+    enableSelectAll: Boolean,
     isAllSelected: Boolean,
     onHeaderClick: () -> Unit,
     onSelectAll: (FilterChange) -> Unit,
@@ -170,16 +209,18 @@ fun <T : Any> LazyListScope.filterArea(
     }
 
     if (isExpanded) {
-        item {
-            FilterItemRow(
-                filter = FilterValueUiModel(
-                    id = "selectAll",
-                    content = FilterContentType.Basic(stringResource(R.string.select_all_text)),
-                    selected = isAllSelected,
-                    isToggleType = true
-                ),
-                onCheckedChange = onSelectAll,
-            )
+        if (enableSelectAll) {
+            item {
+                FilterItemRow(
+                    filter = FilterValueUiModel(
+                        id = "selectAll",
+                        content = FilterContentType.Basic(stringResource(R.string.select_all_text)),
+                        selected = isAllSelected,
+                        isToggleType = true
+                    ),
+                    onCheckedChange = onSelectAll,
+                )
+            }
         }
         items(
             count = pagingItems.itemCount, key = pagingItems.itemKey { key(it) }) { index ->

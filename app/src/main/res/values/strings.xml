@@ -54,18 +54,23 @@
     <string name="long_ago_text">Long ago</string>
     <string name="preview_text">Preview:</string>
     <string name="filters_text">Filters</string>
-    <string name="clear_filters_text">Clear</string>
-    <string name="apply_filters_text">Apply</string>
+    <string name="clear_filters_text">Clear filters</string>
+    <string name="apply_filters_text">Apply filters</string>
     <string name="select_all_text">Select all</string>
 
     <!--    sort options    -->
     <string name="sort_header">Sort</string>
     <string name="sort_default">Default</string>
-    <string name="sort_watch_date">Watched on</string>
-    <string name="sort_title">Title</string>
-    <string name="sort_channel_title">Channel name</string>
-    <string name="sort_video_count">Total videos</string>
-    <string name="sort_total_time">Total time</string>
+    <string name="sort_watch_date_asc">Watched on (ascending)</string>
+    <string name="sort_watch_date_desc">Watched on (descending)</string>
+    <string name="sort_title_asc">Title (ascending)</string>
+    <string name="sort_title_desc">Title (descending)</string>
+    <string name="sort_channel_title_asc">Channel name (ascending)</string>
+    <string name="sort_channel_title_desc">Channel name (descending)</string>
+    <string name="sort_video_count_asc">Total videos (ascending)</string>
+    <string name="sort_video_count_desc">Total videos (descending)</string>
+    <string name="sort_total_time_asc">Total time (ascending)</string>
+    <string name="sort_total_time_desc">Total time (descending)</string>
 
     <!--    routine screen field labels    -->
     <string name="date_placeholder">dd/mm/yyyy</string>

@@ -55,18 +55,23 @@
     <string name="long_ago_text">Dawno temu</string>
     <string name="preview_text">Podgląd:</string>
     <string name="filters_text">Filtry</string>
-    <string name="clear_filters_text">Wyczyść</string>
-    <string name="apply_filters_text">Zastosuj</string>
+    <string name="clear_filters_text">Wyczyść filtry</string>
+    <string name="apply_filters_text">Zastosuj filtry</string>
     <string name="select_all_text">Zaznacz wszystko</string>
 
     <!--    sort options    -->
     <string name="sort_header">Sortuj</string>
     <string name="sort_default">Domyślnie</string>
-    <string name="sort_watch_date">Data obejrzenia</string>
-    <string name="sort_title">Tytuł</string>
-    <string name="sort_channel_title">Nazwa kanału</string>
-    <string name="sort_video_count">Liczba filmów</string>
-    <string name="sort_total_time">Łączny czas</string>
+    <string name="sort_watch_date_asc">Data obejrzenia (rosnąco)</string>
+    <string name="sort_watch_date_desc">Data obejrzenia (malejąco)</string>
+    <string name="sort_title_asc">Tytuł (rosnąco)</string>
+    <string name="sort_title_desc">Tytuł (malejąco)</string>
+    <string name="sort_channel_title_asc">Nazwa kanału (rosnąco)</string>
+    <string name="sort_channel_title_desc">Nazwa kanału (malejąco)</string>
+    <string name="sort_video_count_asc">Liczba filmów (rosnąco)</string>
+    <string name="sort_video_count_desc">Liczba filmów (malejąco)</string>
+    <string name="sort_total_time_asc">Łączny czas (rosnąco)</string>
+    <string name="sort_total_time_desc">Łączny czas (malejąco)</string>
 
     <!--    routine screen field labels    -->
     <string name="date_placeholder">dd/mm/yyyy</string>

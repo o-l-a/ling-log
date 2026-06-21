@@ -1,5 +1,6 @@
 package com.example.myinputlog.ui.screens.media_list
 
+import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.ui.models.LabelUiModel
 
 sealed interface MediaListUiState {
@@ -10,7 +11,8 @@ sealed interface MediaListUiState {
     data class Success(
         val currentCourseId: String = "",
         val allLabels: Set<LabelUiModel> = emptySet(),
-        val filters: MediaFilters = MediaFilters()
+        val filters: MediaFilters = MediaFilters(),
+        val appliedSort: SortOptions = SortOptions.DEFAULT
     ) : MediaListUiState
 }
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
+import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.VideoUiModel
@@ -40,6 +41,7 @@ class MediaListViewModel @Inject constructor(
 
     private val _draftFilters = MutableStateFlow(MediaFilters())
     private val _appliedFilters = MutableStateFlow(MediaFilters())
+    private val _appliedSort = MutableStateFlow(SortOptions.DEFAULT)
     private val _channelRanking = MutableStateFlow<Map<String, Int>>(emptyMap())
     private val _allLabels: Flow<List<LabelUiModel>> =
         repository.labels.map { list -> list.map { it.toLabelUiModel() } }.distinctUntilChanged()
@@ -74,15 +76,18 @@ class MediaListViewModel @Inject constructor(
     }.cachedIn(viewModelScope)
 
     val mediaListUiState: StateFlow<MediaListUiState> = combine(
-        currentCourseId, _draftFilters, _allLabels
-    ) { id, filters, labels ->
+        currentCourseId, _draftFilters, _allLabels, _appliedSort,
+    ) { id, filters, labels, sort ->
 
         when {
             id.isBlank() -> MediaListUiState.Empty
 
             else -> {
                 MediaListUiState.Success(
-                    currentCourseId = id, filters = filters, allLabels = labels.toSet()
+                    currentCourseId = id,
+                    filters = filters,
+                    allLabels = labels.toSet(),
+                    appliedSort = sort
                 )
             }
         }
@@ -176,6 +181,10 @@ class MediaListViewModel @Inject constructor(
 
     fun applyFilters() {
         _appliedFilters.value = _draftFilters.value
+    }
+
+    fun onSortChange(newSort: SortOptions) {
+        _appliedSort.value = newSort
     }
 
     private data class ChannelQuery(

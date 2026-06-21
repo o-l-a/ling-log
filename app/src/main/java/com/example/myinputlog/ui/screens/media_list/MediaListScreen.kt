@@ -58,6 +58,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.myinputlog.R
+import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.FilterContentType
 import com.example.myinputlog.ui.models.FilterValueUiModel
@@ -67,6 +68,7 @@ import com.example.myinputlog.ui.screens.common.composable.bars.MediaListTopAppB
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.ui.screens.common.composable.input.FilterChange
 import com.example.myinputlog.ui.screens.common.composable.input.FilterItemRow
+import com.example.myinputlog.ui.screens.common.composable.input.SortItemRow
 import com.example.myinputlog.ui.screens.common.composable.input.filterArea
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.video.VideoListItemPlaceholder
@@ -234,6 +236,8 @@ fun MediaListScreen(
                         onSelectAllChannels = mediaListViewModel::onSelectAllChannelsChange,
                         onApplyClicked = mediaListViewModel::applyFilters,
                         onClearClicked = mediaListViewModel::clearFilters,
+                        appliedSort = currentState.appliedSort,
+                        onSortChanged = mediaListViewModel::onSortChange,
                         onDismiss = { showFilterSheet = false })
                 }
             }
@@ -311,6 +315,8 @@ fun MediaFilterBottomSheet(
     onSelectAllChannels: (FilterChange) -> Unit,
     onApplyClicked: () -> Unit,
     onClearClicked: () -> Unit,
+    appliedSort: SortOptions,
+    onSortChanged: (SortOptions) -> Unit,
     onDismiss: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -323,9 +329,12 @@ fun MediaFilterBottomSheet(
 
     var isLabelsExpanded by remember { mutableStateOf(false) }
     var isChannelsExpanded by remember { mutableStateOf(false) }
+    var isSortExpanded by remember { mutableStateOf(false) }
+    val isChannel by remember { derivedStateOf { currentTabIndex == 1 } }
 
     val labelTitle = stringResource(R.string.label_list_nav_description)
     val channelTitle = stringResource(R.string.channel_list_screen_title)
+    val sortTitle = stringResource(R.string.sort_header)
 
     val dismiss = {
         coroutineScope.launch {
@@ -346,17 +355,33 @@ fun MediaFilterBottomSheet(
                 .padding(MaterialTheme.spacing.small)
                 .padding(bottom = MaterialTheme.spacing.large), state = scrollState
         ) {
-            item {
-                Text(
-                    text = stringResource(R.string.filters_text),
-                    modifier = Modifier.padding(bottom = MaterialTheme.spacing.medium)
+            filterArea(
+                title = sortTitle,
+                items = SortOptions.entries,
+                isExpanded = isSortExpanded,
+                enableSelectAll = false,
+                isAllSelected = false,
+                onHeaderClick = { isSortExpanded = !isSortExpanded },
+                onSelectAll = {},
+                key = { it.name }) { option ->
+                SortItemRow(
+                    sort = option,
+                    onClick = onSortChanged,
+                    isSelected = option == appliedSort,
+                    isEnabled = option in if (isChannel) SortOptions.channelSortOptions()
+                        .toList() else SortOptions.videoSortOptions().toList()
                 )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
             }
 
             filterArea(
                 title = labelTitle,
                 items = labels.toList(),
                 isExpanded = isLabelsExpanded,
+                enableSelectAll = true,
                 isAllSelected = filters.allLabelsSelected,
                 onHeaderClick = { isLabelsExpanded = !isLabelsExpanded },
                 onSelectAll = onSelectAllLabels,
@@ -393,6 +418,7 @@ fun MediaFilterBottomSheet(
                 title = channelTitle,
                 pagingItems = channels,
                 isExpanded = isChannelsExpanded,
+                enableSelectAll = true,
                 isAllSelected = filters.allChannelsSelected,
                 onHeaderClick = { isChannelsExpanded = !isChannelsExpanded },
                 onSelectAll = onSelectAllChannels,
@@ -421,7 +447,7 @@ fun MediaFilterBottomSheet(
                 )
             }
 
-            if (filters.hasActiveFilters(currentTabIndex == 1)) {
+            if (filters.hasActiveFilters(isChannel)) {
                 item {
                     Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
                     Row(
