@@ -70,7 +70,7 @@ fun VideoListBody(
                     modifier = modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
                     contentPadding = PaddingValues(
-                        top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
+                        top = MaterialTheme.spacing.smallPlus,
                         bottom = MaterialTheme.spacing.medium,
                         start = MaterialTheme.spacing.extraExtraSmall,
                         end = MaterialTheme.spacing.extraExtraSmall
@@ -96,7 +96,7 @@ fun VideoListBody(
                     modifier = modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
                     contentPadding = PaddingValues(
-                        top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
+                        top = MaterialTheme.spacing.smallPlus,
                         bottom = MaterialTheme.spacing.medium,
                         start = MaterialTheme.spacing.extraExtraSmall,
                         end = MaterialTheme.spacing.extraExtraSmall
@@ -178,7 +178,7 @@ fun VideoContainer(
             }
         }, leadingContent = {
             VideoThumbnail(
-                modifier = Modifier.height(MaterialTheme.spacing.extraLarge + MaterialTheme.spacing.small),
+                modifier = Modifier.height(MaterialTheme.spacing.extraLargePlus),
                 videoThumbnailUrl = video.thumbnailHighUrl,
                 duration = video.durationInSeconds,
                 isListItemLeading = true

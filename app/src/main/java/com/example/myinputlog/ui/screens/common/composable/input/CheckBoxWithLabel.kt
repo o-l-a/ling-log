@@ -22,12 +22,11 @@ fun CheckBoxWithLabel(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = MaterialTheme.spacing.large + MaterialTheme.spacing.medium)
+            .heightIn(min = MaterialTheme.spacing.largePlusPlus)
             .toggleable(
                 value = value, role = Role.Checkbox, onValueChange = { isChecked ->
                     onValueChange(isChecked)
-                }),
-        verticalAlignment = Alignment.CenterVertically
+                }), verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
             checked = value, onCheckedChange = null

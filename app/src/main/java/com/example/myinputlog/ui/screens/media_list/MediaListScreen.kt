@@ -317,7 +317,7 @@ fun MediaListHeader(
                     TabRowDefaults.PrimaryIndicator(
                         modifier = Modifier.tabIndicatorOffset(
                             selectedTabIndex = pagerState.currentPage, matchContentSize = false
-                        ), width = MaterialTheme.spacing.extraLarge + MaterialTheme.spacing.large
+                        ), width = MaterialTheme.spacing.extraLargePlusPlus
                     )
                 }) {
                 tabs.forEachIndexed { index, tab ->

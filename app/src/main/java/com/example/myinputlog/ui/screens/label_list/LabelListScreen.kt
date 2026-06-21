@@ -87,7 +87,7 @@ private fun LabelListBody(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
         contentPadding = PaddingValues(
-            MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
+            MaterialTheme.spacing.mediumPlus,
         ),
         state = scrollState
     ) {

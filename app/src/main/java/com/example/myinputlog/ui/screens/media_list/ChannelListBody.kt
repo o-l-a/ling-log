@@ -67,7 +67,7 @@ fun ChannelListBody(
                     modifier = modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
                     contentPadding = PaddingValues(
-                        top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
+                        top = MaterialTheme.spacing.smallPlus,
                         bottom = MaterialTheme.spacing.medium,
                         start = MaterialTheme.spacing.extraExtraSmall,
                         end = MaterialTheme.spacing.extraExtraSmall
@@ -94,7 +94,7 @@ fun ChannelListBody(
                     modifier = modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
                     contentPadding = PaddingValues(
-                        top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
+                        top = MaterialTheme.spacing.smallPlus,
                         bottom = MaterialTheme.spacing.medium,
                         start = MaterialTheme.spacing.extraExtraSmall,
                         end = MaterialTheme.spacing.extraExtraSmall

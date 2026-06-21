@@ -53,7 +53,7 @@ fun FilterAreaHeader(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
+                start = MaterialTheme.spacing.mediumPlus,
                 end = MaterialTheme.spacing.extraSmall
             ),
         verticalAlignment = Alignment.CenterVertically,
@@ -86,7 +86,7 @@ fun FilterItemRow(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
+                start = MaterialTheme.spacing.mediumPlus,
                 end = MaterialTheme.spacing.extraSmall
             ),
         verticalAlignment = Alignment.CenterVertically,
@@ -135,7 +135,7 @@ fun SortItemRow(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(
-                    start = MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
+                    start = MaterialTheme.spacing.mediumPlus,
                     end = MaterialTheme.spacing.extraSmall
                 ),
             verticalAlignment = Alignment.CenterVertically,

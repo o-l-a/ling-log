@@ -99,7 +99,7 @@ fun ProfileBody(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
         horizontalAlignment = Alignment.CenterHorizontally,
         contentPadding = PaddingValues(
-            MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
+            MaterialTheme.spacing.mediumPlus,
         ),
         userScrollEnabled = isScrollEnabled
     ) {

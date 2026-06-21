@@ -44,12 +44,12 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.LeadingIconWithText
-import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.channel.ProfilePicture
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.ext.hideEmail
 import com.example.myinputlog.ui.theme.spacing
 import java.io.File
@@ -162,9 +162,9 @@ fun AccountBody(
         Row {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 EditImageContainer(
-                    Modifier.size(
-                        MaterialTheme.spacing.doubleExtraLarge + MaterialTheme.spacing.large
-                    ), accountUiState.username, accountUiState.imagePath
+                    Modifier.size(MaterialTheme.spacing.doubleExtraLargePlus),
+                    accountUiState.username,
+                    accountUiState.imagePath
                 ) { pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
                 Text(
                     if (accountUiState.hideEmail) accountUiState.email.hideEmail() else accountUiState.email,

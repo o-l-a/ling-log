@@ -144,7 +144,7 @@ fun UiSettingsBody(
                 })
             },
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-        contentPadding = PaddingValues(MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall),
+        contentPadding = PaddingValues(MaterialTheme.spacing.mediumPlus),
         state = scrollState,
         userScrollEnabled = isScrollEnabled
     ) {

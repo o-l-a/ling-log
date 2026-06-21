@@ -72,7 +72,7 @@ fun MediaListTopAppBar(
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     modifier = Modifier
                         .weight(1f)
-                        .height(MaterialTheme.spacing.large + MaterialTheme.spacing.small)
+                        .height(MaterialTheme.spacing.largePlus)
                 ) {
                     BasicTextField(
                         state = textFieldState,

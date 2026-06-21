@@ -13,17 +13,22 @@ data class Spacing(
     val extraExtraSmall: Dp = 2.dp,
     val extraSmall: Dp = 4.dp,
     val small: Dp = 8.dp,
+    val smallPlus: Dp = 12.dp,
     val medium: Dp = 16.dp,
+    val mediumPlus: Dp = 18.dp,
     val statIconSize: Dp = 26.dp,
     val large: Dp = 32.dp,
+    val largePlus: Dp = 40.dp,
+    val largePlusPlus: Dp = 48.dp,
     val appLogoSize: Dp = 48.dp,
     val extraLarge: Dp = 64.dp,
-    val doubleExtraLarge: Dp = 128.dp
+    val extraLargePlus: Dp = 72.dp,
+    val extraLargePlusPlus: Dp = 96.dp,
+    val doubleExtraLarge: Dp = 128.dp,
+    val doubleExtraLargePlus: Dp = 160.dp
 )
 
 val LocalSpacing = compositionLocalOf { Spacing() }
 
 val MaterialTheme.spacing: Spacing
-    @Composable
-    @ReadOnlyComposable
-    get() = LocalSpacing.current
+    @Composable @ReadOnlyComposable get() = LocalSpacing.current

@@ -19,12 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.CourseUiModel
+import com.example.myinputlog.ui.screens.common.composable.SettingsCard
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
-import com.example.myinputlog.ui.screens.common.composable.SettingsCard
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable
@@ -89,9 +89,7 @@ private fun CourseListBody(
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
-        contentPadding = PaddingValues(
-            MaterialTheme.spacing.medium + MaterialTheme.spacing.extraExtraSmall,
-        ),
+        contentPadding = PaddingValues(MaterialTheme.spacing.mediumPlus),
         state = scrollState,
         userScrollEnabled = isScrollEnabled
     ) {
