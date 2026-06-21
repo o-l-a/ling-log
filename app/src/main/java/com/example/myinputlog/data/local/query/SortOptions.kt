@@ -36,5 +36,11 @@ enum class SortOptions(@get:StringRes val optionName: Int) {
             TOTAL_TIME_DESC,
             TOTAL_TIME_ASC
         )
+
+        fun videoDateSortOptions(): Set<SortOptions> = setOf(DEFAULT, WATCH_DATE_DESC, WATCH_DATE_ASC)
+
+        fun videoChannelSortOptions(): Set<SortOptions> = setOf(CHANNEL_TITLE_ASC, CHANNEL_TITLE_DESC)
+
+        fun videoTitleSortOptions(): Set<SortOptions> = setOf(TITLE_DESC, TITLE_ASC)
     }
 }

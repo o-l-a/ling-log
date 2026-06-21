@@ -1,5 +1,6 @@
 package com.example.myinputlog.ui.screens.media_list
 
+import android.annotation.SuppressLint
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,6 +42,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -117,6 +120,47 @@ fun MediaListScreen(
 
     val showFab by remember {
         derivedStateOf { activeListState.firstVisibleItemIndex > 0 }
+    }
+
+    val appliedSort = (mediaListUiState as? MediaListUiState.Success)?.appliedSort
+
+    LaunchedEffect(appliedSort) {
+        if (appliedSort != null) {
+            scrollBehavior.state.heightOffset = 0f
+            scrollBehavior.state.contentOffset = 0f
+        }
+    }
+
+    LaunchedEffect(videos.loadState.refresh) {
+        if (videos.loadState.refresh is androidx.paging.LoadState.NotLoading) {
+            videoLazyListState.animateScrollToItem(0)
+        }
+    }
+
+    LaunchedEffect(channels.loadState.refresh) {
+        val refreshState = channels.loadState.refresh
+        if (refreshState is androidx.paging.LoadState.NotLoading && channels.itemCount > 0) {
+            kotlinx.coroutines.yield()
+            channelLazyListState.animateScrollToItem(0)
+        }
+    }
+
+    if (showFilterSheet && mediaListUiState is MediaListUiState.Success) {
+        val successState = mediaListUiState as MediaListUiState.Success
+        MediaFilterBottomSheet(
+            currentTabIndex = pagerState.currentPage,
+            filters = successState.filters,
+            labels = successState.allLabels,
+            channels = filterChannels,
+            onLabelsChanged = mediaListViewModel::updateSelectedLabels,
+            onSelectAllLabels = mediaListViewModel::onSelectAllLabelsChange,
+            onChannelsChanged = mediaListViewModel::updateSelectedChannels,
+            onSelectAllChannels = mediaListViewModel::onSelectAllChannelsChange,
+            onApplyClicked = mediaListViewModel::applyFilters,
+            onClearClicked = mediaListViewModel::clearFilters,
+            appliedSort = successState.appliedSort,
+            onSortChanged = mediaListViewModel::onSortChange,
+            onDismiss = { showFilterSheet = false })
     }
 
     Scaffold(
@@ -224,22 +268,6 @@ fun MediaListScreen(
                         )
                     }
                 }
-                if (showFilterSheet) {
-                    MediaFilterBottomSheet(
-                        currentTabIndex = pagerState.currentPage,
-                        filters = currentState.filters,
-                        labels = currentState.allLabels,
-                        channels = filterChannels,
-                        onLabelsChanged = mediaListViewModel::updateSelectedLabels,
-                        onSelectAllLabels = mediaListViewModel::onSelectAllLabelsChange,
-                        onChannelsChanged = mediaListViewModel::updateSelectedChannels,
-                        onSelectAllChannels = mediaListViewModel::onSelectAllChannelsChange,
-                        onApplyClicked = mediaListViewModel::applyFilters,
-                        onClearClicked = mediaListViewModel::clearFilters,
-                        appliedSort = currentState.appliedSort,
-                        onSortChanged = mediaListViewModel::onSortChange,
-                        onDismiss = { showFilterSheet = false })
-                }
             }
         }
     }
@@ -302,6 +330,7 @@ fun MediaListHeader(
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaFilterBottomSheet(
@@ -339,21 +368,20 @@ fun MediaFilterBottomSheet(
     val dismiss = {
         coroutineScope.launch {
             sheetState.hide()
-        }.invokeOnCompletion {
-            if (!sheetState.isVisible) {
-                onDismiss()
-            }
+            onDismiss()
         }
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss, sheetState = sheetState
+        onDismissRequest = onDismiss, sheetState = sheetState, modifier = Modifier.fillMaxWidth()
     ) {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .fillMaxHeight(0.7f)
                 .padding(MaterialTheme.spacing.small)
-                .padding(bottom = MaterialTheme.spacing.large), state = scrollState
+                .padding(bottom = MaterialTheme.spacing.large),
+            state = scrollState
         ) {
             filterArea(
                 title = sortTitle,

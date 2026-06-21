@@ -11,8 +11,7 @@ data class LabelUiModel(
     val isSeparator: Boolean = false,
     val isSelected: Boolean = false
 ) {
-    val firstLetter: String
-        get() = title.firstOrNull().toString()
+    val firstLetter: String get() = title.firstOrNull().toString().uppercase()
 }
 
 fun LabelEntity.toLabelUiModel(): LabelUiModel = LabelUiModel(

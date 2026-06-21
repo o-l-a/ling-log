@@ -1,7 +1,9 @@
 package com.example.myinputlog.ui.models
 
+import com.example.myinputlog.R
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.ui.screens.common.Country
+import com.example.myinputlog.ui.screens.common.UiText
 import java.util.Date
 
 data class VideoUiModel(
@@ -16,12 +18,16 @@ data class VideoUiModel(
     val thumbnailMediumUrl: String = "",
     val thumbnailHighUrl: String = "",
     val defaultAudioLanguage: String = "",
-    val labels: Set<LabelUiModel> = emptySet()
+    val labels: Set<LabelUiModel> = emptySet(),
+    val isSeparator: Boolean = false,
+    val separatorTitle: UiText = UiText.StringResource(R.string.today_text)
 ) {
     fun supportingLine(): String =
         "${channelTitle}${if (speakersNationality != null) " • " + speakersNationality.flagEmoji else ""}"
 
     fun titleLines(): Int = if (labels.isNotEmpty()) 1 else 2
+
+    val firstLetter: String get() = title.firstOrNull().toString().uppercase()
 }
 
 fun VideoWithChannelAndLabels.toVideoUiModel(): VideoUiModel = VideoUiModel(

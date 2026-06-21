@@ -31,11 +31,11 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.ChannelUiModel
-import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.channel.ChannelListItemPlaceholder
 import com.example.myinputlog.ui.screens.common.composable.channel.ChannelThumbnail
 import com.example.myinputlog.ui.screens.common.composable.label.SmallLabelChipRow
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable
@@ -46,71 +46,100 @@ fun ChannelListBody(
     currentCourseId: String,
     lazyColumnListState: LazyListState
 ) {
+    val isInitialLoading =
+        channels.loadState.refresh is LoadState.Loading && channels.itemCount == 0
+    val isEmpty = channels.loadState.refresh is LoadState.NotLoading && channels.itemCount == 0
+
+    val displayState = when {
+        isInitialLoading -> ListDisplayState.Loading
+        isEmpty -> ListDisplayState.Empty
+        else -> ListDisplayState.Success
+    }
+
     AnimatedContent(
-        targetState = channels.itemCount > 0, transitionSpec = {
+        targetState = displayState, transitionSpec = {
             fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
         }, label = "ListStateTransition"
-    ) { hasItems ->
-        if (hasItems) {
-            LazyColumn(
-                modifier = modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
-                contentPadding = PaddingValues(
-                    top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
-                    bottom = MaterialTheme.spacing.extraExtraSmall,
-                    start = MaterialTheme.spacing.extraExtraSmall,
-                    end = MaterialTheme.spacing.extraExtraSmall
-                ),
-                state = lazyColumnListState
-            ) {
-                if (channels.itemCount > 0) {
-                    items(
-                        count = channels.itemCount, key = channels.itemKey { it.id }) { index ->
-                        channels[index]?.let { channel ->
-                            ChannelContainer(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .animateItem(
-                                        fadeInSpec = tween(300),
-                                        fadeOutSpec = tween(300),
-                                        placementSpec = spring(
-                                            stiffness = Spring.StiffnessMediumLow,
-                                            visibilityThreshold = IntOffset.VisibilityThreshold
-                                        )
-                                    ), channel = channel, onChannelClicked = {
-                                    navigateToYouTubeChannel(
-                                        currentCourseId, channel.id
-                                    )
-                                })
-                        }
-                    }
-                    when (channels.loadState.append) {
-                        is LoadState.NotLoading -> Unit
-                        is LoadState.Loading -> {
-                            item {
-                                LoadingBox()
-                            }
-                        }
-
-                        is LoadState.Error -> {
-                            item {
-                                Text("Some error occurred")
-                            }
-                        }
-                    }
-                } else if (channels.loadState.refresh is LoadState.Loading) {
+    ) { state ->
+        when (state) {
+            ListDisplayState.Loading -> {
+                LazyColumn(
+                    modifier = modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
+                    contentPadding = PaddingValues(
+                        top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
+                        bottom = MaterialTheme.spacing.medium,
+                        start = MaterialTheme.spacing.extraExtraSmall,
+                        end = MaterialTheme.spacing.extraExtraSmall
+                    ),
+                    state = lazyColumnListState
+                ) {
                     items(10) {
                         ChannelListItemPlaceholder()
                     }
                 }
             }
-        } else {
-            EmptyCollectionBox(
-                modifier = modifier
-                    .padding(MaterialTheme.spacing.medium)
-                    .fillMaxSize(),
-                bodyMessage = R.string.empty_channel_collection_body
-            )
+
+            ListDisplayState.Empty -> {
+                EmptyCollectionBox(
+                    modifier = modifier
+                        .padding(MaterialTheme.spacing.medium)
+                        .fillMaxSize(),
+                    bodyMessage = R.string.empty_channel_collection_body
+                )
+            }
+
+            ListDisplayState.Success -> {
+                LazyColumn(
+                    modifier = modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
+                    contentPadding = PaddingValues(
+                        top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
+                        bottom = MaterialTheme.spacing.medium,
+                        start = MaterialTheme.spacing.extraExtraSmall,
+                        end = MaterialTheme.spacing.extraExtraSmall
+                    ),
+                    state = lazyColumnListState
+                ) {
+                    if (channels.itemCount > 0) {
+                        items(
+                            count = channels.itemCount, key = channels.itemKey { it.id }) { index ->
+                            channels[index]?.let { channel ->
+                                ChannelContainer(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .animateItem(
+                                            fadeInSpec = tween(300),
+                                            fadeOutSpec = tween(300),
+                                            placementSpec = spring(
+                                                stiffness = Spring.StiffnessMediumLow,
+                                                visibilityThreshold = IntOffset.VisibilityThreshold
+                                            )
+                                        ), channel = channel, onChannelClicked = {
+                                        navigateToYouTubeChannel(
+                                            currentCourseId, channel.id
+                                        )
+                                    })
+                            }
+                        }
+                        when (channels.loadState.append) {
+                            is LoadState.NotLoading -> Unit
+                            is LoadState.Loading -> {
+                                item {
+                                    LoadingBox()
+                                }
+                            }
+
+                            is LoadState.Error -> {
+                                item {
+                                    Text("Some error occurred")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
         }
     }
 }

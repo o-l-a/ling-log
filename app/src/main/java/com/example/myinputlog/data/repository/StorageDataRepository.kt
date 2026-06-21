@@ -8,6 +8,7 @@ import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.CourseWithStats
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
+import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.MonthlyStatsUiModel
@@ -32,7 +33,9 @@ interface StorageDataRepository {
     suspend fun deleteAccount()
 
     // video
-    fun videoPagingFlow(courseId: String, filters: MediaFilters): Flow<PagingData<VideoUiModel>>
+    fun videoPagingFlow(
+        courseId: String, filters: MediaFilters, sort: SortOptions
+    ): Flow<PagingData<VideoUiModel>>
 
     suspend fun getVideo(videoId: String): VideoWithChannelAndLabels?
     suspend fun saveVideo(
@@ -46,7 +49,10 @@ interface StorageDataRepository {
 
     // channel
     fun channelPagingFlow(
-        courseId: String, filters: MediaFilters, podium: Map<String, Int> = emptyMap()
+        courseId: String,
+        filters: MediaFilters,
+        sort: SortOptions,
+        podium: Map<String, Int> = emptyMap()
     ): Flow<PagingData<ChannelUiModel>>
 
     suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels?

@@ -23,6 +23,7 @@ import com.example.myinputlog.data.local.model.CourseWithStats
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
 import com.example.myinputlog.data.local.query.ChannelQueryBuilder
+import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.data.local.query.VideoQueryBuilder
 import com.example.myinputlog.data.model.UserData
 import com.example.myinputlog.data.repository.StorageDataRepository
@@ -45,6 +46,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -73,8 +75,7 @@ class DefaultStorageDataRepository @Inject constructor(
         userScope.flatMapLatest { it.block() }
 
     private suspend fun <T> withScope(block: suspend UserScope.() -> T): T {
-        val uid = accountService.currentUserId
-        return UserScope(uid, dbManager.getDatabase(uid)).block()
+        return userScope.first().block()
     }
 
     override val courses: Flow<List<CourseWithStats>> = scoped {
@@ -136,12 +137,12 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     override fun videoPagingFlow(
-        courseId: String, filters: MediaFilters
+        courseId: String, filters: MediaFilters, sort: SortOptions
     ): Flow<PagingData<VideoUiModel>> = scoped {
         Log.d(TAG, "paging flow with user $uid")
         Pager(
             config = pagingConfig, pagingSourceFactory = {
-                val query = VideoQueryBuilder.build(courseId, filters)
+                val query = VideoQueryBuilder.build(courseId, filters, sort)
                 videoDao.getVideosPagingSource(query)
             }).flow.map { pagingData ->
             pagingData.map { entity ->
@@ -189,11 +190,11 @@ class DefaultStorageDataRepository @Inject constructor(
 
     // channel
     override fun channelPagingFlow(
-        courseId: String, filters: MediaFilters, podium: Map<String, Int>
+        courseId: String, filters: MediaFilters, sort: SortOptions, podium: Map<String, Int>
     ): Flow<PagingData<ChannelUiModel>> = scoped {
         Pager(
             config = pagingConfig, pagingSourceFactory = {
-                val query = ChannelQueryBuilder.build(courseId, filters)
+                val query = ChannelQueryBuilder.build(courseId, filters, sort)
                 channelDao.getChannelsPagingSource(query)
             }).flow.map { pagingData ->
             pagingData.map { entity ->

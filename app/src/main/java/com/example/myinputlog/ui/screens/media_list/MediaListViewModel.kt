@@ -12,8 +12,8 @@ import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.screens.common.composable.input.FilterChange
-import com.example.myinputlog.ui.screens.common.ext.asStartOfDay
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
@@ -51,28 +52,30 @@ class MediaListViewModel @Inject constructor(
         _appliedFilters.scan(_appliedFilters.value.searchQuery to _appliedFilters.value) { (oldQuery, current), next ->
             current.searchQuery to next
         }.debounce { (oldQuery, next) ->
-            Log.d(TAG, "Debouncing ${if (next.searchQuery != oldQuery) 300 else 0}")
             if (next.searchQuery != oldQuery) 300L else 0L
-
         }.map { it.second }.distinctUntilChanged()
 
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val videoFlow =
-        combine(currentCourseId, debouncedFilters, ::Pair).flatMapLatest { (courseId, filters) ->
-            repository.videoPagingFlow(courseId, filters).insertHeaderAndSeparators()
-        }.cachedIn(viewModelScope)
+    val videoFlow = combine(
+        currentCourseId, debouncedFilters, _appliedSort, ::VideoQuery
+    ).flatMapLatest { query ->
+        repository.videoPagingFlow(query.courseId, query.filters, query.sort)
+            .insertHeaderAndSeparators(query.sort).flowOn(Dispatchers.Default)
+    }.cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val channelFlow = combine(
-        currentCourseId, debouncedFilters, _channelRanking, ::ChannelQuery
+        currentCourseId, debouncedFilters, _appliedSort, _channelRanking, ::ChannelQuery
     ).flatMapLatest { query ->
-        repository.channelPagingFlow(query.courseId, query.filters, query.ranking)
+        repository.channelPagingFlow(query.courseId, query.filters, query.sort, query.ranking)
+            .flowOn(Dispatchers.Default)
     }.cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val filterChannelFlow = currentCourseId.flatMapLatest { courseId ->
-        repository.channelPagingFlow(courseId, MediaFilters())
+        repository.channelPagingFlow(courseId, MediaFilters(), SortOptions.TITLE_ASC)
+            .flowOn(Dispatchers.Default)
     }.cachedIn(viewModelScope)
 
     val mediaListUiState: StateFlow<MediaListUiState> = combine(
@@ -187,8 +190,15 @@ class MediaListViewModel @Inject constructor(
         _appliedSort.value = newSort
     }
 
+    private data class VideoQuery(
+        val courseId: String, val filters: MediaFilters, val sort: SortOptions
+    )
+
     private data class ChannelQuery(
-        val courseId: String, val filters: MediaFilters, val ranking: Map<String, Int>
+        val courseId: String,
+        val filters: MediaFilters,
+        val sort: SortOptions,
+        val ranking: Map<String, Int>
     )
 
     companion object {
@@ -196,26 +206,11 @@ class MediaListViewModel @Inject constructor(
     }
 }
 
-fun Flow<PagingData<VideoUiModel>>.insertHeaderAndSeparators(): Flow<PagingData<VideoUiModel>> {
-    return this.map {
-        it.insertSeparators { before: VideoUiModel?, after: VideoUiModel? ->
-            when {
-                before == null && after != null -> {
-                    VideoUiModel(watchedOn = after.watchedOn)
-                }
-
-                before == null || after == null -> {
-                    null
-                }
-
-                before.watchedOn.asStartOfDay() != after.watchedOn.asStartOfDay() -> {
-                    VideoUiModel(watchedOn = after.watchedOn)
-                }
-
-                else -> {
-                    null
-                }
-            }
+fun Flow<PagingData<VideoUiModel>>.insertHeaderAndSeparators(sort: SortOptions): Flow<PagingData<VideoUiModel>> {
+    return this.map { pagingData ->
+        val transformer = SeparatorTransformer()
+        pagingData.insertSeparators { before, after ->
+            transformer.transform(before, after, sort)
         }
     }
 }

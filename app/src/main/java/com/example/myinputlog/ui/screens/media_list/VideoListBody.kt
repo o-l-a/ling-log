@@ -36,10 +36,9 @@ import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollection
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.video.VideoListItemPlaceholder
 import com.example.myinputlog.ui.screens.common.composable.video.VideoThumbnail
-import com.example.myinputlog.ui.screens.common.ext.formatAsListHeader
 import com.example.myinputlog.ui.theme.spacing
 
-private enum class ListDisplayState {
+internal enum class ListDisplayState {
     Loading, Empty, Success
 }
 
@@ -72,7 +71,7 @@ fun VideoListBody(
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
                     contentPadding = PaddingValues(
                         top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
-                        bottom = MaterialTheme.spacing.extraExtraSmall,
+                        bottom = MaterialTheme.spacing.medium,
                         start = MaterialTheme.spacing.extraExtraSmall,
                         end = MaterialTheme.spacing.extraExtraSmall
                     )
@@ -98,7 +97,7 @@ fun VideoListBody(
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraExtraSmall),
                     contentPadding = PaddingValues(
                         top = MaterialTheme.spacing.small + MaterialTheme.spacing.extraSmall,
-                        bottom = MaterialTheme.spacing.extraExtraSmall,
+                        bottom = MaterialTheme.spacing.medium,
                         start = MaterialTheme.spacing.extraExtraSmall,
                         end = MaterialTheme.spacing.extraExtraSmall
                     ),
@@ -107,7 +106,7 @@ fun VideoListBody(
                     if (videos.itemCount > 0) {
                         items(
                             count = videos.itemCount,
-                            key = videos.itemKey { "${it.id}${it.watchedOn}" }) { index ->
+                            key = videos.itemKey { "${it.id}${it.separatorTitle}" }) { index ->
                             videos[index]?.let { video ->
                                 VideoContainer(
                                     modifier = Modifier
@@ -121,7 +120,7 @@ fun VideoListBody(
                                             )
                                         ),
                                     video = video,
-                                    isSeparator = video.id.isBlank(),
+                                    isSeparator = video.isSeparator,
                                     onVideoClicked = {
                                         navigateToYouTubeVideo(currentCourseId, video.id)
                                     })
@@ -188,7 +187,7 @@ fun VideoContainer(
     } else {
         Text(
             modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium),
-            text = video.watchedOn.formatAsListHeader(),
+            text = video.separatorTitle.asString(),
             style = MaterialTheme.typography.titleMedium
         )
     }

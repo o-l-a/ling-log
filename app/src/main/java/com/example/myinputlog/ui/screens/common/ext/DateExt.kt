@@ -1,59 +1,34 @@
 package com.example.myinputlog.ui.screens.common.ext
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.screens.common.dateFormatter
-import java.util.Calendar
+import com.example.myinputlog.ui.screens.common.UiText
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Date
+import java.util.Locale
 
-@Composable
-fun Date.formatAsListHeader(): String {
-    val calendar = Calendar.getInstance()
-    val today = calendar.clone() as Calendar
-    val yesterday = calendar.clone() as Calendar
+private val longDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
+    .withLocale(Locale.getDefault())
 
-    yesterday.add(Calendar.DAY_OF_YEAR, -1)
+fun getWatchedOnHeader(date: LocalDate): UiText {
+    val today = LocalDate.now()
+    val yesterday = today.minusDays(1)
+    val unixEpoch = LocalDate.of(1970, 1, 1)
 
-    return when {
-        isSameDay(today.time, this) -> {
-            stringResource(R.string.today_text)
-        }
-
-        isSameDay(yesterday.time, this) -> {
-            stringResource(R.string.yesterday_text)
-        }
-
-        isSameDay(Date(0), this) -> {
-            stringResource(R.string.long_ago_text)
-        }
-
+    return when (date) {
+        today -> UiText.StringResource(R.string.today_text)
+        yesterday -> UiText.StringResource(R.string.yesterday_text)
+        unixEpoch -> UiText.StringResource(R.string.long_ago_text)
         else -> {
-            dateFormatter.format(this)
+            val formatter =
+                DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(Locale.getDefault())
+            UiText.DynamicString(date.format(formatter))
         }
     }
 }
 
-private fun isSameDay(date1: Date, date2: Date): Boolean {
-    val cal1 = Calendar.getInstance()
-    val cal2 = Calendar.getInstance()
-    cal1.time = date1
-    cal2.time = date2
-    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-            cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
-            cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
-}
-
-fun Date.asStartOfDay(): Date {
-    val calendar = Calendar.getInstance()
-    this.let { date ->
-        calendar.time = date
-    }
-
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
-
-    return calendar.time
+fun Date.toLocalDate(): LocalDate {
+    return this.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
 }

@@ -1,10 +1,18 @@
 package com.example.myinputlog.data.local.query
 
 import androidx.sqlite.db.SupportSQLiteQuery
+import com.example.myinputlog.data.local.query.SortOptions.CHANNEL_TITLE_ASC
+import com.example.myinputlog.data.local.query.SortOptions.CHANNEL_TITLE_DESC
+import com.example.myinputlog.data.local.query.SortOptions.TOTAL_TIME_ASC
+import com.example.myinputlog.data.local.query.SortOptions.TOTAL_TIME_DESC
+import com.example.myinputlog.data.local.query.SortOptions.VIDEO_COUNT_ASC
+import com.example.myinputlog.data.local.query.SortOptions.VIDEO_COUNT_DESC
 import com.example.myinputlog.ui.screens.media_list.MediaFilters
 
 object ChannelQueryBuilder {
-    fun build(courseId: String, filters: MediaFilters): SupportSQLiteQuery {
+    fun build(
+        courseId: String, filters: MediaFilters, sort: SortOptions = SortOptions.DEFAULT
+    ): SupportSQLiteQuery {
         val sql = QueryBuilder(
             """
             SELECT 
@@ -38,11 +46,41 @@ object ChannelQueryBuilder {
 
         sql.groupBy("c.id")
 
-        if (filters.hasActiveFilters()) {
-            sql.orderBy("totalVideoCount DESC")
-            sql.orderBy("totalTimeInSeconds DESC")
+        when (sort) {
+            CHANNEL_TITLE_DESC -> {
+                sql.orderBy("lower(c.title) DESC")
+            }
+
+            CHANNEL_TITLE_ASC -> {
+                sql.orderBy("lower(c.title) ASC")
+            }
+
+            VIDEO_COUNT_DESC -> {
+                sql.orderBy("totalVideoCount DESC")
+                sql.orderBy("lower(c.title) ASC")
+            }
+
+            VIDEO_COUNT_ASC -> {
+                sql.orderBy("totalVideoCount ASC")
+                sql.orderBy("lower(c.title) ASC")
+            }
+
+            TOTAL_TIME_DESC -> {
+                sql.orderBy("totalTimeInSeconds DESC")
+                sql.orderBy("lower(c.title) ASC")
+            }
+
+            TOTAL_TIME_ASC -> {
+                sql.orderBy("totalTimeInSeconds ASC")
+                sql.orderBy("lower(c.title) ASC")
+            }
+
+            else -> {
+                sql.orderBy("totalVideoCount DESC")
+                sql.orderBy("totalTimeInSeconds DESC")
+                sql.orderBy("lower(c.title) ASC")
+            }
         }
-        sql.orderBy("c.title ASC")
 
         return sql.build()
     }
