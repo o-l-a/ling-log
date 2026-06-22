@@ -9,6 +9,7 @@ fun CourseUiModel.toCourseEntity(): CourseEntity = CourseEntity(
     name = name,
     goalInHours = goalInHours,
     otherSourceHours = otherSourceHours,
+    countryGroupId = countryGroup.id,
     timestamp = timestamp,
     lastUpdated = System.currentTimeMillis(),
 )

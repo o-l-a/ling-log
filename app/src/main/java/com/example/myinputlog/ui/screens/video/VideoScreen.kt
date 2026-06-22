@@ -33,8 +33,6 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -50,7 +48,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTopAppBarState
@@ -79,12 +76,15 @@ import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.R
 import com.example.myinputlog.data.utils.LanguageUtils.getLanguageDisplayName
+import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.screens.common.MAX_URL_LENGTH
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.input.CheckBoxWithLabel
 import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
+import com.example.myinputlog.ui.screens.common.composable.input.CountryChoiceDropdownField
+import com.example.myinputlog.ui.screens.common.composable.input.MyDatePickerDialog
 import com.example.myinputlog.ui.screens.common.composable.input.MyInputLogDropdownField
 import com.example.myinputlog.ui.screens.common.composable.label.LabelChipRow
 import com.example.myinputlog.ui.screens.common.composable.label.LabelPickerTextField
@@ -214,7 +214,7 @@ fun VideoEditBody(
     onDateClearClicked: () -> Unit,
     onUrlClearClicked: () -> Unit,
     onCopyClicked: (String) -> Unit,
-    onCountryValueChange: (String?) -> Unit,
+    onCountryValueChange: (CountryUiModel?) -> Unit,
     onUrlValueChange: (String) -> Unit,
     onQueryChange: (String) -> Unit,
     onItemSelected: (LabelUiModel) -> Unit,
@@ -346,10 +346,10 @@ fun LazyListScope.videoUrlSection(
 fun LazyListScope.videoAttributesSection(
     modifier: Modifier = Modifier,
     watchedOn: Date?,
-    speakersNationality: String?,
+    speakersNationality: CountryUiModel?,
     onDateChipClicked: () -> Unit,
     onDateClearClicked: () -> Unit,
-    onCountryValueChange: (String?) -> Unit,
+    onCountryValueChange: (CountryUiModel?) -> Unit,
 ) {
     item(key = "input_chips") {
         FlowRow(
@@ -532,81 +532,5 @@ fun VideoScreenDialogs(
             onConfirm = onDatePickerConfirm,
             datePickerState = datePickerState
         )
-    }
-}
-
-@Composable
-fun MyDatePickerDialog(
-    onDismiss: () -> Unit, onConfirm: () -> Unit, datePickerState: DatePickerState
-) {
-    DatePickerDialog(onDismissRequest = onDismiss, confirmButton = {
-        TextButton(onClick = onConfirm) {
-            Text(stringResource(R.string.ok_text))
-        }
-    }, dismissButton = {
-        TextButton(onClick = onDismiss) {
-            Text(stringResource(R.string.cancel_text))
-        }
-    }) {
-        DatePicker(state = datePickerState)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CountryChoiceDropdownField(
-    modifier: Modifier = Modifier,
-    speakersNationality: String?,
-    onCountryValueChange: (String?) -> Unit,
-    options: List<String> = emptyList(),
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(
-        modifier = modifier.wrapContentSize(Alignment.TopStart)
-    ) {
-        InputChip(
-            modifier = Modifier.padding(start = MaterialTheme.spacing.extraSmall),
-            onClick = { expanded = !expanded },
-            label = {
-                if (speakersNationality != null) {
-                    Text(speakersNationality)
-                } else {
-                    Text(stringResource(R.string.video_country_label))
-                }
-            },
-            selected = speakersNationality != null,
-            leadingIcon = {
-                if (speakersNationality != null) {
-                    Text(speakersNationality)
-                } else {
-                    Icon(Icons.Filled.Language, contentDescription = null)
-                }
-            },
-            trailingIcon = {
-                if (speakersNationality != null) {
-                    Icon(
-                        contentDescription = null,
-                        imageVector = Icons.Filled.Clear,
-                        modifier = Modifier.clickable {
-                            onCountryValueChange(null)
-                        },
-                    )
-                }
-            })
-        DropdownMenu(
-            expanded = expanded, onDismissRequest = {
-                expanded = false
-            }) {
-            options.forEach { selectionOption ->
-                DropdownMenuItem(
-                    text = { Text(selectionOption) },
-                    onClick = {
-                        onCountryValueChange(selectionOption)
-                        expanded = false
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                )
-            }
-        }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.myinputlog.data.local
 
+import com.example.myinputlog.data.DEFAULT_COUNTRY_GROUP
 import com.example.myinputlog.data.local.entities.ChannelEntity
 import com.example.myinputlog.data.local.entities.CountryGroupEntity
 import com.example.myinputlog.data.local.entities.CourseEntity
@@ -110,6 +111,7 @@ fun CourseEntity.toFirestoreMap(): Map<String, Any?> = mapOf(
     "name" to name,
     "goalInHours" to goalInHours,
     "otherSourceHours" to otherSourceHours,
+    "countryGroupId" to countryGroupId,
     "timestamp" to timestamp,
     "isDeleted" to isDeleted,
     "lastUpdated" to FieldValue.serverTimestamp(),
@@ -120,6 +122,7 @@ fun CourseDto.toEntity(): CourseEntity = CourseEntity(
     name = name ?: "",
     goalInHours = goalInHours ?: 0L,
     otherSourceHours = otherSourceHours ?: 0L,
+    countryGroupId = countryGroupId?: DEFAULT_COUNTRY_GROUP,
     timestamp = timestamp?.toDate() ?: Date(),
     isDeleted = isDeleted ?: false,
     lastUpdated = lastUpdated?.toDate()?.time ?: 0L

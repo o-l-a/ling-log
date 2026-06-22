@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.data.utils.StringProvider
+import com.example.myinputlog.ui.models.CountryGroupUiModel
+import com.example.myinputlog.ui.models.toUiModel
 import com.example.myinputlog.ui.navigation.CourseRoute
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CourseViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val storageDataRepository: StorageDataRepository
+    private val storageDataRepository: StorageDataRepository,
+    private val stringProvider: StringProvider
 ) : ViewModel() {
     sealed class CourseUiEvent {
         object NavigateBack : CourseUiEvent()
@@ -38,16 +42,16 @@ class CourseViewModel @Inject constructor(
     val uiEvent = _uiEvent.receiveAsFlow()
 
     val courseUiState: StateFlow<CourseUiState> = combine(
-        _fields, _isLoading, _isDialogVisible
-    ) { fields, loading, dialogVisible ->
+        _fields, _isLoading, _isDialogVisible, storageDataRepository.countryGroups
+    ) { fields, loading, dialogVisible, countryGroups ->
         if (loading) {
             CourseUiState.Loading
         } else {
             CourseUiState.Success(
                 courseFields = fields,
                 isFormValid = validateFields(fields),
-                isDialogVisible = dialogVisible
-            )
+                isDialogVisible = dialogVisible,
+                allCountryGroups = countryGroups.map { it.toUiModel(stringProvider) })
         }
     }.stateIn(
         scope = viewModelScope,
@@ -65,9 +69,10 @@ class CourseViewModel @Inject constructor(
                 val course = storageDataRepository.getUserCourse(courseId)
                 if (course != null) {
                     _fields.value = CourseFields(
-                        name = course.name,
-                        goalInHours = course.goalInHours.toString(),
-                        otherSourceHours = course.otherSourceHours.toString()
+                        name = course.course.name,
+                        goalInHours = course.course.goalInHours.toString(),
+                        otherSourceHours = course.course.otherSourceHours.toString(),
+                        countryGroup = course.countryGroup.toUiModel(stringProvider)
                     )
                 }
             }
@@ -87,6 +92,10 @@ class CourseViewModel @Inject constructor(
         _fields.update { it.copy(otherSourceHours = hours) }
     }
 
+    fun updateCountryGroup(countryGroup: CountryGroupUiModel) {
+        _fields.update { it.copy(countryGroup = countryGroup) }
+    }
+
     fun toggleDialogVisibility(visible: Boolean) {
         _isDialogVisible.value = visible
     }
@@ -95,7 +104,8 @@ class CourseViewModel @Inject constructor(
         val isNameValid = fields.name.isNotBlank()
         val isGoalValid = fields.goalInHours.toDoubleOrNull() != null
         val isOtherHoursValid = fields.otherSourceHours.toDoubleOrNull() != null
-        return isNameValid && isGoalValid && isOtherHoursValid
+        val isCountryGroupValid = fields.countryGroup != null
+        return isNameValid && isGoalValid && isOtherHoursValid && isCountryGroupValid
     }
 
     fun deleteCourse() {
@@ -109,10 +119,12 @@ class CourseViewModel @Inject constructor(
     fun saveCourse() {
         viewModelScope.launch {
             val currentFields = _fields.value
-            val course = currentFields.toUserCourse(id = courseId)
-            val courseEntity = course.toCourseEntity()
-            storageDataRepository.saveUserCourse(courseEntity)
-            _uiEvent.send(CourseUiEvent.NavigateBack)
+            if (validateFields(currentFields) && currentFields.countryGroup != null) {
+                val course = currentFields.toUserCourse(id = courseId)
+                val courseEntity = course.toCourseEntity()
+                storageDataRepository.saveUserCourse(courseEntity)
+                _uiEvent.send(CourseUiEvent.NavigateBack)
+            }
         }
     }
 

@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.myinputlog.data.local.entities.CountryGroupEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CountryGroupDao {
@@ -12,7 +13,7 @@ interface CountryGroupDao {
     suspend fun getCountryGroupById(id: String): CountryGroupEntity?
 
     @Query("SELECT * FROM country_groups")
-    suspend fun getAllCountryGroups(): List<CountryGroupEntity>
+    fun getAllCountryGroups(): Flow<List<CountryGroupEntity>>
 
     // UPSERTS
     @Upsert

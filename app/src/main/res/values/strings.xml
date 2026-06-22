@@ -132,6 +132,14 @@
     <string name="course_goal_card_text">Goal: %dh</string>
     <string name="course_other_source_hours_card_text">%dh outside platform</string>
 
+    <!--    country groups    -->
+    <string name="course_country_group_label">Country group</string>
+    <string name="group_spanish_global">Spanish speaking countries</string>
+    <string name="group_french_global">French speaking countries</string>
+    <string name="group_german_global">German speaking countries</string>
+    <string name="group_russian_global">Russian speaking countries</string>
+    <string name="group_japanese_global">Japanese speaking countries</string>
+
     <!--    label    -->
     <string name="label_name_label">Text</string>
     <string name="label_color_label">Background color</string>

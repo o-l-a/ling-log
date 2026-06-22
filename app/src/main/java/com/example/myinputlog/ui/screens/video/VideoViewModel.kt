@@ -11,6 +11,8 @@ import com.example.myinputlog.data.remote.getChannelTitle
 import com.example.myinputlog.data.repository.ApiDataRepository
 import com.example.myinputlog.data.repository.DataResult
 import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.data.utils.StringProvider
+import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.toCourseUiModel
@@ -46,7 +48,8 @@ import javax.inject.Inject
 class VideoViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val apiDataRepository: ApiDataRepository,
-    private val storageDataRepository: StorageDataRepository
+    private val storageDataRepository: StorageDataRepository,
+    private val stringProvider: StringProvider
 ) : ViewModel() {
     sealed class VideoUiEvent {
         data class ShowSnackbar(val message: UiText) : VideoUiEvent()
@@ -98,7 +101,7 @@ class VideoViewModel @Inject constructor(
             VideoUiState.Success(
                 videoForm = form,
                 videoLoadState = loadState,
-                userCourses = courses.map { it.toCourseUiModel() },
+                userCourses = courses.map { it.toCourseUiModel(stringProvider) },
                 videoUiFlags = flags,
                 suggestions = suggestions.toSet(),
                 isFormValid = form.videoId.isNotBlank() && loadState is VideoLoadState.Success,
@@ -123,7 +126,7 @@ class VideoViewModel @Inject constructor(
                 storageDataRepository.getAllLabelsAsSet().map { it.toLabelUiModel() }.toSet()
             val selectedCourse = storageDataRepository.courses.first().firstOrNull { userCourse ->
                 userCourse.course.id == defaultCourseId
-            }?.toCourseUiModel() ?: CourseUiModel()
+            }?.toCourseUiModel(stringProvider) ?: CourseUiModel()
             _videoForm.update { it.copy(allLabels = allLabels) }
             if (!isNewVideo(videoId)) {
                 loadExistingVideo(selectedCourse)
@@ -270,7 +273,7 @@ class VideoViewModel @Inject constructor(
         startEdit()
     }
 
-    fun updateLanguage(newLanguage: String? = null) {
+    fun updateLanguage(newLanguage: CountryUiModel? = null) {
         _videoForm.update { it.copy(speakersNationality = newLanguage) }
         startEdit()
     }

@@ -11,8 +11,19 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CourseDao {
     // GETS
-    @Query("SELECT * FROM courses WHERE id = :id AND isDeleted = 0")
-    suspend fun getCourseById(id: String): CourseEntity?
+    @Transaction
+    @Query(
+        """SELECT 
+            c.*, 
+            COUNT(DISTINCT date(v.watchedOn / 1000, 'unixepoch')) as totalActiveDays,
+            COUNT(v.id) AS totalVideoCount,
+            COALESCE(SUM(v.durationInSeconds), 0) AS totalTimeInSeconds
+        FROM courses c
+        LEFT JOIN videos v ON c.id = v.courseId AND v.isDeleted = 0
+        WHERE c.id = :id AND c.isDeleted = 0
+        GROUP BY c.id"""
+    )
+    suspend fun getCourseById(id: String): CourseWithStats?
 
     @Query("SELECT * FROM courses WHERE id IN (:ids)")
     suspend fun getCoursesByIds(ids: List<String>): List<CourseEntity>

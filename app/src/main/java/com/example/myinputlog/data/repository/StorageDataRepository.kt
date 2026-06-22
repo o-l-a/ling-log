@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 interface StorageDataRepository {
     val courses: Flow<List<CourseWithStats>>
     val labels: Flow<Set<LabelEntity>>
+    val countryGroups: Flow<List<CountryGroupEntity>>
     val currentCourseId: Flow<String>
     val currentUser: Flow<UserData>
     val themeMode: Flow<AppTheme>
@@ -69,7 +70,7 @@ interface StorageDataRepository {
     suspend fun deleteChannel(channelId: String)
 
     // course
-    suspend fun getUserCourse(courseId: String): CourseEntity?
+    suspend fun getUserCourse(courseId: String): CourseWithStats?
     suspend fun saveUserCourse(course: CourseEntity)
     suspend fun deleteUserCourse(courseId: String)
 
@@ -81,7 +82,6 @@ interface StorageDataRepository {
 
     // app config
     suspend fun getCountryGroupById(countryGroupId: String): CountryGroupEntity?
-    suspend fun getAllCountryGroups(): List<CountryGroupEntity>
 
     // stats
     fun getMonthlyStatsFlow(courseId: String, monthId: String): Flow<MonthlyStatsUiModel?>

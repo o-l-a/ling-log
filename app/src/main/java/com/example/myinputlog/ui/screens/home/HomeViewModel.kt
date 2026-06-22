@@ -3,6 +3,7 @@ package com.example.myinputlog.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.data.utils.StringProvider
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.MonthlyStatsUiModel
 import com.example.myinputlog.ui.models.mapToCourseUiModel
@@ -29,7 +30,7 @@ sealed interface MonthlyStatsResult {
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: StorageDataRepository
+    private val repository: StorageDataRepository, private val stringProvider: StringProvider
 ) : ViewModel() {
     private val isParty = MutableStateFlow(false)
 
@@ -52,11 +53,11 @@ class HomeViewModel @Inject constructor(
             else -> {
                 val current = courses.find { it.course.id == id } ?: courses.first()
                 val courseHeader = mapToCourseUiModel(
-                    current.toCourseUiModel(), secondsToday
+                    current.toCourseUiModel(stringProvider), secondsToday
                 )
                 HomeUiState.Success(
                     courseHeader = courseHeader,
-                    userCourses = courses.map { it.toCourseUiModel() },
+                    userCourses = courses.map { it.toCourseUiModel(stringProvider) },
                     isParty = party,
                     confettiColors = colors.colors
                 )

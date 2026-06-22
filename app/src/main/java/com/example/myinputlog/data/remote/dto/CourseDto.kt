@@ -8,6 +8,7 @@ data class CourseDto(
     val name: String? = null,
     val goalInHours: Long? = null,
     val otherSourceHours: Long? = null,
+    val countryGroupId: String? = null,
     val timestamp: Timestamp? = null,
     @get:PropertyName("isDeleted")
     val isDeleted: Boolean? = null,

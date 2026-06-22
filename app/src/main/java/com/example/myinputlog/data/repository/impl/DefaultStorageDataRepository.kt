@@ -88,6 +88,10 @@ class DefaultStorageDataRepository @Inject constructor(
         labelDao.getAllLabels().map { list -> list.toSet() }
     }
 
+    override val countryGroups: Flow<List<CountryGroupEntity>> = scoped {
+        countryGroupDao.getAllCountryGroups()
+    }
+
     override val currentUser: Flow<UserData> = accountService.currentUser
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -253,7 +257,7 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     // course
-    override suspend fun getUserCourse(courseId: String): CourseEntity? = withScope {
+    override suspend fun getUserCourse(courseId: String): CourseWithStats? = withScope {
         withContext(Dispatchers.IO) {
             return@withContext courseDao.getCourseById(courseId)
         }
@@ -310,12 +314,6 @@ class DefaultStorageDataRepository @Inject constructor(
                 return@withContext countryGroupDao.getCountryGroupById(countryGroupId)
             }
         }
-
-    override suspend fun getAllCountryGroups(): List<CountryGroupEntity> = withScope {
-        withContext(Dispatchers.IO) {
-            return@withContext countryGroupDao.getAllCountryGroups()
-        }
-    }
 
     override suspend fun saveLabel(label: LabelEntity) = withScope {
         withContext(Dispatchers.IO) {

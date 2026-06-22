@@ -8,7 +8,7 @@ import java.util.Date
 data class VideoUiModel(
     val id: String = "",
     val watchedOn: Date = Date(0),
-    val speakersNationality: String? = null,
+    val speakersNationality: CountryUiModel? = null,
     val title: String = "",
     val channelTitle: String = "",
     val durationInSeconds: Long = 0L,
@@ -32,7 +32,7 @@ data class VideoUiModel(
 fun VideoWithChannelAndLabels.toVideoUiModel(): VideoUiModel = VideoUiModel(
     id = video.id,
     watchedOn = video.watchedOn,
-    speakersNationality = video.speakersNationality,
+    speakersNationality = video.speakersNationality?.toCountryUiModel(),
     title = video.title,
     channelTitle = channel.title,
     durationInSeconds = video.durationInSeconds,

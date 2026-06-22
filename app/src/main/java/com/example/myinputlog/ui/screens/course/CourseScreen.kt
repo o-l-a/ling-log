@@ -2,10 +2,12 @@ package com.example.myinputlog.ui.screens.course
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -25,15 +27,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.screens.course.CourseViewModel.CourseUiEvent
+import com.example.myinputlog.ui.models.CountryGroupUiModel
 import com.example.myinputlog.ui.screens.common.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.common.IME_ACTION_NEXT
 import com.example.myinputlog.ui.screens.common.MAX_COURSE_LENGTH
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
+import com.example.myinputlog.ui.screens.common.composable.input.CountryGroupChoiceDropdownField
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
+import com.example.myinputlog.ui.screens.course.CourseViewModel.CourseUiEvent
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable
@@ -87,7 +91,8 @@ fun CourseScreen(
                     onNameChange = courseViewModel::updateName,
                     onGoalChange = courseViewModel::updateGoal,
                     onOtherHoursChange = courseViewModel::updateOtherHours,
-                    onDone = courseViewModel::saveCourse
+                    onDone = courseViewModel::saveCourse,
+                    onCountryGroupChange = courseViewModel::updateCountryGroup
                 )
 
                 if ((courseUiState as CourseUiState.Success).isDialogVisible) {
@@ -112,11 +117,13 @@ fun CourseEditBody(
     onNameChange: (String) -> Unit,
     onGoalChange: (String) -> Unit,
     onOtherHoursChange: (String) -> Unit,
+    onCountryGroupChange: (CountryGroupUiModel) -> Unit,
     onDone: () -> Unit
 ) {
+    val scrollState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
 
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .pointerInput(Unit) {
@@ -124,66 +131,69 @@ fun CourseEditBody(
                     focusManager.clearFocus()
                 })
             },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Top,
+        state = scrollState,
+        contentPadding = PaddingValues(MaterialTheme.spacing.medium)
     ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(
-                    start = MaterialTheme.spacing.medium,
-                    end = MaterialTheme.spacing.medium,
-                    top = MaterialTheme.spacing.small,
-                    bottom = MaterialTheme.spacing.small
-                )
-                .fillMaxWidth(),
-            label = { Text(stringResource(R.string.course_name_label)) },
-            value = courseUiState.courseFields.name,
-            onValueChange = { onNameChange(it.take(MAX_COURSE_LENGTH)) },
-            singleLine = true,
-            keyboardOptions = IME_ACTION_NEXT,
-            keyboardActions = KeyboardActions(
-                onNext = { focusManager.moveFocus(FocusDirection.Down) })
-        )
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(
-                    start = MaterialTheme.spacing.medium,
-                    end = MaterialTheme.spacing.medium,
-                    top = MaterialTheme.spacing.small,
-                    bottom = MaterialTheme.spacing.small
-                )
-                .fillMaxWidth(),
-            label = { Text(stringResource(R.string.course_goal_label)) },
-            value = courseUiState.courseFields.goalInHours,
-            onValueChange = onGoalChange,
-            singleLine = true,
-            keyboardOptions = IME_ACTION_NEXT.copy(
-                keyboardType = KeyboardType.Number
-            ),
-            keyboardActions = KeyboardActions(
-                onNext = { focusManager.moveFocus(FocusDirection.Down) })
-        )
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(
-                    start = MaterialTheme.spacing.medium,
-                    end = MaterialTheme.spacing.medium,
-                    top = MaterialTheme.spacing.small,
-                    bottom = MaterialTheme.spacing.small
-                )
-                .fillMaxWidth(),
-            label = { Text(stringResource(R.string.course_other_source_hours_label)) },
-            value = courseUiState.courseFields.otherSourceHours,
-            onValueChange = onOtherHoursChange,
-            singleLine = true,
-            keyboardOptions = IME_ACTION_DONE.copy(
-                keyboardType = KeyboardType.Number
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    onDone()
-                    focusManager.clearFocus()
-                })
-        )
+        item {
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(top = MaterialTheme.spacing.medium)
+                    .fillMaxWidth(),
+                label = { Text(stringResource(R.string.course_name_label)) },
+                value = courseUiState.courseFields.name,
+                onValueChange = { onNameChange(it.take(MAX_COURSE_LENGTH)) },
+                singleLine = true,
+                keyboardOptions = IME_ACTION_NEXT,
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) })
+            )
+        }
+        item {
+            CountryGroupChoiceDropdownField(
+                modifier = Modifier
+                    .padding(top = MaterialTheme.spacing.medium)
+                    .fillMaxWidth(),
+                countryGroup = courseUiState.courseFields.countryGroup,
+                onValueChange = onCountryGroupChange,
+                options = courseUiState.allCountryGroups,
+            )
+        }
+        item {
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(top = MaterialTheme.spacing.medium)
+                    .fillMaxWidth(),
+                label = { Text(stringResource(R.string.course_goal_label)) },
+                value = courseUiState.courseFields.goalInHours,
+                onValueChange = onGoalChange,
+                singleLine = true,
+                keyboardOptions = IME_ACTION_NEXT.copy(
+                    keyboardType = KeyboardType.Number
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) })
+            )
+        }
+        item {
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(top = MaterialTheme.spacing.medium)
+                    .fillMaxWidth(),
+                label = { Text(stringResource(R.string.course_other_source_hours_label)) },
+                value = courseUiState.courseFields.otherSourceHours,
+                onValueChange = onOtherHoursChange,
+                singleLine = true,
+                keyboardOptions = IME_ACTION_DONE.copy(
+                    keyboardType = KeyboardType.Number
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onDone()
+                        focusManager.clearFocus()
+                    })
+            )
+        }
     }
 }
