@@ -1,5 +1,6 @@
 package com.example.myinputlog.ui.screens.channel
 
+import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 
 
@@ -22,6 +23,7 @@ sealed interface ChannelLoadState {
 }
 
 data class ChannelForm(
+    val defaultLanguage: CountryUiModel? = null,
     val selectedLabels: Set<LabelUiModel> = emptySet(),
     val searchQuery: String = "",
     val syncLabelsToVideos: Boolean = false,
@@ -38,6 +40,7 @@ data class ChannelMetadata(
     val thumbnailHighUrl: String = "",
     val initialLabels: Set<LabelUiModel> = emptySet(),
     val allLabels: Set<LabelUiModel> = emptySet(),
+    val availableLanguages: List<CountryUiModel> = emptyList(),
     val totalTimeInSeconds: Long = 0L,
     val totalVideoCount: Long = 0L
 )

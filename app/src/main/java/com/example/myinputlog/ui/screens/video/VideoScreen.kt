@@ -14,7 +14,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -32,12 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.DatePickerState
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
@@ -54,10 +47,8 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
@@ -83,7 +74,7 @@ import com.example.myinputlog.ui.screens.common.MAX_URL_LENGTH
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.input.CheckBoxWithLabel
 import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
-import com.example.myinputlog.ui.screens.common.composable.input.CountryChoiceDropdownField
+import com.example.myinputlog.ui.screens.common.composable.input.CountryChoiceDropdownChip
 import com.example.myinputlog.ui.screens.common.composable.input.MyDatePickerDialog
 import com.example.myinputlog.ui.screens.common.composable.input.MyInputLogDropdownField
 import com.example.myinputlog.ui.screens.common.composable.label.LabelChipRow
@@ -383,7 +374,7 @@ fun LazyListScope.videoAttributesSection(
                         )
                     }
                 })
-            CountryChoiceDropdownField(
+            CountryChoiceDropdownChip(
                 onCountryValueChange = onCountryValueChange,
                 speakersNationality = speakersNationality
             )

@@ -22,7 +22,7 @@ data class VideoUiModel(
     val separatorTitle: UiText = UiText.StringResource(R.string.today_text)
 ) {
     fun supportingLine(): String =
-        "${channelTitle}${if (speakersNationality != null) " • $speakersNationality" else ""}"
+        "${channelTitle}${if (speakersNationality != null) " • ${speakersNationality.flagEmoji}" else ""}"
 
     fun titleLines(): Int = if (labels.isNotEmpty()) 1 else 2
 

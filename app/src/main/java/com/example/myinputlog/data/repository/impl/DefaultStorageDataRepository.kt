@@ -315,6 +315,14 @@ class DefaultStorageDataRepository @Inject constructor(
             }
         }
 
+    override suspend fun getCountriesForCourse(courseId: String): List<String> = withScope {
+        withContext(Dispatchers.IO) {
+            val countries = courseDao.getAvailableCountries(courseId)?.codes ?: emptyList()
+            Log.d(TAG, "Countries: $countries, length: ${countries.size}")
+            return@withContext countries
+        }
+    }
+
     override suspend fun saveLabel(label: LabelEntity) = withScope {
         withContext(Dispatchers.IO) {
             labelDao.upsertLabel(label)

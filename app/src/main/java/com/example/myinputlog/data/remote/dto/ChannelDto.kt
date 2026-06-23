@@ -8,6 +8,7 @@ data class ChannelDto(
     val courseId: String? = null,
     val title: String? = null,
     val customUrl: String? = null,
+    val defaultLanguage: String? = null,
     val country: String? = null,
     val thumbnailDefaultUrl: String? = null,
     val thumbnailMediumUrl: String? = null,

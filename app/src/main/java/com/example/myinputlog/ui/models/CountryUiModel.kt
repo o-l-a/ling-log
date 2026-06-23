@@ -1,20 +1,44 @@
 package com.example.myinputlog.ui.models
 
+import android.util.Log
 import java.util.Locale
 
 data class CountryUiModel(
     val isoCode: String, val displayName: String, val flagEmoji: String
-)
+) {
+    companion object {
+        fun unknown(code: String = "??") = CountryUiModel(
+            isoCode = code, displayName = "Unknown ($code)", flagEmoji = "🏳️"
+        )
+    }
+}
 
 
-fun String.toCountryUiModel(): CountryUiModel {
+fun String?.toCountryUiModel(): CountryUiModel {
+    if (this.isNullOrBlank()) return CountryUiModel.unknown()
+
     val code = this.trim().uppercase()
+    if (code.length != 2 || !code.all { it in 'A'..'Z' }) {
+        return CountryUiModel.unknown(code)
+    }
 
-    return CountryUiModel(
-        isoCode = code,
-        displayName = Locale.Builder().setRegion(code).build().displayCountry,
-        flagEmoji = code.toFlagEmoji()
-    )
+    return try {
+        val locale = Locale.Builder().setRegion(code).build()
+        val name = locale.getDisplayCountry(Locale.getDefault())
+
+        val finalName = if (name.isNullOrEmpty() || name == code) {
+            "Unknown Country ($code)"
+        } else {
+            name
+        }
+
+        CountryUiModel(
+            isoCode = code, displayName = finalName, flagEmoji = code.toFlagEmoji()
+        )
+    } catch (e: Exception) {
+        Log.d("CountryModel", e.toString())
+        CountryUiModel.unknown(code)
+    }
 }
 
 private fun String.toFlagEmoji(): String {

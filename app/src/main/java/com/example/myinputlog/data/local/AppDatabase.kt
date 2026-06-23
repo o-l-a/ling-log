@@ -27,7 +27,7 @@ import com.example.myinputlog.data.local.entities.VideoLabelCrossRef
         VideoEntity::class,
         VideoLabelCrossRef::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

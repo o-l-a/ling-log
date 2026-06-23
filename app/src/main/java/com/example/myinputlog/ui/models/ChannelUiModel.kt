@@ -12,6 +12,7 @@ data class ChannelUiModel(
     val title: String = "",
     val customUrl: String? = null,
     val country: String? = null,
+    val defaultLanguage: CountryUiModel? = null,
     val thumbnailDefaultUrl: String = "",
     val thumbnailMediumUrl: String = "",
     val thumbnailHighUrl: String = "",
@@ -20,6 +21,9 @@ data class ChannelUiModel(
     val totalTimeInSeconds: Long = 0L,
     val totalVideoCount: Long = 0L
 ) {
+    fun titleLine(): String =
+        "${title}${if (defaultLanguage != null) " • ${defaultLanguage.flagEmoji}" else ""}"
+
     @Composable
     fun supportingLine(): String =
         "${stringResource(R.string.channel_video_count)}: $totalVideoCount (${
@@ -37,6 +41,7 @@ fun ChannelWithStatsAndLabels.toChannelUiModel(rank: Int = 0): ChannelUiModel = 
     title = channel.title,
     customUrl = channel.customUrl,
     country = channel.country,
+    defaultLanguage = channel.defaultLanguage.toCountryUiModel(),
     thumbnailDefaultUrl = channel.thumbnailDefaultUrl,
     thumbnailMediumUrl = channel.thumbnailMediumUrl,
     thumbnailHighUrl = channel.thumbnailHighUrl,

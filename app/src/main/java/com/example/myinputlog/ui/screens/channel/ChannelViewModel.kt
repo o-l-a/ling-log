@@ -7,7 +7,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.myinputlog.R
 import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.models.toCountryUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.navigation.ChannelRoute
 import com.example.myinputlog.ui.screens.common.UiText
@@ -31,7 +33,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChannelViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle, private val storageDataRepository: StorageDataRepository
+    savedStateHandle: SavedStateHandle, private val repository: StorageDataRepository
 ) : ViewModel() {
     sealed class ChannelUiEvent {
         data class ShowSnackbar(val message: UiText) : ChannelUiEvent()
@@ -51,33 +53,34 @@ class ChannelViewModel @Inject constructor(
     val uiEvent = _uiEvent.receiveAsFlow()
 
     @OptIn(FlowPreview::class)
-    val suggestions: StateFlow<List<LabelUiModel>> = combine(
-        _form.map { it.searchQuery }.distinctUntilChanged().debounce(100),
-        _form.map { it.selectedLabels }.distinctUntilChanged(),
-        _metadata.map { it.allLabels }.distinctUntilChanged()
-    ) { query, selected, all ->
-        if (query.isEmpty()) emptyList()
-        else {
-            all.filter { label ->
-                label.title.contains(
-                    query, ignoreCase = true
-                ) && selected.none { it.id == label.id }
-            }.sortedWith(compareByDescending<LabelUiModel> {
-                it.title.startsWith(
-                    query, ignoreCase = true
-                )
-            }.thenBy { it.title.lowercase() })
-        }
-    }.flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val suggestions: StateFlow<List<LabelUiModel>> =
+        combine(
+            _form.map { it.searchQuery }.distinctUntilChanged().debounce(100),
+            _form.map { it.selectedLabels }.distinctUntilChanged(),
+            _metadata.map { it.allLabels }.distinctUntilChanged()
+        ) { query, selected, all ->
+            if (query.isEmpty()) emptyList()
+            else {
+                all.filter { label ->
+                    label.title.contains(
+                        query, ignoreCase = true
+                    ) && selected.none { it.id == label.id }
+                }.sortedWith(compareByDescending<LabelUiModel> {
+                    it.title.startsWith(
+                        query, ignoreCase = true
+                    )
+                }.thenBy { it.title.lowercase() })
+            }
+        }.flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val uiFlags: StateFlow<ChannelUiFlags> = combine(
-        _form, _metadata, _isEditStarted, _isDialogVisible
-    ) { form, meta, editStarted, isDelete ->
+        _metadata, _isEditStarted, _isDialogVisible
+    ) { meta, editStarted, isDelete ->
         ChannelUiFlags(
             isDeleteEnabled = meta.totalVideoCount == 0L,
             isEditStarted = editStarted,
-            isFormValid = form.selectedLabels != meta.initialLabels,
+            isFormValid = editStarted,
             isDialogVisible = isDelete
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChannelUiFlags())
@@ -101,12 +104,19 @@ class ChannelViewModel @Inject constructor(
 
     private fun loadChannelAndLabels() {
         viewModelScope.launch {
-            val allLabels =
-                storageDataRepository.getAllLabelsAsSet().map { it.toLabelUiModel() }.toSet()
-            val channel = storageDataRepository.getChannel(channelId)?.toChannelMetadata(allLabels)
+            val allLabels = repository.getAllLabelsAsSet().map { it.toLabelUiModel() }.toSet()
+            val channel = repository.getChannel(channelId)
             if (channel != null) {
-                _metadata.value = channel
-                _form.update { it.copy(selectedLabels = channel.initialLabels) }
+                val languages = repository.getCountriesForCourse(channel.channel.courseId)
+                    .map { it.toCountryUiModel() }
+                val channelWithMetadata = channel.toChannelMetadata(allLabels, languages)
+                _metadata.value = channelWithMetadata
+                _form.update {
+                    it.copy(
+                        selectedLabels = channelWithMetadata.initialLabels,
+                        defaultLanguage = channel.channel.defaultLanguage.toCountryUiModel()
+                    )
+                }
                 _loadingState.value = ChannelLoadState.Success
             } else {
                 _loadingState.value = ChannelLoadState.Error
@@ -120,6 +130,13 @@ class ChannelViewModel @Inject constructor(
     }
 
     fun startEdit() {
+        _isEditStarted.value = true
+    }
+
+    fun updateDefaultLanguage(newLanguage: CountryUiModel?) {
+        _form.update {
+            it.copy(defaultLanguage = newLanguage)
+        }
         _isEditStarted.value = true
     }
 
@@ -151,14 +168,16 @@ class ChannelViewModel @Inject constructor(
     fun saveChannel() {
         val currentState = channelUiState.value as? ChannelUiState.Success ?: return
         val channel = currentState.metadata
+        val defaultLanguage = currentState.form.defaultLanguage
         val selectedLabels = currentState.form.selectedLabels
         val initialLabels = currentState.metadata.initialLabels
         val labelsChanged = selectedLabels != initialLabels
         Log.d(TAG, "Labels have ${if (!labelsChanged) "not " else ""}changed.")
         viewModelScope.launch {
             try {
-                val channelEntity = channel.toChannelEntity()
-                storageDataRepository.saveChannel(
+                val channelEntity =
+                    channel.toChannelEntity().copy(defaultLanguage = defaultLanguage?.isoCode)
+                repository.saveChannel(
                     channel = channelEntity,
                     labelIds = selectedLabels.map { it.id },
                     initialLabelIds = initialLabels.map { it.id },
@@ -176,7 +195,7 @@ class ChannelViewModel @Inject constructor(
         toggleDeleteDialogVisibility(false)
         viewModelScope.launch {
             try {
-                storageDataRepository.deleteChannel(channelId)
+                repository.deleteChannel(channelId)
                 _uiEvent.send(ChannelUiEvent.NavigateBack)
             } catch (e: Exception) {
                 Log.d(TAG, e.toString())

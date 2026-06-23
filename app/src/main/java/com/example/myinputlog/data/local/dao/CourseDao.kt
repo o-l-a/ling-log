@@ -6,6 +6,7 @@ import androidx.room.Transaction
 import androidx.room.Upsert
 import com.example.myinputlog.data.local.entities.CourseEntity
 import com.example.myinputlog.data.local.model.CourseWithStats
+import com.example.myinputlog.data.local.model.IsoCodesResult
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -44,6 +45,16 @@ interface CourseDao {
 
     @Query("SELECT id FROM courses")
     suspend fun getAllIds(): List<String>
+
+    @Transaction
+    @Query(
+        """SELECT cg.isoCodes
+        FROM courses AS c
+        JOIN country_groups cg ON c.countryGroupId = cg.id
+        WHERE c.id = :id
+        """
+    )
+    suspend fun getAvailableCountries(id: String): IsoCodesResult?
 
     // UPSERTS
     @Upsert

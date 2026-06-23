@@ -163,6 +163,7 @@
     <!--    channel    -->
     <string name="channel_video_count">Filmy</string>
     <string name="channel_apply_labels_to_videos">Zastosuj do filmów z tego kanału</string>
+    <string name="channel_default_language">Domyślny kraj</string>
 
     <!--    confetti options   -->
     <string name="confetti_option_1">Domyślny</string>

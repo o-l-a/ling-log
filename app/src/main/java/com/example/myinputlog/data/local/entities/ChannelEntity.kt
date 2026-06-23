@@ -19,6 +19,7 @@ data class ChannelEntity(
     val title: String,
     val customUrl: String? = null,
     val country: String? = null,
+    val defaultLanguage: String? = null,
     val thumbnailDefaultUrl: String,
     val thumbnailMediumUrl: String,
     val thumbnailHighUrl: String,

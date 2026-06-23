@@ -11,12 +11,13 @@ class Converters {
     fun toDate(millis: Long?): Date? = millis?.let { Date(it) }
 
     @TypeConverter
-    fun fromString(value: String): List<String> {
-        return if (value.isEmpty()) emptyList() else value.split(",")
+    fun fromString(value: String?): List<String> {
+        if (value.isNullOrBlank()) return emptyList()
+        return value.split(",").map { it.trim() }
     }
 
     @TypeConverter
-    fun fromList(list: List<String>): String {
-        return list.joinToString(separator = ",")
+    fun fromList(list: List<String>?): String {
+        return list?.joinToString(separator = ",") ?: ""
     }
 }

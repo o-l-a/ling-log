@@ -41,18 +41,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
+import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
-import com.example.myinputlog.ui.screens.common.composable.input.CheckBoxWithLabel
-import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
-import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.SpinningClockIcon
 import com.example.myinputlog.ui.screens.common.composable.StatisticContainer
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.channel.ChannelThumbnail
+import com.example.myinputlog.ui.screens.common.composable.input.CheckBoxWithLabel
+import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
+import com.example.myinputlog.ui.screens.common.composable.input.CountryChoiceDropdownField
 import com.example.myinputlog.ui.screens.common.composable.label.LabelChipRow
 import com.example.myinputlog.ui.screens.common.composable.label.LabelPickerTextField
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
 
@@ -117,6 +119,7 @@ fun ChannelScreen(
                 ChannelBody(
                     Modifier.padding(innerPadding),
                     currentState,
+                    onLanguageChanged = channelViewModel::updateDefaultLanguage,
                     onQueryChange = channelViewModel::onQueryChange,
                     onItemRemoved = channelViewModel::removeLabel,
                     onItemSelected = channelViewModel::addLabel,
@@ -146,6 +149,7 @@ fun ChannelScreen(
 fun ChannelBody(
     modifier: Modifier = Modifier,
     channelUiState: ChannelUiState.Success,
+    onLanguageChanged: (CountryUiModel) -> Unit,
     onQueryChange: (String) -> Unit,
     onItemSelected: (LabelUiModel) -> Unit,
     onItemRemoved: (LabelUiModel) -> Unit,
@@ -230,6 +234,18 @@ fun ChannelBody(
                     isClickable = true,
                     onClick = { clockSpinTrigger++ })
             }
+        }
+        item(key = "default_language") {
+            CountryChoiceDropdownField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        bottom = MaterialTheme.spacing.small, top = MaterialTheme.spacing.extraExtraSmall
+                    ),
+                selectedCountry = channelUiState.form.defaultLanguage,
+                onValueChange = onLanguageChanged,
+                options = channelUiState.metadata.availableLanguages
+            )
         }
         item(key = "labels_row") {
             LabelChipRow(
