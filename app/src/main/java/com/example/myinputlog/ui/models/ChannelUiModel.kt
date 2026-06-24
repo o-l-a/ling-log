@@ -21,9 +21,6 @@ data class ChannelUiModel(
     val totalTimeInSeconds: Long = 0L,
     val totalVideoCount: Long = 0L
 ) {
-    fun titleLine(): String =
-        "${title}${if (defaultLanguage != null) " • ${defaultLanguage.flagEmoji}" else ""}"
-
     @Composable
     fun supportingLine(): String =
         "${stringResource(R.string.channel_video_count)}: $totalVideoCount (${

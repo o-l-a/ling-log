@@ -149,7 +149,7 @@ fun ChannelScreen(
 fun ChannelBody(
     modifier: Modifier = Modifier,
     channelUiState: ChannelUiState.Success,
-    onLanguageChanged: (CountryUiModel) -> Unit,
+    onLanguageChanged: (CountryUiModel?) -> Unit,
     onQueryChange: (String) -> Unit,
     onItemSelected: (LabelUiModel) -> Unit,
     onItemRemoved: (LabelUiModel) -> Unit,
@@ -290,7 +290,7 @@ fun ChannelBody(
             )
         }
         item(key = "checkbox") {
-            AnimatedVisibility(channelUiState.uiFlags.isEditStarted) {
+            AnimatedVisibility(channelUiState.uiFlags.haveLabelsChanged) {
                 CheckBoxWithLabel(
                     value = channelUiState.form.syncLabelsToVideos,
                     onValueChange = onAutoCalculateChange,

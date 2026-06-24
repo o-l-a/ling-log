@@ -4,7 +4,6 @@ import com.example.myinputlog.data.local.entities.ChannelEntity
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
-import com.example.myinputlog.ui.models.toCountryUiModel
 import com.example.myinputlog.ui.models.toCountryUiModelOrNull
 import com.example.myinputlog.ui.models.toLabelUiModel
 

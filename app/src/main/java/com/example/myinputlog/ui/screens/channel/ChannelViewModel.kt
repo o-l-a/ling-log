@@ -81,8 +81,9 @@ class ChannelViewModel @Inject constructor(
         ChannelUiFlags(
             isDeleteEnabled = meta.totalVideoCount == 0L,
             isEditStarted = editStarted,
-            isFormValid = validateForm(form, meta) && editStarted,
-            isDialogVisible = isDelete
+            isFormValid = validateForm(form, meta),
+            isDialogVisible = isDelete,
+            haveLabelsChanged = form.selectedLabels != meta.initialLabels
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChannelUiFlags())
 
@@ -178,7 +179,7 @@ class ChannelViewModel @Inject constructor(
         val defaultLanguage = currentState.form.defaultLanguage
         val selectedLabels = currentState.form.selectedLabels
         val initialLabels = currentState.metadata.initialLabels
-        val labelsChanged = selectedLabels != initialLabels
+        val labelsChanged = currentState.uiFlags.haveLabelsChanged
         Log.d(TAG, "Labels have ${if (!labelsChanged) "not " else ""}changed.")
         viewModelScope.launch {
             try {

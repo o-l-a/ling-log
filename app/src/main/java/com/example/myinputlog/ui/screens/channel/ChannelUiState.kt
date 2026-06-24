@@ -50,5 +50,6 @@ data class ChannelUiFlags(
     val isDeleteEnabled: Boolean = false,
     val isFormValid: Boolean = false,
     val isEditStarted: Boolean = false,
+    val haveLabelsChanged: Boolean = false,
     val isDialogVisible: Boolean = false
 )
