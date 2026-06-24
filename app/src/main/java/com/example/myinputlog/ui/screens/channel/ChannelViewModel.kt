@@ -10,6 +10,7 @@ import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.toCountryUiModel
+import com.example.myinputlog.ui.models.toCountryUiModelOrNull
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.navigation.ChannelRoute
 import com.example.myinputlog.ui.screens.common.UiText
@@ -75,12 +76,12 @@ class ChannelViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val uiFlags: StateFlow<ChannelUiFlags> = combine(
-        _metadata, _isEditStarted, _isDialogVisible
-    ) { meta, editStarted, isDelete ->
+        _metadata, _isEditStarted, _isDialogVisible, _form
+    ) { meta, editStarted, isDelete, form ->
         ChannelUiFlags(
             isDeleteEnabled = meta.totalVideoCount == 0L,
             isEditStarted = editStarted,
-            isFormValid = editStarted,
+            isFormValid = validateForm(form, meta) && editStarted,
             isDialogVisible = isDelete
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChannelUiFlags())
@@ -114,7 +115,7 @@ class ChannelViewModel @Inject constructor(
                 _form.update {
                     it.copy(
                         selectedLabels = channelWithMetadata.initialLabels,
-                        defaultLanguage = channel.channel.defaultLanguage.toCountryUiModel()
+                        defaultLanguage = channel.channel.defaultLanguage.toCountryUiModelOrNull()
                     )
                 }
                 _loadingState.value = ChannelLoadState.Success
@@ -163,6 +164,12 @@ class ChannelViewModel @Inject constructor(
                 selectedLabels = it.selectedLabels - label
             )
         }
+    }
+
+    fun validateForm(form: ChannelForm, metadata: ChannelMetadata): Boolean {
+        val labelsChanged = form.selectedLabels != metadata.initialLabels
+        val languageChanged = form.defaultLanguage != metadata.initialDefaultLanguage
+        return labelsChanged || languageChanged
     }
 
     fun saveChannel() {

@@ -41,6 +41,11 @@ fun String?.toCountryUiModel(): CountryUiModel {
     }
 }
 
+fun String?.toCountryUiModelOrNull(): CountryUiModel? {
+    if (this.isNullOrBlank()) return null
+    return this.toCountryUiModel()
+}
+
 private fun String.toFlagEmoji(): String {
     if (this.length != 2) return "🏳️"
 

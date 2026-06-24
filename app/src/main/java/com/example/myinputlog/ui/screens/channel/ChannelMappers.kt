@@ -4,6 +4,8 @@ import com.example.myinputlog.data.local.entities.ChannelEntity
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.models.toCountryUiModel
+import com.example.myinputlog.ui.models.toCountryUiModelOrNull
 import com.example.myinputlog.ui.models.toLabelUiModel
 
 fun ChannelMetadata.toChannelEntity(): ChannelEntity = ChannelEntity(
@@ -20,7 +22,8 @@ fun ChannelMetadata.toChannelEntity(): ChannelEntity = ChannelEntity(
 )
 
 fun ChannelWithStatsAndLabels.toChannelMetadata(
-    allLabels: Set<LabelUiModel>, availableLanguages: List<CountryUiModel>
+    allLabels: Set<LabelUiModel>,
+    availableLanguages: List<CountryUiModel>
 ): ChannelMetadata = ChannelMetadata(
     id = channel.id,
     title = channel.title,
@@ -28,6 +31,7 @@ fun ChannelWithStatsAndLabels.toChannelMetadata(
     customUrl = channel.customUrl,
     country = channel.country,
     availableLanguages = availableLanguages,
+    initialDefaultLanguage = channel.defaultLanguage.toCountryUiModelOrNull(),
     thumbnailDefaultUrl = channel.thumbnailDefaultUrl,
     thumbnailMediumUrl = channel.thumbnailMediumUrl,
     thumbnailHighUrl = channel.thumbnailHighUrl,

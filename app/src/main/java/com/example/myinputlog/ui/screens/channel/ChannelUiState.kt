@@ -38,6 +38,7 @@ data class ChannelMetadata(
     val thumbnailDefaultUrl: String = "",
     val thumbnailMediumUrl: String = "",
     val thumbnailHighUrl: String = "",
+    val initialDefaultLanguage: CountryUiModel? = null,
     val initialLabels: Set<LabelUiModel> = emptySet(),
     val allLabels: Set<LabelUiModel> = emptySet(),
     val availableLanguages: List<CountryUiModel> = emptyList(),
