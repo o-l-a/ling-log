@@ -83,6 +83,7 @@ interface StorageDataRepository {
     // app config
     suspend fun getCountryGroupById(countryGroupId: String): CountryGroupEntity?
     suspend fun getCountriesForCourse(courseId: String): List<String>
+    fun getCountriesFlow(courseId: String): Flow<List<String>>
 
     // stats
     fun getMonthlyStatsFlow(courseId: String, monthId: String): Flow<MonthlyStatsUiModel?>

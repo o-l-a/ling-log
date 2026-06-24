@@ -32,7 +32,7 @@ data class VideoUiModel(
 fun VideoWithChannelAndLabels.toVideoUiModel(): VideoUiModel = VideoUiModel(
     id = video.id,
     watchedOn = video.watchedOn,
-    speakersNationality = video.speakersNationality?.toCountryUiModel(),
+    speakersNationality = video.speakersNationality?.toCountryUiModelOrNull(),
     title = video.title,
     channelTitle = channel.title,
     durationInSeconds = video.durationInSeconds,

@@ -45,7 +45,7 @@ fun CountryChoiceDropdownChip(
             onClick = { expanded = !expanded },
             label = {
                 if (speakersNationality != null) {
-                    Text(speakersNationality.flagEmoji)
+                    Text(speakersNationality.displayName)
                 } else {
                     Text(stringResource(R.string.video_country_label))
                 }
@@ -53,7 +53,7 @@ fun CountryChoiceDropdownChip(
             selected = speakersNationality != null,
             leadingIcon = {
                 if (speakersNationality != null) {
-                    Text(speakersNationality.displayName)
+                    Text(speakersNationality.flagEmoji)
                 } else {
                     Icon(Icons.Filled.Language, contentDescription = null)
                 }
@@ -75,7 +75,9 @@ fun CountryChoiceDropdownChip(
             }) {
             options.forEach { selectionOption ->
                 DropdownMenuItem(
-                    text = { Text(selectionOption.displayName) }, onClick = {
+                    text = { Text(selectionOption.displayName) }, leadingIcon = {
+                    Text(selectionOption.flagEmoji)
+                }, onClick = {
                     onCountryValueChange(selectionOption)
                     expanded = false
                 }, contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding

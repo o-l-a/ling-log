@@ -9,7 +9,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -153,7 +152,6 @@ fun VideoScreen(
                     videoUiState = videoUiState as VideoUiState.Success,
                     onCourseValueChange = videoViewModel::updateUserCourse,
                     onDateChipClicked = { videoViewModel.toggleDatePickerDialogVisibility(true) },
-                    onDateClearClicked = { videoViewModel.updateWatchedOn(null) },
                     onCountryValueChange = videoViewModel::updateLanguage,
                     onUrlClearClicked = videoViewModel::deleteUrlAndUrlData,
                     onUrlValueChange = videoViewModel::updateVideoUrl,
@@ -202,7 +200,6 @@ fun VideoEditBody(
     videoUiState: VideoUiState.Success,
     onCourseValueChange: (CourseUiModel) -> Unit,
     onDateChipClicked: () -> Unit,
-    onDateClearClicked: () -> Unit,
     onUrlClearClicked: () -> Unit,
     onCopyClicked: (String) -> Unit,
     onCountryValueChange: (CountryUiModel?) -> Unit,
@@ -252,13 +249,13 @@ fun VideoEditBody(
         videoAttributesSection(
             watchedOn = videoUiState.videoForm.watchedOn,
             speakersNationality = videoUiState.videoForm.speakersNationality,
+            availableCountries = videoUiState.allCountries,
             onDateChipClicked = onDateChipClicked,
-            onDateClearClicked = onDateClearClicked,
             onCountryValueChange = onCountryValueChange
         )
 
         videoMetadataSection(
-            videoMetadata = videoUiState.videoForm, isVisible = videoUiState.isFormValid
+            videoMetadata = videoUiState.videoForm, isVisible = videoUiState.isMetadataVisible
         )
 
         labelSection(
@@ -338,8 +335,8 @@ fun LazyListScope.videoAttributesSection(
     modifier: Modifier = Modifier,
     watchedOn: Date?,
     speakersNationality: CountryUiModel?,
+    availableCountries: List<CountryUiModel>,
     onDateChipClicked: () -> Unit,
-    onDateClearClicked: () -> Unit,
     onCountryValueChange: (CountryUiModel?) -> Unit,
 ) {
     item(key = "input_chips") {
@@ -364,19 +361,11 @@ fun LazyListScope.videoAttributesSection(
                     }
                 },
                 selected = watchedOn != null,
-                leadingIcon = { Icon(Icons.Filled.Event, contentDescription = null) },
-                trailingIcon = {
-                    if (watchedOn != null) {
-                        Icon(
-                            modifier = Modifier.clickable(onClick = onDateClearClicked),
-                            imageVector = Icons.Filled.Clear,
-                            contentDescription = null
-                        )
-                    }
-                })
+                leadingIcon = { Icon(Icons.Filled.Event, contentDescription = null) })
             CountryChoiceDropdownChip(
                 onCountryValueChange = onCountryValueChange,
-                speakersNationality = speakersNationality
+                speakersNationality = speakersNationality,
+                options = availableCountries
             )
         }
     }

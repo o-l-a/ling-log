@@ -4,7 +4,6 @@ import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import java.util.Date
-import kotlin.Long
 
 
 sealed interface VideoLoadState {
@@ -21,6 +20,7 @@ data class VideoForm(
     val videoUrl: String = "",
     val title: String = "",
     val watchedOn: Date = Date(),
+    val initialSpeakersNationality: CountryUiModel? = null,
     val speakersNationality: CountryUiModel? = null,
     val durationInSeconds: Long = 0L,
     val thumbnailDefaultUrl: String = "",
@@ -61,8 +61,10 @@ sealed interface VideoUiState {
         val videoLoadState: VideoLoadState = VideoLoadState.LoadingFromStorage,
         val userCourses: List<CourseUiModel> = listOf(),
         val suggestions: Set<LabelUiModel> = emptySet(),
+        val allCountries: List<CountryUiModel> = emptyList(),
         val videoUiFlags: VideoUiFlags = VideoUiFlags(),
         val isFormValid: Boolean = false,
+        val isMetadataVisible: Boolean = false,
         val isDeleteEnabled: Boolean = false,
         val isSaveEnabled: Boolean = false,
         val isCourseEditable: Boolean = false

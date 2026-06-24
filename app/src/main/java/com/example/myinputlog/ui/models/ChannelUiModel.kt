@@ -38,7 +38,7 @@ fun ChannelWithStatsAndLabels.toChannelUiModel(rank: Int = 0): ChannelUiModel = 
     title = channel.title,
     customUrl = channel.customUrl,
     country = channel.country,
-    defaultLanguage = channel.defaultLanguage.toCountryUiModel(),
+    defaultLanguage = channel.defaultLanguage.toCountryUiModelOrNull(),
     thumbnailDefaultUrl = channel.thumbnailDefaultUrl,
     thumbnailMediumUrl = channel.thumbnailMediumUrl,
     thumbnailHighUrl = channel.thumbnailHighUrl,

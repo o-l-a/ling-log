@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -323,6 +324,12 @@ class DefaultStorageDataRepository @Inject constructor(
         }
     }
 
+    override fun getCountriesFlow(courseId: String): Flow<List<String>> = scoped {
+        courseDao.getCountriesFlow(courseId).map { result ->
+                result?.codes ?: emptyList()
+            }.distinctUntilChanged().flowOn(Dispatchers.IO)
+    }
+
     override suspend fun saveLabel(label: LabelEntity) = withScope {
         withContext(Dispatchers.IO) {
             labelDao.upsertLabel(label)
@@ -362,7 +369,7 @@ class DefaultStorageDataRepository @Inject constructor(
                 totalVideoCount = rows.sumOf { it.videoCount },
                 days = daysMap
             )
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     override fun getTodaySecondsFlow(courseId: String): Flow<Long> = scoped {
@@ -373,7 +380,7 @@ class DefaultStorageDataRepository @Inject constructor(
 
         statsDao.getDailyStats(courseId, start, end).map { rows ->
             rows.sumOf { it.totalSeconds }
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     // preferences

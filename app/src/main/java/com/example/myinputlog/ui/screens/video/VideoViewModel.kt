@@ -15,6 +15,7 @@ import com.example.myinputlog.data.utils.StringProvider
 import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.models.toCountryUiModelOrNull
 import com.example.myinputlog.ui.models.toCourseUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.navigation.DEFAULT_ID
@@ -24,6 +25,7 @@ import com.example.myinputlog.ui.screens.common.ext.extractYouTubeVideoId
 import com.example.myinputlog.ui.screens.common.ext.stripUrl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -35,6 +37,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -69,6 +73,19 @@ class VideoViewModel @Inject constructor(
 
     private var fetchJob: Job? = null
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val availableCountries: StateFlow<List<CountryUiModel>> =
+        _videoForm.map { it.selectedCourse.id }.distinctUntilChanged().flatMapLatest { courseId ->
+            if (courseId.isBlank()) {
+                flowOf(emptyList())
+            } else {
+                storageDataRepository.getCountriesFlow(courseId).map { codes ->
+                    codes.mapNotNull { it.toCountryUiModelOrNull() }
+                }
+            }
+        }.flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     @OptIn(FlowPreview::class)
     val suggestions: StateFlow<List<LabelUiModel>> = combine(
         _videoForm.map { it.searchQuery }.distinctUntilChanged().debounce(100),
@@ -90,9 +107,15 @@ class VideoViewModel @Inject constructor(
     }.flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    private val internalFormState = combine(
+        _videoForm, _loadingState, _uiFlags
+    ) { form, loading, flags ->
+        Triple(form, loading, flags)
+    }
+
     val videoUiState: StateFlow<VideoUiState> = combine(
-        storageDataRepository.courses, _videoForm, _loadingState, _uiFlags, suggestions
-    ) { courses, form, loadState, flags, suggestions ->
+        storageDataRepository.courses, suggestions, availableCountries, internalFormState
+    ) { courses, suggestions, countries, (form, loadState, flags) ->
         if (flags.isDeleting) {
             VideoUiState.Loading
         } else if (loadState is VideoLoadState.StorageError) {
@@ -104,7 +127,9 @@ class VideoViewModel @Inject constructor(
                 userCourses = courses.map { it.toCourseUiModel(stringProvider) },
                 videoUiFlags = flags,
                 suggestions = suggestions.toSet(),
-                isFormValid = form.videoId.isNotBlank() && loadState is VideoLoadState.Success,
+                allCountries = countries,
+                isFormValid = validateForm(form, loadState),
+                isMetadataVisible = form.videoId.isNotBlank() && loadState is VideoLoadState.Success,
                 isDeleteEnabled = !isNewVideo(videoId),
                 isSaveEnabled = flags.isEditStarted,
                 isCourseEditable = isNewVideo(videoId)
@@ -157,7 +182,8 @@ class VideoViewModel @Inject constructor(
             if (isNewVideo(videoId)) {
                 _videoForm.update {
                     it.copy(selectedLabels = channel.labels.map { label -> label.toLabelUiModel() }
-                        .toSet())
+                        .toSet(),
+                        speakersNationality = channel.channel.defaultLanguage.toCountryUiModelOrNull())
                 }
             }
             _uiFlags.update { it.copy(isNewChannel = false) }
@@ -210,6 +236,15 @@ class VideoViewModel @Inject constructor(
                 Log.d(TAG, "Network error")
             }
         }
+    }
+
+    fun validateForm(form: VideoForm, loadState: VideoLoadState): Boolean {
+        val countryChanged = form.speakersNationality != form.initialSpeakersNationality
+        val labelsChanged = form.selectedLabels != form.initialLabels
+        if (isNewVideo(form.id)) {
+            return form.videoId.isNotBlank() && loadState is VideoLoadState.Success
+        }
+        return (countryChanged || labelsChanged) && loadState is VideoLoadState.Success
     }
 
     fun onQueryChange(newQuery: String) {

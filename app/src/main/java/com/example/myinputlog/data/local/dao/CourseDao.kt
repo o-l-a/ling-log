@@ -56,6 +56,16 @@ interface CourseDao {
     )
     suspend fun getAvailableCountries(id: String): IsoCodesResult?
 
+    @Transaction
+    @Query(
+        """SELECT cg.isoCodes
+        FROM courses AS c
+        JOIN country_groups cg ON c.countryGroupId = cg.id
+        WHERE c.id = :id
+        """
+    )
+    fun getCountriesFlow(id: String): Flow<IsoCodesResult?>
+
     // UPSERTS
     @Upsert
     suspend fun upsertCourse(course: CourseEntity)

@@ -6,7 +6,7 @@ import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.remote.ChannelItem
 import com.example.myinputlog.data.remote.VideoItem
-import com.example.myinputlog.ui.models.toCountryUiModel
+import com.example.myinputlog.ui.models.toCountryUiModelOrNull
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.screens.common.ext.stripUrl
 import java.time.Duration
@@ -54,6 +54,7 @@ fun VideoForm.toClearedMetadata(): VideoForm {
         thumbnailMediumUrl = "",
         thumbnailHighUrl = "",
         defaultAudioLanguage = "",
+        speakersNationality = null,
         channelId = "",
         channelTitle = "",
         channelCustomUrl = "",
@@ -61,6 +62,7 @@ fun VideoForm.toClearedMetadata(): VideoForm {
         channelThumbnailDefaultUrl = "",
         channelThumbnailMediumUrl = "",
         channelThumbnailHighUrl = "",
+        selectedLabels = emptySet()
     )
 }
 
@@ -82,7 +84,8 @@ fun VideoForm.toFormWithVideoMetadata(videoWithChannelAndLabels: VideoWithChanne
         videoId = videoWithChannelAndLabels.video.videoId,
         title = videoWithChannelAndLabels.video.title,
         videoUrl = videoWithChannelAndLabels.video.videoUrl,
-        speakersNationality = videoWithChannelAndLabels.video.speakersNationality?.toCountryUiModel(),
+        speakersNationality = videoWithChannelAndLabels.video.speakersNationality?.toCountryUiModelOrNull(),
+        initialSpeakersNationality = videoWithChannelAndLabels.video.speakersNationality?.toCountryUiModelOrNull(),
         watchedOn = videoWithChannelAndLabels.video.watchedOn,
         durationInSeconds = videoWithChannelAndLabels.video.durationInSeconds,
         thumbnailDefaultUrl = videoWithChannelAndLabels.video.thumbnailDefaultUrl,
