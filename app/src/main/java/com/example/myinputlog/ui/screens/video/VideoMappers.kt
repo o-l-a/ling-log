@@ -88,6 +88,7 @@ fun VideoForm.toFormWithVideoMetadata(videoWithChannelAndLabels: VideoWithChanne
         speakersNationality = videoWithChannelAndLabels.video.speakersNationality?.toCountryUiModelOrNull(),
         initialSpeakersNationality = videoWithChannelAndLabels.video.speakersNationality?.toCountryUiModelOrNull(),
         watchedOn = videoWithChannelAndLabels.video.watchedOn,
+        initialWatchedOn = videoWithChannelAndLabels.video.watchedOn,
         durationInSeconds = videoWithChannelAndLabels.video.durationInSeconds,
         thumbnailDefaultUrl = videoWithChannelAndLabels.video.thumbnailDefaultUrl,
         thumbnailMediumUrl = videoWithChannelAndLabels.video.thumbnailMediumUrl,

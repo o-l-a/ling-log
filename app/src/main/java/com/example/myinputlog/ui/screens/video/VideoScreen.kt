@@ -26,9 +26,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Event
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,6 +70,7 @@ import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.screens.common.MAX_URL_LENGTH
+import com.example.myinputlog.ui.screens.common.UiText
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.input.CheckBoxWithLabel
 import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
@@ -81,7 +82,6 @@ import com.example.myinputlog.ui.screens.common.composable.label.LabelPickerText
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.video.VideoThumbnail
-import com.example.myinputlog.ui.screens.common.dateFormatter
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -248,6 +248,7 @@ fun VideoEditBody(
 
         videoAttributesSection(
             watchedOn = videoUiState.videoForm.watchedOn,
+            watchedOnDisplay = videoUiState.videoForm.watchedOnDisplay,
             speakersNationality = videoUiState.videoForm.speakersNationality,
             availableCountries = videoUiState.allCountries,
             onDateChipClicked = onDateChipClicked,
@@ -334,6 +335,7 @@ fun LazyListScope.videoUrlSection(
 fun LazyListScope.videoAttributesSection(
     modifier: Modifier = Modifier,
     watchedOn: Date?,
+    watchedOnDisplay: UiText,
     speakersNationality: CountryUiModel?,
     availableCountries: List<CountryUiModel>,
     onDateChipClicked: () -> Unit,
@@ -355,13 +357,13 @@ fun LazyListScope.videoAttributesSection(
                             0
                         )
                     ) {
-                        Text(dateFormatter.format(watchedOn))
+                        Text(watchedOnDisplay.asString())
                     } else {
                         Text(stringResource(R.string.video_watched_on_label))
                     }
                 },
                 selected = watchedOn != null,
-                leadingIcon = { Icon(Icons.Filled.Event, contentDescription = null) })
+                leadingIcon = { Icon(Icons.Filled.CalendarMonth, contentDescription = null) })
             CountryChoiceDropdownChip(
                 onCountryValueChange = onCountryValueChange,
                 speakersNationality = speakersNationality,

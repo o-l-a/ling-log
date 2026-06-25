@@ -3,6 +3,7 @@ package com.example.myinputlog.ui.screens.video
 import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.screens.common.UiText
 import java.util.Date
 
 
@@ -20,6 +21,8 @@ data class VideoForm(
     val videoUrl: String = "",
     val title: String = "",
     val watchedOn: Date = Date(),
+    val initialWatchedOn: Date = Date(),
+    val watchedOnDisplay: UiText = UiText.DynamicString(""),
     val initialSpeakersNationality: CountryUiModel? = null,
     val speakersNationality: CountryUiModel? = null,
     val durationInSeconds: Long = 0L,

@@ -56,7 +56,8 @@ class SeparatorTransformer(
         }
     }
 
-    private fun getWatchedOnHeader(date: LocalDate): UiText {
+    fun getWatchedOnHeader(date: LocalDate, isNaturalText: Boolean = true): UiText {
+        if (!isNaturalText) return UiText.DynamicString(date.format(formatter))
         return when (date) {
             today -> UiText.StringResource(R.string.today_text)
             yesterday -> UiText.StringResource(R.string.yesterday_text)

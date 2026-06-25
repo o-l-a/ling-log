@@ -12,29 +12,29 @@ val provider = GoogleFont.Provider(
     certificates = R.array.com_google_android_gms_fonts_certs
 )
 
-val NunitoFontFamily = FontFamily(
-    Font(googleFont = GoogleFont("Nunito"), fontProvider = provider)
+val RobotoFontFamily = FontFamily(
+    Font(googleFont = GoogleFont("Roboto"), fontProvider = provider)
 )
 
 private val defaultTypography = Typography()
 val AppTypography = Typography(
-    displayLarge = defaultTypography.displayLarge.copy(fontFamily = NunitoFontFamily),
-    displayMedium = defaultTypography.displayMedium.copy(fontFamily = NunitoFontFamily),
-    displaySmall = defaultTypography.displaySmall.copy(fontFamily = NunitoFontFamily),
+    displayLarge = defaultTypography.displayLarge.copy(fontFamily = RobotoFontFamily),
+    displayMedium = defaultTypography.displayMedium.copy(fontFamily = RobotoFontFamily),
+    displaySmall = defaultTypography.displaySmall.copy(fontFamily = RobotoFontFamily),
 
-    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = NunitoFontFamily),
-    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = NunitoFontFamily),
-    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = NunitoFontFamily),
+    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = RobotoFontFamily),
+    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = RobotoFontFamily),
+    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = RobotoFontFamily),
 
-    titleLarge = defaultTypography.titleLarge.copy(fontFamily = NunitoFontFamily),
-    titleMedium = defaultTypography.titleMedium.copy(fontFamily = NunitoFontFamily),
-    titleSmall = defaultTypography.titleSmall.copy(fontFamily = NunitoFontFamily),
+    titleLarge = defaultTypography.titleLarge.copy(fontFamily = RobotoFontFamily),
+    titleMedium = defaultTypography.titleMedium.copy(fontFamily = RobotoFontFamily),
+    titleSmall = defaultTypography.titleSmall.copy(fontFamily = RobotoFontFamily),
 
-    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = NunitoFontFamily),
-    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = NunitoFontFamily),
-    bodySmall = defaultTypography.bodySmall.copy(fontFamily = NunitoFontFamily),
+    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = RobotoFontFamily),
+    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = RobotoFontFamily),
+    bodySmall = defaultTypography.bodySmall.copy(fontFamily = RobotoFontFamily),
 
-    labelLarge = defaultTypography.labelLarge.copy(fontFamily = NunitoFontFamily),
-    labelMedium = defaultTypography.labelMedium.copy(fontFamily = NunitoFontFamily),
-    labelSmall = defaultTypography.labelSmall.copy(fontFamily = NunitoFontFamily)
+    labelLarge = defaultTypography.labelLarge.copy(fontFamily = RobotoFontFamily),
+    labelMedium = defaultTypography.labelMedium.copy(fontFamily = RobotoFontFamily),
+    labelSmall = defaultTypography.labelSmall.copy(fontFamily = RobotoFontFamily)
 )

@@ -33,13 +33,7 @@ class MyInputLogApplication : Application(), Configuration.Provider {
             R.array.com_google_android_gms_fonts_certs
         )
 
-        val config = FontRequestEmojiCompatConfig(this, fontRequest)
-            .setReplaceAll(true)
-            .registerInitCallback(object : EmojiCompat.InitCallback() {
-                override fun onInitialized() {
-                    Log.d("EmojiCompat", "Noto Color Emoji loaded successfully")
-                }
-            })
+        val config = FontRequestEmojiCompatConfig(this, fontRequest).setReplaceAll(true)
 
         EmojiCompat.init(config)
         ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)
