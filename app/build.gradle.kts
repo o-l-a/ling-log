@@ -72,8 +72,10 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.emoji2)
     implementation(libs.androidx.hilt.common)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.ui)

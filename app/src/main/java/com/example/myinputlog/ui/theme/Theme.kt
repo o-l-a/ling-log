@@ -80,6 +80,6 @@ fun MyInputLogTheme(
     }
 
     MaterialTheme(
-        colorScheme = colorScheme, typography = Typography, content = content
+        colorScheme = colorScheme, typography = AppTypography, content = content
     )
 }
