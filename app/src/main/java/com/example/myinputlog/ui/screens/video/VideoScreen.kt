@@ -261,7 +261,7 @@ fun VideoEditBody(
         labelSection(
             videoMetadata = videoUiState.videoForm,
             isEditStarted = videoUiState.videoUiFlags.isEditStarted,
-            isNewChannel = videoUiState.videoUiFlags.isNewChannel,
+            isCheckboxVisible = videoUiState.isChannelCheckboxVisible,
             createChannelWithLabels = videoUiState.videoForm.saveLabelsForChannel,
             suggestions = videoUiState.suggestions,
             onQueryChange = onQueryChange,
@@ -424,7 +424,7 @@ fun LazyListScope.labelSection(
     videoMetadata: VideoForm,
     suggestions: Set<LabelUiModel>,
     isEditStarted: Boolean,
-    isNewChannel: Boolean,
+    isCheckboxVisible: Boolean,
     createChannelWithLabels: Boolean,
     onQueryChange: (String) -> Unit,
     onItemSelected: (LabelUiModel) -> Unit,
@@ -474,11 +474,11 @@ fun LazyListScope.labelSection(
         )
     }
     item(key = "checkbox") {
-        AnimatedVisibility(isEditStarted && isNewChannel && videoMetadata.selectedLabels.isNotEmpty()) {
+        AnimatedVisibility(isCheckboxVisible) {
             CheckBoxWithLabel(
                 value = createChannelWithLabels,
                 onValueChange = onCreateChannelToggle,
-                text = stringResource(R.string.video_create_channel_with_labels)
+                text = stringResource(R.string.video_create_channel_with_defaults)
             )
         }
     }

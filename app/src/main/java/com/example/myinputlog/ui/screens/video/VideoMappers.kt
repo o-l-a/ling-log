@@ -38,6 +38,7 @@ fun VideoForm.toChannelEntity(): ChannelEntity {
         title = channelTitle,
         customUrl = channelCustomUrl,
         country = channelCountry,
+        defaultLanguage = speakersNationality?.isoCode,
         thumbnailDefaultUrl = channelThumbnailDefaultUrl,
         thumbnailMediumUrl = channelThumbnailMediumUrl,
         thumbnailHighUrl = channelThumbnailHighUrl,

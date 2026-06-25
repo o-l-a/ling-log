@@ -158,7 +158,7 @@
     <string name="video_channel_label">Kanał</string>
     <string name="video_duration_label">Długość</string>
     <string name="video_link_label">URL filmu</string>
-    <string name="video_create_channel_with_labels">Dodaj kanał z tymi labelkami</string>
+    <string name="video_create_channel_with_defaults">Stwórz kanał z tymi wartościami</string>
 
     <!--    channel    -->
     <string name="channel_video_count">Filmy</string>

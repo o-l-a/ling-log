@@ -157,7 +157,7 @@
     <string name="video_channel_label">Channel</string>
     <string name="video_duration_label">Duration</string>
     <string name="video_link_label">Video URL</string>
-    <string name="video_create_channel_with_labels">Add the channel with these labels</string>
+    <string name="video_create_channel_with_defaults">Add the channel with these defaults</string>
 
     <!--    channel    -->
     <string name="channel_video_count">Videos</string>

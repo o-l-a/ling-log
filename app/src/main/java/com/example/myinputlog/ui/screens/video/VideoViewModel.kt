@@ -130,6 +130,7 @@ class VideoViewModel @Inject constructor(
                 allCountries = countries,
                 isFormValid = validateForm(form, loadState),
                 isMetadataVisible = form.videoId.isNotBlank() && loadState is VideoLoadState.Success,
+                isChannelCheckboxVisible = showChannelCheckbox(form, flags),
                 isDeleteEnabled = !isNewVideo(videoId),
                 isSaveEnabled = flags.isEditStarted,
                 isCourseEditable = isNewVideo(videoId)
@@ -245,6 +246,12 @@ class VideoViewModel @Inject constructor(
             return form.videoId.isNotBlank() && loadState is VideoLoadState.Success
         }
         return (countryChanged || labelsChanged) && loadState is VideoLoadState.Success
+    }
+
+    fun showChannelCheckbox(form: VideoForm, uiFlags: VideoUiFlags): Boolean {
+        val countryChanged = form.speakersNationality != form.initialSpeakersNationality
+        val labelsChanged = form.selectedLabels != form.initialLabels
+        return (countryChanged || labelsChanged) && isNewVideo(form.id) && uiFlags.isNewChannel
     }
 
     fun onQueryChange(newQuery: String) {
