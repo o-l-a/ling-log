@@ -4,8 +4,10 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -95,6 +97,14 @@ fun FilterItemRow(
         when (val content = filter.content) {
             is FilterContentType.Basic -> {
                 Text(content.text)
+            }
+
+            is FilterContentType.Leaded -> {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(content.leadingText)
+                    Spacer(Modifier.width(MaterialTheme.spacing.smallPlus))
+                    Text(content.text)
+                }
             }
 
             is FilterContentType.Labeled -> {

@@ -18,23 +18,23 @@ val RobotoFontFamily = FontFamily(
 
 private val defaultTypography = Typography()
 val AppTypography = Typography(
-    displayLarge = defaultTypography.displayLarge.copy(fontFamily = RobotoFontFamily),
-    displayMedium = defaultTypography.displayMedium.copy(fontFamily = RobotoFontFamily),
-    displaySmall = defaultTypography.displaySmall.copy(fontFamily = RobotoFontFamily),
-
-    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = RobotoFontFamily),
-    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = RobotoFontFamily),
-    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = RobotoFontFamily),
-
-    titleLarge = defaultTypography.titleLarge.copy(fontFamily = RobotoFontFamily),
-    titleMedium = defaultTypography.titleMedium.copy(fontFamily = RobotoFontFamily),
-    titleSmall = defaultTypography.titleSmall.copy(fontFamily = RobotoFontFamily),
-
-    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = RobotoFontFamily),
-    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = RobotoFontFamily),
-    bodySmall = defaultTypography.bodySmall.copy(fontFamily = RobotoFontFamily),
-
-    labelLarge = defaultTypography.labelLarge.copy(fontFamily = RobotoFontFamily),
-    labelMedium = defaultTypography.labelMedium.copy(fontFamily = RobotoFontFamily),
-    labelSmall = defaultTypography.labelSmall.copy(fontFamily = RobotoFontFamily)
+//    displayLarge = defaultTypography.displayLarge.copy(fontFamily = RobotoFontFamily),
+//    displayMedium = defaultTypography.displayMedium.copy(fontFamily = RobotoFontFamily),
+//    displaySmall = defaultTypography.displaySmall.copy(fontFamily = RobotoFontFamily),
+//
+//    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = RobotoFontFamily),
+//    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = RobotoFontFamily),
+//    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = RobotoFontFamily),
+//
+//    titleLarge = defaultTypography.titleLarge.copy(fontFamily = RobotoFontFamily),
+//    titleMedium = defaultTypography.titleMedium.copy(fontFamily = RobotoFontFamily),
+//    titleSmall = defaultTypography.titleSmall.copy(fontFamily = RobotoFontFamily),
+//
+//    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = RobotoFontFamily),
+//    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = RobotoFontFamily),
+//    bodySmall = defaultTypography.bodySmall.copy(fontFamily = RobotoFontFamily),
+//
+//    labelLarge = defaultTypography.labelLarge.copy(fontFamily = RobotoFontFamily),
+//    labelMedium = defaultTypography.labelMedium.copy(fontFamily = RobotoFontFamily),
+//    labelSmall = defaultTypography.labelSmall.copy(fontFamily = RobotoFontFamily)
 )

@@ -47,6 +47,15 @@ object VideoQueryBuilder {
             )
         }
 
+        if (filters.selectedCountries.isNotEmpty()) {
+            val placeholders = filters.selectedCountries.joinToString(",") { "?" }
+            sql.andIf(
+                true,
+                "v.speakersNationality IN ($placeholders)".trimIndent(),
+                *filters.selectedCountries.toTypedArray()
+            )
+        }
+
         when (sort) {
             WATCH_DATE_DESC -> {
                 sql.orderBy("DATE(v.watchedOn / 1000, 'unixepoch') DESC")

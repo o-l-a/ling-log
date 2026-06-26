@@ -139,6 +139,7 @@
     <string name="group_german_global">German speaking countries</string>
     <string name="group_russian_global">Russian speaking countries</string>
     <string name="group_japanese_global">Japanese speaking countries</string>
+    <string name="countries_description">Countries</string>
 
     <!--    label    -->
     <string name="label_name_label">Text</string>

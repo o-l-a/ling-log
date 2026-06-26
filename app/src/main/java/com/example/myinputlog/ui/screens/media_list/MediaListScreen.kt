@@ -63,6 +63,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.myinputlog.R
 import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.ui.models.ChannelUiModel
+import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.FilterContentType
 import com.example.myinputlog.ui.models.FilterValueUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
@@ -151,9 +152,12 @@ fun MediaListScreen(
             currentTabIndex = pagerState.currentPage,
             filters = successState.filters,
             labels = successState.allLabels,
+            countries = successState.allCountries,
             channels = filterChannels,
             onLabelsChanged = mediaListViewModel::updateSelectedLabels,
             onSelectAllLabels = mediaListViewModel::onSelectAllLabelsChange,
+            onCountriesChanged = mediaListViewModel::updateSelectedCountries,
+            onSelectAllCountries = mediaListViewModel::onSelectAllCountriesChange,
             onChannelsChanged = mediaListViewModel::updateSelectedChannels,
             onSelectAllChannels = mediaListViewModel::onSelectAllChannelsChange,
             onApplyClicked = mediaListViewModel::applyFilters,
@@ -338,10 +342,13 @@ fun MediaFilterBottomSheet(
     filters: MediaFilters,
     labels: Set<LabelUiModel>,
     channels: LazyPagingItems<ChannelUiModel>,
+    countries: Set<CountryUiModel>,
     onLabelsChanged: (Set<String>) -> Unit,
     onSelectAllLabels: (FilterChange) -> Unit,
     onChannelsChanged: (Set<String>) -> Unit,
     onSelectAllChannels: (FilterChange) -> Unit,
+    onCountriesChanged: (Set<String>) -> Unit,
+    onSelectAllCountries: (FilterChange) -> Unit,
     onApplyClicked: () -> Unit,
     onClearClicked: () -> Unit,
     appliedSort: SortOptions,
@@ -358,11 +365,13 @@ fun MediaFilterBottomSheet(
 
     var isLabelsExpanded by remember { mutableStateOf(false) }
     var isChannelsExpanded by remember { mutableStateOf(false) }
+    var isCountriesExpanded by remember { mutableStateOf(false) }
     var isSortExpanded by remember { mutableStateOf(false) }
     val isChannel by remember { derivedStateOf { currentTabIndex == 1 } }
 
     val labelTitle = stringResource(R.string.label_list_nav_description)
     val channelTitle = stringResource(R.string.channel_list_screen_title)
+    val countryTitle = stringResource(R.string.countries_description)
     val sortTitle = stringResource(R.string.sort_header)
 
     val dismiss = {
@@ -431,6 +440,41 @@ fun MediaFilterBottomSheet(
                                         filters.selectedLabels + filterChange.value
                                     }
                                 onLabelsChanged(newSet)
+                            }
+
+                            else -> {}
+                        }
+                    })
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
+            }
+
+            filterArea(
+                title = countryTitle,
+                items = countries.toList(),
+                isExpanded = isCountriesExpanded,
+                enableSelectAll = true,
+                isAllSelected = filters.allCountriesSelected,
+                onHeaderClick = { isCountriesExpanded = !isCountriesExpanded },
+                onSelectAll = onSelectAllCountries,
+                key = { it.isoCode }) { country ->
+                FilterItemRow(
+                    filter = FilterValueUiModel(
+                        id = country.isoCode,
+                        content = FilterContentType.Leaded(country.displayName, country.flagEmoji),
+                        selected = filters.selectedCountries.contains(country.isoCode)
+                    ), onCheckedChange = { filterChange ->
+                        when (filterChange) {
+                            is FilterChange.Selection -> {
+                                val newSet =
+                                    if (filters.selectedCountries.contains(filterChange.value)) {
+                                        filters.selectedCountries - filterChange.value
+                                    } else {
+                                        filters.selectedCountries + filterChange.value
+                                    }
+                                onCountriesChanged(newSet)
                             }
 
                             else -> {}

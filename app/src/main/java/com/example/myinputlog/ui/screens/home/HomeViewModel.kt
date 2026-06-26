@@ -9,6 +9,7 @@ import com.example.myinputlog.ui.models.MonthlyStatsUiModel
 import com.example.myinputlog.ui.models.mapToCourseUiModel
 import com.example.myinputlog.ui.models.toCourseUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -41,7 +43,7 @@ class HomeViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val todaySeconds: Flow<Long> = currentCourseId.flatMapLatest { id ->
         if (id.isBlank()) flowOf(0L) else repository.getTodaySecondsFlow(id)
-    }
+    }.flowOn(Dispatchers.Default)
 
     val homeUiState: StateFlow<HomeUiState> = combine(
         repository.courses, currentCourseId, isParty, repository.confettiColors, todaySeconds
@@ -86,7 +88,7 @@ class HomeViewModel @Inject constructor(
                     MonthlyStatsResult.Success(stats ?: MonthlyStatsUiModel(id = monthId))
                 }
             }
-        }
+        }.flowOn(Dispatchers.Default)
     }
 
     fun changeCurrentCourseId(newCourse: CourseUiModel) {

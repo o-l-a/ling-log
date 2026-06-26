@@ -8,8 +8,10 @@ import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.VideoUiModel
+import com.example.myinputlog.ui.models.toCountryUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.screens.common.composable.input.FilterChange
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,13 +49,21 @@ class MediaListViewModel @Inject constructor(
     private val _allLabels: Flow<List<LabelUiModel>> =
         repository.labels.map { list -> list.map { it.toLabelUiModel() } }.distinctUntilChanged()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val _allCountries: Flow<List<CountryUiModel>> =
+        currentCourseId.flatMapLatest { courseId ->
+            repository.getCountriesFlow(courseId)
+        }.map { countries ->
+            countries.map { it.toCountryUiModel() }.sortedBy { it.displayName }
+        }.flowOn(Dispatchers.Default)
+
     @OptIn(FlowPreview::class)
     private val debouncedFilters =
         _appliedFilters.scan(_appliedFilters.value.searchQuery to _appliedFilters.value) { (oldQuery, current), next ->
             current.searchQuery to next
         }.debounce { (oldQuery, next) ->
             if (next.searchQuery != oldQuery) 300L else 0L
-        }.map { it.second }.distinctUntilChanged()
+        }.map { it.second }.distinctUntilChanged().flowOn(Dispatchers.Default)
 
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -79,8 +89,8 @@ class MediaListViewModel @Inject constructor(
     }.cachedIn(viewModelScope)
 
     val mediaListUiState: StateFlow<MediaListUiState> = combine(
-        currentCourseId, _draftFilters, _allLabels, _appliedSort,
-    ) { id, filters, labels, sort ->
+        currentCourseId, _draftFilters, _allLabels, _allCountries, _appliedSort,
+    ) { id, filters, labels, countries, sort ->
 
         when {
             id.isBlank() -> MediaListUiState.Empty
@@ -90,6 +100,7 @@ class MediaListViewModel @Inject constructor(
                     currentCourseId = id,
                     filters = filters,
                     allLabels = labels.toSet(),
+                    allCountries = countries.toSet(),
                     appliedSort = sort
                 )
             }
@@ -123,6 +134,14 @@ class MediaListViewModel @Inject constructor(
         _draftFilters.update {
             it.copy(
                 selectedLabels = labelIds, allLabelsSelected = false
+            )
+        }
+    }
+
+    fun updateSelectedCountries(countryIds: Set<String>) {
+        _draftFilters.update {
+            it.copy(
+                selectedCountries = countryIds, allCountriesSelected = false
             )
         }
     }
@@ -167,6 +186,32 @@ class MediaListViewModel @Inject constructor(
                         _draftFilters.update {
                             it.copy(
                                 selectedChannels = emptySet(), allChannelsSelected = false
+                            )
+                        }
+                    }
+                }
+
+                else -> {}
+            }
+        }
+    }
+
+    fun onSelectAllCountriesChange(filterChange: FilterChange) {
+        viewModelScope.launch {
+            when (filterChange) {
+                is FilterChange.Toggle -> {
+                    if (filterChange.isChecked) {
+                        val allCountries = repository.getCountriesForCourse(currentCourseId.value)
+                        _draftFilters.update {
+                            it.copy(
+                                selectedCountries = allCountries.toSet(),
+                                allCountriesSelected = true
+                            )
+                        }
+                    } else {
+                        _draftFilters.update {
+                            it.copy(
+                                selectedCountries = emptySet(), allCountriesSelected = false
                             )
                         }
                     }

@@ -140,6 +140,7 @@
     <string name="group_german_global">Kraje niemieckojęzyczne</string>
     <string name="group_russian_global">Kraje rosyjskojęzyczne</string>
     <string name="group_japanese_global">Kraje japońskojęzyczne</string>
+    <string name="countries_description">Kraje</string>
 
     <!--    label    -->
     <string name="label_name_label">Tekst</string>

@@ -45,6 +45,15 @@ object ChannelQueryBuilder {
             )
         }
 
+        if (filters.selectedCountries.isNotEmpty()) {
+            val placeholders = filters.selectedCountries.joinToString(",") { "?" }
+            sql.andIf(
+                true,
+                "c.defaultLanguage IN ($placeholders)".trimIndent(),
+                *filters.selectedCountries.toTypedArray()
+            )
+        }
+
         sql.groupBy("c.id")
 
         when (sort) {
