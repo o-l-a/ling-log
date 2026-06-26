@@ -165,6 +165,7 @@
     <string name="channel_apply_labels_to_videos">Zastosuj labelki do filmów z tego kanału</string>
     <string name="channel_default_language">Domyślny kraj</string>
     <string name="channel_select_default_language">Wybierz domyślny kraj…</string>
+    <string name="channel_first_watched_on">Oglądasz od: %s</string>
 
     <!--    confetti options   -->
     <string name="confetti_option_1">Domyślny</string>

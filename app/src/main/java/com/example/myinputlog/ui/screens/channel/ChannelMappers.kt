@@ -6,6 +6,8 @@ import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.toCountryUiModelOrNull
 import com.example.myinputlog.ui.models.toLabelUiModel
+import com.example.myinputlog.ui.screens.common.ext.toLocalDate
+import com.example.myinputlog.ui.screens.media_list.SeparatorTransformer
 
 fun ChannelMetadata.toChannelEntity(): ChannelEntity = ChannelEntity(
     id = id,
@@ -22,7 +24,8 @@ fun ChannelMetadata.toChannelEntity(): ChannelEntity = ChannelEntity(
 
 fun ChannelWithStatsAndLabels.toChannelMetadata(
     allLabels: Set<LabelUiModel>,
-    availableLanguages: List<CountryUiModel>
+    availableLanguages: List<CountryUiModel>,
+    separatorTransformer: SeparatorTransformer
 ): ChannelMetadata = ChannelMetadata(
     id = channel.id,
     title = channel.title,
@@ -38,5 +41,10 @@ fun ChannelWithStatsAndLabels.toChannelMetadata(
         .toSortedSet(compareBy { it.title.lowercase() }),
     allLabels = allLabels,
     totalTimeInSeconds = totalTimeInSeconds,
-    totalVideoCount = totalVideoCount
-)
+    totalVideoCount = totalVideoCount,
+    firstWatchedOn = firstWatchedOn,
+    firstWatchedOnDisplay = firstWatchedOn?.let {
+        separatorTransformer.getWatchedOnHeader(
+            it.toLocalDate(), false
+        )
+    })

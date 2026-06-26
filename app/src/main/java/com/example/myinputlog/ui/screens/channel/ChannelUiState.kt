@@ -2,6 +2,8 @@ package com.example.myinputlog.ui.screens.channel
 
 import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.screens.common.UiText
+import java.util.Date
 
 
 sealed interface ChannelUiState {
@@ -43,7 +45,9 @@ data class ChannelMetadata(
     val allLabels: Set<LabelUiModel> = emptySet(),
     val availableLanguages: List<CountryUiModel> = emptyList(),
     val totalTimeInSeconds: Long = 0L,
-    val totalVideoCount: Long = 0L
+    val totalVideoCount: Long = 0L,
+    val firstWatchedOn: Date? = null,
+    val firstWatchedOnDisplay: UiText? = null
 )
 
 data class ChannelUiFlags(

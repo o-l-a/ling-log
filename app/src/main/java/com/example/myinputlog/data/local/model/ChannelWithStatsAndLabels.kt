@@ -6,6 +6,7 @@ import androidx.room.Relation
 import com.example.myinputlog.data.local.entities.ChannelEntity
 import com.example.myinputlog.data.local.entities.ChannelLabelCrossRef
 import com.example.myinputlog.data.local.entities.LabelEntity
+import java.util.Date
 
 class ChannelWithStatsAndLabels(
     @Embedded val channel: ChannelEntity,
@@ -17,5 +18,6 @@ class ChannelWithStatsAndLabels(
         )
     ) val labels: Set<LabelEntity>,
     val totalTimeInSeconds: Long = 0L,
-    val totalVideoCount: Long = 0L
+    val totalVideoCount: Long = 0L,
+    val firstWatchedOn: Date? = null
 )

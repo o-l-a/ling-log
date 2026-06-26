@@ -14,6 +14,7 @@ import com.example.myinputlog.ui.models.toCountryUiModelOrNull
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.navigation.ChannelRoute
 import com.example.myinputlog.ui.screens.common.UiText
+import com.example.myinputlog.ui.screens.media_list.SeparatorTransformer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -43,6 +44,8 @@ class ChannelViewModel @Inject constructor(
 
     private val channelRoute = savedStateHandle.toRoute<ChannelRoute>()
     private val channelId = channelRoute.channelId
+
+    private val separatorTransformer = SeparatorTransformer()
 
     private val _form = MutableStateFlow(ChannelForm())
     private val _metadata = MutableStateFlow(ChannelMetadata())
@@ -111,7 +114,8 @@ class ChannelViewModel @Inject constructor(
             if (channel != null) {
                 val languages = repository.getCountriesForCourse(channel.channel.courseId)
                     .map { it.toCountryUiModel() }
-                val channelWithMetadata = channel.toChannelMetadata(allLabels, languages)
+                val channelWithMetadata =
+                    channel.toChannelMetadata(allLabels, languages, separatorTransformer)
                 _metadata.value = channelWithMetadata
                 _form.update {
                     it.copy(

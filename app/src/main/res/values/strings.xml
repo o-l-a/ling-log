@@ -164,6 +164,7 @@
     <string name="channel_apply_labels_to_videos">Apply labels to this channel\'s videos</string>
     <string name="channel_default_language">Default country</string>
     <string name="channel_select_default_language">Select default country…</string>
+    <string name="channel_first_watched_on">First watched on: %s</string>
 
     <!--    confetti options   -->
     <string name="confetti_option_1">Default</string>

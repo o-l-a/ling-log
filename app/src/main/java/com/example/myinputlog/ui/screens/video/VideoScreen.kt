@@ -176,8 +176,8 @@ fun VideoScreen(
     if (videoUiState is VideoUiState.Success) {
         VideoScreenDialogs(
             onDeleteConfirm = {
-            videoViewModel.deleteVideo()
-        },
+                videoViewModel.deleteVideo()
+            },
             onDeleteDismiss = {
                 videoViewModel.toggleDeleteDialogVisibility(false)
             },
@@ -409,7 +409,7 @@ fun LazyListScope.videoMetadataSection(
                     )
                     Text(
                         modifier = Modifier.padding(bottom = MaterialTheme.spacing.small),
-                        text = "${videoMetadata.channelCustomUrl} • ${videoMetadata.channelTitle} • ${
+                        text = "${videoMetadata.channelTitle} • ${if (videoMetadata.channelCustomUrl != null) videoMetadata.channelCustomUrl + " • " else ""}${
                             getLanguageDisplayName(
                                 videoMetadata.defaultAudioLanguage
                             ) ?: stringResource(R.string.unknown_language)

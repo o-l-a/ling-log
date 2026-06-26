@@ -36,7 +36,8 @@ interface ChannelDao {
         """SELECT 
             c.*, 
             COUNT(v.id) AS totalVideoCount, 
-            COALESCE(SUM(v.durationInSeconds), 0) AS totalTimeInSeconds
+            COALESCE(SUM(v.durationInSeconds), 0) AS totalTimeInSeconds,
+            MIN(v.watchedOn) AS firstWatchedOn
         FROM channels c
         LEFT JOIN videos v ON c.id = v.channelId AND v.isDeleted = 0
         WHERE c.id = :id AND c.isDeleted = 0

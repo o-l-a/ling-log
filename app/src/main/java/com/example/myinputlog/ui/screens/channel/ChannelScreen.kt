@@ -190,7 +190,16 @@ fun ChannelBody(
         channelUiState.metadata.customUrl?.ifEmpty { null }?.let {
             item(key = "custom_url") {
                 Text(
-                    text = channelUiState.metadata.customUrl,
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+        channelUiState.metadata.firstWatchedOnDisplay?.let {
+            item(key = "first_watched") {
+                Text(
+                    text = stringResource(R.string.channel_first_watched_on, it.asString()),
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
@@ -240,7 +249,8 @@ fun ChannelBody(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        bottom = MaterialTheme.spacing.small, top = MaterialTheme.spacing.extraExtraSmall
+                        bottom = MaterialTheme.spacing.small,
+                        top = MaterialTheme.spacing.extraExtraSmall
                     ),
                 selectedCountry = channelUiState.form.defaultLanguage,
                 onValueChange = onLanguageChanged,

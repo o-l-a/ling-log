@@ -1,7 +1,6 @@
 package com.example.myinputlog
 
 import android.app.Application
-import android.util.Log
 import androidx.core.provider.FontRequest
 import androidx.emoji2.text.EmojiCompat
 import androidx.emoji2.text.FontRequestEmojiCompatConfig

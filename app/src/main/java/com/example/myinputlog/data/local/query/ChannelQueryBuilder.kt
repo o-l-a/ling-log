@@ -18,7 +18,8 @@ object ChannelQueryBuilder {
             SELECT 
                 c.*, 
                 COUNT(v.id) AS totalVideoCount, 
-                SUM(v.durationInSeconds) AS totalTimeInSeconds 
+                SUM(v.durationInSeconds) AS totalTimeInSeconds,
+                MIN(v.watchedOn) AS firstWatchedOn
             FROM channels AS c
             LEFT JOIN videos AS v ON c.id = v.channelId AND v.isDeleted = 0
         """.trimIndent()
