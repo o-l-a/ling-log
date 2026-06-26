@@ -154,19 +154,34 @@ class MediaListViewModel @Inject constructor(
                         val allLabels = repository.getAllLabelsAsSet().map { it.id }
                         _draftFilters.update {
                             it.copy(
-                                selectedLabels = allLabels.toSet(), allLabelsSelected = true
+                                selectedLabels = allLabels.toSet(),
+                                unassignedLabelSelected = true,
+                                allLabelsSelected = true
+
                             )
                         }
                     } else {
                         _draftFilters.update {
                             it.copy(
-                                selectedLabels = emptySet(), allLabelsSelected = false
+                                selectedLabels = emptySet(),
+                                unassignedLabelSelected = false,
+                                allLabelsSelected = false
                             )
                         }
                     }
                 }
 
                 else -> {}
+            }
+        }
+    }
+
+    fun onUnassignedLabelsChange(filterChange: FilterChange) {
+        if (filterChange is FilterChange.Toggle) {
+            _draftFilters.update {
+                it.copy(
+                    unassignedLabelSelected = filterChange.isChecked, allLabelsSelected = false
+                )
             }
         }
     }
@@ -205,19 +220,32 @@ class MediaListViewModel @Inject constructor(
                         _draftFilters.update {
                             it.copy(
                                 selectedCountries = allCountries.toSet(),
+                                unassignedCountrySelected = true,
                                 allCountriesSelected = true
                             )
                         }
                     } else {
                         _draftFilters.update {
                             it.copy(
-                                selectedCountries = emptySet(), allCountriesSelected = false
+                                selectedCountries = emptySet(),
+                                unassignedCountrySelected = false,
+                                allCountriesSelected = false
                             )
                         }
                     }
                 }
 
                 else -> {}
+            }
+        }
+    }
+
+    fun onUnassignedCountriesChange(filterChange: FilterChange) {
+        if (filterChange is FilterChange.Toggle) {
+            _draftFilters.update {
+                it.copy(
+                    unassignedCountrySelected = filterChange.isChecked, allCountriesSelected = false
+                )
             }
         }
     }

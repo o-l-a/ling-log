@@ -34,25 +34,55 @@ object VideoQueryBuilder {
             )
         }
 
-        if (filters.selectedLabels.isNotEmpty()) {
-            val placeholders = filters.selectedLabels.joinToString(",") { "?" }
+        if (filters.hasLabelFilter()) {
+            val labelConditions = buildList {
+                if (filters.selectedLabels.isNotEmpty()) {
+                    val placeholders = filters.selectedLabels.joinToString(",") { "?" }
+                    add(
+                        """
+                        EXISTS (
+                            SELECT 1 FROM video_label_cross_ref 
+                            WHERE videoId = v.id 
+                            AND labelId IN ($placeholders)
+                        )
+                        """.trimIndent()
+                    )
+                }
+
+                if (filters.unassignedLabelSelected) {
+                    add(
+                        """
+                        NOT EXISTS (
+                            SELECT 1 FROM video_label_cross_ref 
+                            WHERE videoId = v.id
+                        )
+                        """.trimIndent()
+                    )
+                }
+            }
+
             sql.andIf(
-                true, """
-                    EXISTS (
-                        SELECT 1 FROM video_label_cross_ref vlc 
-                        WHERE vlc.videoId = v.id 
-                        AND vlc.labelId IN ($placeholders)
-                    ) 
-                    """.trimIndent(), *filters.selectedLabels.toTypedArray()
+                condition = labelConditions.isNotEmpty(),
+                sql = labelConditions.joinToString(separator = " OR ", prefix = "(", postfix = ")"),
+                bindArgs = filters.selectedLabels.toTypedArray()
             )
         }
 
-        if (filters.selectedCountries.isNotEmpty()) {
-            val placeholders = filters.selectedCountries.joinToString(",") { "?" }
+        if (filters.hasCountryFilter()) {
+            val countryConditions = buildList {
+                if (filters.selectedCountries.isNotEmpty()) {
+                    val placeholders = filters.selectedCountries.joinToString(",") { "?" }
+                    add("v.speakersNationality IN ($placeholders)".trimIndent())
+                }
+                if (filters.unassignedCountrySelected) {
+                    add("v.speakersNationality IS NULL")
+                }
+            }
+
             sql.andIf(
-                true,
-                "v.speakersNationality IN ($placeholders)".trimIndent(),
-                *filters.selectedCountries.toTypedArray()
+                condition = countryConditions.isNotEmpty(), sql = countryConditions.joinToString(
+                    separator = " OR ", prefix = "(", postfix = ")"
+                ), bindArgs = filters.selectedCountries.toTypedArray()
             )
         }
 

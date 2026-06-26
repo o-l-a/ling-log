@@ -25,11 +25,16 @@ data class MediaFilters(
     val selectedCountries: Set<String> = emptySet(),
     val allChannelsSelected: Boolean = false,
     val allLabelsSelected: Boolean = false,
-    val allCountriesSelected: Boolean = false
+    val unassignedLabelSelected: Boolean = false,
+    val allCountriesSelected: Boolean = false,
+    val unassignedCountrySelected: Boolean = false
 ) {
+    fun hasLabelFilter(): Boolean = selectedLabels.isNotEmpty() || unassignedLabelSelected
+
+    fun hasCountryFilter(): Boolean = selectedCountries.isNotEmpty() || unassignedCountrySelected
+
     fun hasActiveFilters(isChannel: Boolean = false): Boolean {
-        val common =
-            searchQuery.isNotEmpty() || selectedLabels.isNotEmpty() || selectedCountries.isNotEmpty()
+        val common = searchQuery.isNotEmpty() || hasCountryFilter() || hasLabelFilter()
         return if (isChannel) common else common || selectedChannels.isNotEmpty()
     }
 }

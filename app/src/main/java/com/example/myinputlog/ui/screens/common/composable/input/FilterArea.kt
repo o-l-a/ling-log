@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
@@ -55,8 +56,7 @@ fun FilterAreaHeader(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = MaterialTheme.spacing.mediumPlus,
-                end = MaterialTheme.spacing.extraSmall
+                start = MaterialTheme.spacing.mediumPlus, end = MaterialTheme.spacing.extraSmall
             ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -80,23 +80,23 @@ fun FilterAreaHeader(
 
 @Composable
 fun FilterItemRow(
+    modifier: Modifier = Modifier,
     filter: FilterValueUiModel,
     onCheckedChange: (FilterChange) -> Unit,
-    modifier: Modifier = Modifier
+    isItalic: Boolean = false,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = MaterialTheme.spacing.mediumPlus,
-                end = MaterialTheme.spacing.extraSmall
+                start = MaterialTheme.spacing.mediumPlus, end = MaterialTheme.spacing.extraSmall
             ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         when (val content = filter.content) {
             is FilterContentType.Basic -> {
-                Text(content.text)
+                Text(content.text, fontStyle = if (isItalic) FontStyle.Italic else null)
             }
 
             is FilterContentType.Leaded -> {
@@ -145,8 +145,7 @@ fun SortItemRow(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(
-                    start = MaterialTheme.spacing.mediumPlus,
-                    end = MaterialTheme.spacing.extraSmall
+                    start = MaterialTheme.spacing.mediumPlus, end = MaterialTheme.spacing.extraSmall
                 ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -168,6 +167,10 @@ inline fun <T : Any> LazyListScope.filterArea(
     isExpanded: Boolean,
     enableSelectAll: Boolean,
     isAllSelected: Boolean,
+    enableUnassigned: Boolean = false,
+    isUnassignedSelected: Boolean = false,
+    unassignedText: String = "",
+    noinline onUnassignedChange: ((FilterChange) -> Unit)? = null,
     noinline onHeaderClick: () -> Unit,
     noinline onSelectAll: (FilterChange) -> Unit,
     crossinline key: (T) -> Any,
@@ -191,6 +194,19 @@ inline fun <T : Any> LazyListScope.filterArea(
                 )
             }
         }
+        if (enableUnassigned && onUnassignedChange != null) {
+            item(key = "unassigned_$title") {
+                FilterItemRow(
+                    isItalic = true,
+                    filter = FilterValueUiModel(
+                        id = "unassigned",
+                        content = FilterContentType.Basic(unassignedText),
+                        selected = isUnassignedSelected,
+                        isToggleType = true
+                    ), onCheckedChange = onUnassignedChange
+                )
+            }
+        }
         items(
             items = items, key = { item -> key(item) }) { item ->
             Box(modifier = Modifier.animateItem()) {
@@ -209,6 +225,10 @@ fun <T : Any> LazyListScope.filterArea(
     isExpanded: Boolean,
     enableSelectAll: Boolean,
     isAllSelected: Boolean,
+    enableUnassigned: Boolean = false,
+    isUnassignedSelected: Boolean = false,
+    unassignedText: String = "",
+    onUnassignedChange: ((FilterChange) -> Unit)? = null,
     onHeaderClick: () -> Unit,
     onSelectAll: (FilterChange) -> Unit,
     key: (T) -> Any,
@@ -229,6 +249,19 @@ fun <T : Any> LazyListScope.filterArea(
                         isToggleType = true
                     ),
                     onCheckedChange = onSelectAll,
+                )
+            }
+        }
+        if (enableUnassigned && onUnassignedChange != null) {
+            item(key = "unassigned_$title") {
+                FilterItemRow(
+                    isItalic = true,
+                    filter = FilterValueUiModel(
+                        id = "unassigned",
+                        content = FilterContentType.Basic(unassignedText),
+                        selected = isUnassignedSelected,
+                        isToggleType = true
+                    ), onCheckedChange = onUnassignedChange
                 )
             }
         }

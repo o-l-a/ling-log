@@ -32,25 +32,55 @@ object ChannelQueryBuilder {
             sql.andIf(true, "c.title LIKE ?", "%${filters.searchQuery}%")
         }
 
-        if (filters.selectedLabels.isNotEmpty()) {
-            val placeholders = filters.selectedLabels.joinToString(",") { "?" }
+        if (filters.hasLabelFilter()) {
+            val labelConditions = buildList {
+                if (filters.selectedLabels.isNotEmpty()) {
+                    val placeholders = filters.selectedLabels.joinToString(",") { "?" }
+                    add(
+                        """
+                        EXISTS (
+                            SELECT 1 FROM channel_label_cross_ref clc 
+                            WHERE clc.channelId = c.id 
+                            AND clc.labelId IN ($placeholders)
+                        )
+                        """.trimIndent()
+                    )
+                }
+
+                if (filters.unassignedLabelSelected) {
+                    add(
+                        """
+                        NOT EXISTS (
+                            SELECT 1 FROM channel_label_cross_ref clc
+                            WHERE clc.channelId = c.id
+                        )
+                        """.trimIndent()
+                    )
+                }
+            }
+
             sql.andIf(
-                true, """
-                    EXISTS (
-                        SELECT 1 FROM channel_label_cross_ref clc 
-                        WHERE clc.channelId = c.id 
-                        AND clc.labelId IN ($placeholders)
-                    ) 
-                    """.trimIndent(), *filters.selectedLabels.toTypedArray()
+                condition = labelConditions.isNotEmpty(),
+                sql = labelConditions.joinToString(separator = " OR ", prefix = "(", postfix = ")"),
+                bindArgs = filters.selectedLabels.toTypedArray()
             )
         }
 
-        if (filters.selectedCountries.isNotEmpty()) {
-            val placeholders = filters.selectedCountries.joinToString(",") { "?" }
+        if (filters.hasCountryFilter()) {
+            val countryConditions = buildList {
+                if (filters.selectedCountries.isNotEmpty()) {
+                    val placeholders = filters.selectedCountries.joinToString(",") { "?" }
+                    add("c.defaultLanguage IN ($placeholders)".trimIndent())
+                }
+                if (filters.unassignedCountrySelected) {
+                    add("c.defaultLanguage IS NULL")
+                }
+            }
+
             sql.andIf(
-                true,
-                "c.defaultLanguage IN ($placeholders)".trimIndent(),
-                *filters.selectedCountries.toTypedArray()
+                condition = countryConditions.isNotEmpty(), sql = countryConditions.joinToString(
+                    separator = " OR ", prefix = "(", postfix = ")"
+                ), bindArgs = filters.selectedCountries.toTypedArray()
             )
         }
 

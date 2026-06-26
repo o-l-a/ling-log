@@ -58,6 +58,7 @@
     <string name="clear_filters_text">Wyczyść filtry</string>
     <string name="apply_filters_text">Zastosuj filtry</string>
     <string name="select_all_text">Zaznacz wszystko</string>
+    <string name="empty_option_text">Brak</string>
 
     <!--    sort options    -->
     <string name="sort_header">Sortuj</string>

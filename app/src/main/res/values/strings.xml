@@ -57,6 +57,7 @@
     <string name="clear_filters_text">Clear filters</string>
     <string name="apply_filters_text">Apply filters</string>
     <string name="select_all_text">Select all</string>
+    <string name="empty_option_text">None</string>
 
     <!--    sort options    -->
     <string name="sort_header">Sort</string>

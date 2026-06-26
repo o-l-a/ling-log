@@ -156,10 +156,12 @@ fun MediaListScreen(
             channels = filterChannels,
             onLabelsChanged = mediaListViewModel::updateSelectedLabels,
             onSelectAllLabels = mediaListViewModel::onSelectAllLabelsChange,
+            onSelectUnassignedLabel = mediaListViewModel::onUnassignedLabelsChange,
             onCountriesChanged = mediaListViewModel::updateSelectedCountries,
             onSelectAllCountries = mediaListViewModel::onSelectAllCountriesChange,
             onChannelsChanged = mediaListViewModel::updateSelectedChannels,
             onSelectAllChannels = mediaListViewModel::onSelectAllChannelsChange,
+            onSelectUnassignedCountry = mediaListViewModel::onUnassignedCountriesChange,
             onApplyClicked = mediaListViewModel::applyFilters,
             onClearClicked = mediaListViewModel::clearFilters,
             appliedSort = successState.appliedSort,
@@ -345,10 +347,12 @@ fun MediaFilterBottomSheet(
     countries: Set<CountryUiModel>,
     onLabelsChanged: (Set<String>) -> Unit,
     onSelectAllLabels: (FilterChange) -> Unit,
+    onSelectUnassignedLabel: (FilterChange) -> Unit,
     onChannelsChanged: (Set<String>) -> Unit,
     onSelectAllChannels: (FilterChange) -> Unit,
     onCountriesChanged: (Set<String>) -> Unit,
     onSelectAllCountries: (FilterChange) -> Unit,
+    onSelectUnassignedCountry: (FilterChange) -> Unit,
     onApplyClicked: () -> Unit,
     onClearClicked: () -> Unit,
     appliedSort: SortOptions,
@@ -373,6 +377,7 @@ fun MediaFilterBottomSheet(
     val channelTitle = stringResource(R.string.channel_list_screen_title)
     val countryTitle = stringResource(R.string.countries_description)
     val sortTitle = stringResource(R.string.sort_header)
+    val emptyText = stringResource(R.string.empty_option_text)
 
     val dismiss = {
         coroutineScope.launch {
@@ -416,12 +421,16 @@ fun MediaFilterBottomSheet(
 
             filterArea(
                 title = labelTitle,
+                unassignedText = emptyText,
                 items = labels.toList(),
                 isExpanded = isLabelsExpanded,
                 enableSelectAll = true,
+                enableUnassigned = true,
                 isAllSelected = filters.allLabelsSelected,
+                isUnassignedSelected = filters.unassignedLabelSelected,
                 onHeaderClick = { isLabelsExpanded = !isLabelsExpanded },
                 onSelectAll = onSelectAllLabels,
+                onUnassignedChange = onSelectUnassignedLabel,
                 key = { it.id }) { label ->
                 FilterItemRow(
                     filter = FilterValueUiModel(
@@ -453,12 +462,16 @@ fun MediaFilterBottomSheet(
 
             filterArea(
                 title = countryTitle,
+                unassignedText = emptyText,
                 items = countries.toList(),
                 isExpanded = isCountriesExpanded,
                 enableSelectAll = true,
+                enableUnassigned = true,
                 isAllSelected = filters.allCountriesSelected,
+                isUnassignedSelected = filters.unassignedCountrySelected,
                 onHeaderClick = { isCountriesExpanded = !isCountriesExpanded },
                 onSelectAll = onSelectAllCountries,
+                onUnassignedChange = onSelectUnassignedCountry,
                 key = { it.isoCode }) { country ->
                 FilterItemRow(
                     filter = FilterValueUiModel(
