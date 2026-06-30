@@ -5,7 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.StackedBarChart
+import androidx.compose.material.icons.filled.StackedLineChart
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -41,6 +41,8 @@ import com.example.myinputlog.ui.screens.profile.ProfileScreen
 import com.example.myinputlog.ui.screens.profile.ProfileViewModel
 import com.example.myinputlog.ui.screens.sign_up.SignUpScreen
 import com.example.myinputlog.ui.screens.sign_up.SignUpViewModel
+import com.example.myinputlog.ui.screens.trends.TrendsScreen
+import com.example.myinputlog.ui.screens.trends.TrendsViewModel
 import com.example.myinputlog.ui.screens.ui_settings.UiSettingsScreen
 import com.example.myinputlog.ui.screens.ui_settings.UiSettingsViewModel
 import com.example.myinputlog.ui.screens.video.VideoScreen
@@ -56,8 +58,8 @@ sealed class Screen(
         Screen(MediaListRoute, R.string.media_bottom_nav_description, Icons.Filled.VideoLibrary)
 
     object AddVideo : Screen("", null, Icons.Filled.Add)
-    object RecentlyWatched : Screen(
-        PlaylistsRoute, R.string.suggested_bottom_nav_description, Icons.Filled.StackedBarChart
+    object Trends : Screen(
+        TrendsRoute, R.string.trends_bottom_nav_description, Icons.Filled.StackedLineChart
     )
 
     object Profile :
@@ -78,7 +80,7 @@ val navigationItems = listOf(
     Screen.Home,
     Screen.Videos,
     Screen.AddVideo,
-    Screen.RecentlyWatched,
+    Screen.Trends,
     Screen.Profile,
 )
 
@@ -99,14 +101,15 @@ fun MyInputLogNavHost(
                 }, viewModel = landingViewModel
             )
         }
-        myInputLogHomeGraph(navController)
-        myInputLogSignInGraph(navController)
-        myInputLogVideosGraph(navController)
-        myInputLogProfileGraph(navController)
+        homeGraph(navController)
+        signInGraph(navController)
+        videosGraph(navController)
+        profileGraph(navController)
+        trendsGraph(navController)
     }
 }
 
-fun NavGraphBuilder.myInputLogHomeGraph(navController: NavHostController) {
+fun NavGraphBuilder.homeGraph(navController: NavHostController) {
     navigation<HomeGraph>(
         startDestination = HomeRoute,
     ) {
@@ -121,7 +124,7 @@ fun NavGraphBuilder.myInputLogHomeGraph(navController: NavHostController) {
     }
 }
 
-fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
+fun NavGraphBuilder.videosGraph(navController: NavHostController) {
     navigation<MediaGraph>(
         startDestination = MediaListRoute,
     ) {
@@ -152,7 +155,22 @@ fun NavGraphBuilder.myInputLogVideosGraph(navController: NavHostController) {
     }
 }
 
-fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
+fun NavGraphBuilder.trendsGraph(navController: NavHostController) {
+    navigation<TrendsGraph>(
+        startDestination = TrendsRoute
+    ) {
+        composable<TrendsRoute> {
+            val trendsViewModel = hiltViewModel<TrendsViewModel>()
+            TrendsScreen(trendsViewModel = trendsViewModel, onBottomNavClicked = { route ->
+                navController.navigateWithPopUp(route, ProfileRoute)
+            }, navigateToVideoEntry = { courseId ->
+                navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
+            })
+        }
+    }
+}
+
+fun NavGraphBuilder.profileGraph(navController: NavHostController) {
     navigation<ProfileGraph>(
         startDestination = ProfileRoute,
     ) {
@@ -225,7 +243,7 @@ fun NavGraphBuilder.myInputLogProfileGraph(navController: NavHostController) {
     }
 }
 
-fun NavGraphBuilder.myInputLogSignInGraph(navController: NavHostController) {
+fun NavGraphBuilder.signInGraph(navController: NavHostController) {
     navigation<AuthGraph>(
         startDestination = LoginRoute
     ) {

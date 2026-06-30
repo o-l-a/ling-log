@@ -16,6 +16,12 @@ object MediaGraph
 
 @Serializable
 /**
+ * Trends page
+ */
+object TrendsGraph
+
+@Serializable
+/**
  * Authentication flow (log in, create account)
  */
 object AuthGraph
@@ -60,7 +66,7 @@ data class ChannelRoute(val courseId: String, val channelId: String)
 /**
  * To yeet
  */
-object PlaylistsRoute
+object TrendsRoute
 
 @Serializable
 /**

@@ -22,7 +22,7 @@
     <string name="home_bottom_nav_description">Home</string>
     <string name="media_bottom_nav_description">Media</string>
     <string name="profile_bottom_nav_description">Profile</string>
-    <string name="suggested_bottom_nav_description">Playlists</string>
+    <string name="trends_bottom_nav_description">Trends</string>
 
     <!--    settings nav descriptions    -->
     <string name="course_list_nav_description">Courses</string>

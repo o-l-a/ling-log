@@ -23,7 +23,7 @@
     <string name="home_bottom_nav_description">Główna</string>
     <string name="media_bottom_nav_description">Media</string>
     <string name="profile_bottom_nav_description">Profil</string>
-    <string name="suggested_bottom_nav_description">Playlisty</string>
+    <string name="trends_bottom_nav_description">Trendy</string>
 
     <!--    settings nav descriptions    -->
     <string name="course_list_nav_description">Kursy</string>

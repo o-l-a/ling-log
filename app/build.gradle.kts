@@ -136,4 +136,6 @@ dependencies {
     implementation(libs.integrity)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(kotlin("reflect"))
+
+    implementation(libs.charty)
 }
