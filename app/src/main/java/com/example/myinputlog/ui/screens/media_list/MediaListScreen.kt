@@ -181,10 +181,7 @@ fun MediaListScreen(
                     onFilterClick = { showFilterSheet = true },
                     scrollBehavior = scrollBehavior,
                     pagerState = pagerState,
-                    tabs = tabs,
-                    hasActiveFilters = (mediaListUiState as MediaListUiState.Success).filters.hasActiveFilters(
-                        pagerState.currentPage == 1
-                    )
+                    tabs = tabs
                 )
             }
         },
@@ -286,8 +283,7 @@ fun MediaListHeader(
     pagerState: PagerState,
     tabs: List<MediaTab>,
     onSearch: (String) -> Unit,
-    onFilterClick: () -> Unit,
-    hasActiveFilters: Boolean,
+    onFilterClick: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -310,7 +306,6 @@ fun MediaListHeader(
                 textFieldState = textFieldState,
                 onSearch = onSearch,
                 onFilterClick = onFilterClick,
-                hasActiveFilters = hasActiveFilters,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent
                 ),

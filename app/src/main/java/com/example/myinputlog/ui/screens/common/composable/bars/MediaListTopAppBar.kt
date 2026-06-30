@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -17,8 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -49,7 +46,6 @@ fun MediaListTopAppBar(
     textFieldState: TextFieldState,
     onSearch: (String) -> Unit,
     onFilterClick: () -> Unit,
-    hasActiveFilters: Boolean,
     scrollBehavior: TopAppBarScrollBehavior?,
     modifier: Modifier = Modifier,
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors()
@@ -131,16 +127,9 @@ fun MediaListTopAppBar(
                     onClick = onFilterClick,
                     modifier = Modifier.padding(horizontal = MaterialTheme.spacing.extraSmall)
                 ) {
-                    BadgedBox(
-                        badge = {
-                            if (hasActiveFilters) {
-                                Badge(modifier = Modifier.size(MaterialTheme.spacing.extraExtraSmall))
-                            }
-                        }) {
-                        Icon(
-                            imageVector = Icons.Default.Tune, contentDescription = "Filters"
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Tune, contentDescription = "Filters"
+                    )
                 }
             }
         })

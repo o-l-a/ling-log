@@ -84,7 +84,7 @@ class MediaListViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val filterChannelFlow = currentCourseId.flatMapLatest { courseId ->
-        repository.channelPagingFlow(courseId, MediaFilters(), SortOptions.TITLE_ASC)
+        repository.channelPagingFlow(courseId, MediaFilters(), SortOptions.CHANNEL_TITLE_ASC)
             .flowOn(Dispatchers.Default)
     }.cachedIn(viewModelScope)
 
