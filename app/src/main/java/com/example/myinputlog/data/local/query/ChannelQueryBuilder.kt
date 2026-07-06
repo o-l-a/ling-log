@@ -116,8 +116,8 @@ object ChannelQueryBuilder {
             }
 
             else -> {
-                sql.orderBy("totalVideoCount DESC")
                 sql.orderBy("totalTimeInSeconds DESC")
+                sql.orderBy("totalVideoCount DESC")
                 sql.orderBy("lower(c.title) ASC")
             }
         }

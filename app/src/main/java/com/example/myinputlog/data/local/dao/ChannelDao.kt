@@ -51,7 +51,7 @@ interface ChannelDao {
         LEFT JOIN videos v ON c.id = v.channelId AND v.isDeleted = 0
         WHERE c.isDeleted = 0
         GROUP BY c.id
-        ORDER BY COUNT(v.id) DESC, COALESCE(SUM(v.durationInSeconds), 0) DESC, c.title ASC
+        ORDER BY COALESCE(SUM(v.durationInSeconds), 0) DESC, COUNT(v.id) DESC, c.title ASC
         LIMIT :limit"""
     )
     suspend fun getGlobalChannelRanking(limit: Int = 3): List<String>

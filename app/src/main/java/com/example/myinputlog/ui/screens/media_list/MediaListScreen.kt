@@ -189,7 +189,7 @@ fun MediaListScreen(
             MyInputLogBottomNavBar(
                 selectedScreen = Screen.Videos,
                 onBottomNavClicked = onBottomNavClicked,
-                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
+                navigateToVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
         },
         floatingActionButton = {
             AnimatedVisibility(

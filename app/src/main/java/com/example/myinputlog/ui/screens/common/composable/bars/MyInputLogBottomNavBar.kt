@@ -31,7 +31,7 @@ fun MyInputLogBottomNavBar(
     modifier: Modifier = Modifier,
     selectedScreen: Screen,
     onBottomNavClicked: (Any) -> Unit,
-    navigateToYouTubeVideoEntry: () -> Unit,
+    navigateToVideoEntry: () -> Unit,
 ) {
     NavigationBar(
         modifier = modifier, windowInsets = WindowInsets(
@@ -48,7 +48,7 @@ fun MyInputLogBottomNavBar(
                 ) {
                     Row {
                         NavigationBarItem(
-                            onClick = navigateToYouTubeVideoEntry, icon = {
+                            onClick = navigateToVideoEntry, icon = {
                                 Icon(
                                     modifier = Modifier
                                         .padding(MaterialTheme.spacing.default)
@@ -99,7 +99,7 @@ fun BottomNavBarPreview() {
             MyInputLogBottomNavBar(
                 selectedScreen = Screen.Home,
                 onBottomNavClicked = {},
-                navigateToYouTubeVideoEntry = {})
+                navigateToVideoEntry = {})
         }) {
             Text(modifier = Modifier.padding(paddingValues = it), text = "Hey")
         }

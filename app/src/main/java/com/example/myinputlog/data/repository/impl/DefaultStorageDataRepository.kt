@@ -21,6 +21,9 @@ import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithLabelIds
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.CourseWithStats
+import com.example.myinputlog.data.local.model.DailyWatchStat
+import com.example.myinputlog.data.local.model.LabelWithStats
+import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
 import com.example.myinputlog.data.local.query.ChannelQueryBuilder
@@ -326,8 +329,8 @@ class DefaultStorageDataRepository @Inject constructor(
 
     override fun getCountriesFlow(courseId: String): Flow<List<String>> = scoped {
         courseDao.getCountriesFlow(courseId).map { result ->
-                result?.codes ?: emptyList()
-            }.distinctUntilChanged().flowOn(Dispatchers.IO)
+            result?.codes ?: emptyList()
+        }.distinctUntilChanged().flowOn(Dispatchers.IO)
     }
 
     override suspend fun saveLabel(label: LabelEntity) = withScope {
@@ -381,6 +384,30 @@ class DefaultStorageDataRepository @Inject constructor(
         statsDao.getDailyStats(courseId, start, end).map { rows ->
             rows.sumOf { it.totalSeconds }
         }.flowOn(Dispatchers.IO)
+    }
+
+    override fun getDailyWatchStats(
+        courseId: String, start: Long, end: Long
+    ): Flow<List<DailyWatchStat>> = scoped {
+        statsDao.getDailyWatchStats(courseId, start, end).flowOn(Dispatchers.IO)
+    }
+
+    override fun getRegionStats(
+        courseId: String, start: Long, end: Long
+    ): Flow<List<RegionStat>> = scoped {
+        statsDao.getRegionStats(courseId, start, end).flowOn(Dispatchers.IO)
+    }
+
+    override fun getLabelStats(
+        courseId: String, start: Long, end: Long
+    ): Flow<List<LabelWithStats>> = scoped {
+        statsDao.getLabelStats(courseId, start, end).flowOn(Dispatchers.IO)
+    }
+
+    override fun getTopChannelsWithStatsAndLabels(
+        courseId: String, start: Long, end: Long, limit: Int
+    ): Flow<List<ChannelWithStatsAndLabels>> = scoped {
+        statsDao.getTopChannelsWithStatsAndLabels(courseId, start, end).flowOn(Dispatchers.IO)
     }
 
     // preferences

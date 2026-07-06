@@ -71,7 +71,7 @@ fun HomeScreen(
             MyInputLogBottomNavBar(
                 selectedScreen = Screen.Home,
                 onBottomNavClicked = onBottomNavClicked,
-                navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
+                navigateToVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
         }) { innerPadding ->
             when (val state = homeUiState) {
                 is HomeUiState.Loading -> {

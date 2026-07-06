@@ -52,7 +52,7 @@ fun ProfileScreen(
         MyInputLogBottomNavBar(
             selectedScreen = Screen.Profile,
             onBottomNavClicked = onBottomNavClicked,
-            navigateToYouTubeVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
+            navigateToVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
     }) { innerPadding ->
         when (val currentState = profileUiState) {
             ProfileUiState.Error -> {

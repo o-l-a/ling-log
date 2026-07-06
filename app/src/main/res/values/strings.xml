@@ -168,6 +168,18 @@
     <string name="channel_select_default_language">Select default country…</string>
     <string name="channel_first_watched_on">First watched on: %s</string>
 
+    <!--    trends    -->
+    <string name="period_last_7_days">7 days</string>
+    <string name="period_last_4_weeks">4 weeks</string>
+    <string name="period_last_6_months">6 months</string>
+    <string name="period_last_year">1 year</string>
+    <string name="period_all_time">All time</string>
+    <string name="period_last_7_days_short">7D</string>
+    <string name="period_last_4_weeks_short">4W</string>
+    <string name="period_last_6_months_short">6M</string>
+    <string name="period_last_year_short">1Y</string>
+    <string name="period_all_time_short">All time</string>
+
     <!--    confetti options   -->
     <string name="confetti_option_1">Default</string>
     <string name="confetti_option_2">Variant 1</string>

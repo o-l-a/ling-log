@@ -8,6 +8,9 @@ import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.CourseWithStats
+import com.example.myinputlog.data.local.model.DailyWatchStat
+import com.example.myinputlog.data.local.model.LabelWithStats
+import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.data.model.UserData
@@ -88,6 +91,12 @@ interface StorageDataRepository {
     // stats
     fun getMonthlyStatsFlow(courseId: String, monthId: String): Flow<MonthlyStatsUiModel?>
     fun getTodaySecondsFlow(courseId: String): Flow<Long>
+    fun getDailyWatchStats(courseId: String, start: Long, end: Long): Flow<List<DailyWatchStat>>
+    fun getRegionStats(courseId: String, start: Long, end: Long): Flow<List<RegionStat>>
+    fun getLabelStats(courseId: String, start: Long, end: Long): Flow<List<LabelWithStats>>
+    fun getTopChannelsWithStatsAndLabels(
+        courseId: String, start: Long, end: Long, limit: Int = 5
+    ): Flow<List<ChannelWithStatsAndLabels>>
 
     // preferences
     suspend fun setCurrentCourse(courseId: String)
