@@ -132,6 +132,7 @@
     <string name="course_other_source_hours_label">Hours outside platform</string>
     <string name="course_goal_card_text">Goal: %dh</string>
     <string name="course_other_source_hours_card_text">%dh outside platform</string>
+    <string name="course_active_course">Active course</string>
 
     <!--    country groups    -->
     <string name="course_country_group_label">Country group</string>

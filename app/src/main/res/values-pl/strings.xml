@@ -133,6 +133,7 @@
     <string name="course_other_source_hours_label">Godziny poza platformą</string>
     <string name="course_goal_card_text">Cel: %dh</string>
     <string name="course_other_source_hours_card_text">%dh poza platformą</string>
+    <string name="course_active_course">Aktywny kurs</string>
 
     <!--    country groups    -->
     <string name="course_country_group_label">Grupa krajów</string>
