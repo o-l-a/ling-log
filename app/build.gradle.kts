@@ -137,5 +137,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(kotlin("reflect"))
 
-    implementation(libs.charty)
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
 }

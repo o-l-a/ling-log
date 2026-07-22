@@ -1,6 +1,5 @@
 package com.example.myinputlog.ui.screens.trends
 
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,8 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.R
@@ -35,6 +32,8 @@ import com.example.myinputlog.ui.models.TrendsPeriodOption
 import com.example.myinputlog.ui.models.TrendsTimePeriod
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
+import com.example.myinputlog.ui.screens.common.composable.charts.ComposeCarSales
+import com.example.myinputlog.ui.screens.common.composable.charts.CumulativeTrendsChart
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.theme.spacing
@@ -92,16 +91,11 @@ fun TrendsBody(
     onChannelLimitChange: () -> Unit
 ) {
     val scrollState = rememberLazyListState()
-    val focusManager = LocalFocusManager.current
+    val x = List(trendsUiState.cumulativeProgress.size) { it + 1L}
+    val y = trendsUiState.cumulativeProgress.map { it.percentageOfGoal }
 
     LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
-            },
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium),
         contentPadding = PaddingValues(MaterialTheme.spacing.mediumPlus),
         state = scrollState
@@ -114,7 +108,25 @@ fun TrendsBody(
             )
         }
         item {
-            Text(trendsUiState.selectedPeriod.toString())
+            CumulativeTrendsChart(trendsUiState)
+        }
+        item {
+            ComposeCarSales(x, y)
+        }
+        item {
+            Text(trendsUiState.currentPeriodDailyStats.toString())
+        }
+        item {
+            Text(trendsUiState.previousPeriodDailyStats.toString())
+        }
+        item {
+            Text(trendsUiState.regionStats.toString())
+        }
+        item {
+            Text(trendsUiState.topLabels.toString())
+        }
+        item {
+            Text(trendsUiState.topChannels.toString())
         }
     }
 }

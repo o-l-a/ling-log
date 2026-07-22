@@ -30,16 +30,15 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.ui.screens.common.composable.bars.CourseTopAppBar
-import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.ConfettiOverlay
-import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
-import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.SpinningClockIcon
 import com.example.myinputlog.ui.screens.common.composable.StatisticContainer
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.ui.screens.common.composable.calendar.SwipeableCalendar
+import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
+import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.flow.Flow
@@ -58,21 +57,13 @@ fun HomeScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     Box(modifier = modifier.fillMaxSize()) {
-        Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
-            if (homeUiState is HomeUiState.Success) {
-                CourseTopAppBar(
-                    courseHeader = (homeUiState as HomeUiState.Success).courseHeader,
-                    onValueChange = homeViewModel::changeCurrentCourseId,
-                    options = (homeUiState as HomeUiState.Success).userCourses,
-                    scrollBehavior = scrollBehavior,
-                )
-            }
-        }, bottomBar = {
-            MyInputLogBottomNavBar(
-                selectedScreen = Screen.Home,
-                onBottomNavClicked = onBottomNavClicked,
-                navigateToVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
-        }) { innerPadding ->
+        Scaffold(
+            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), bottomBar = {
+                MyInputLogBottomNavBar(
+                    selectedScreen = Screen.Home,
+                    onBottomNavClicked = onBottomNavClicked,
+                    navigateToVideoEntry = { navigateToYouTubeVideoEntry(currentCourseId) })
+            }) { innerPadding ->
             when (val state = homeUiState) {
                 is HomeUiState.Loading -> {
                     LoadingBox()
@@ -151,7 +142,9 @@ fun HomeBody(
                 horizontalArrangement = Arrangement.Center
             ) {
                 StatisticContainer(
-                    modifier = Modifier.weight(1F).padding(MaterialTheme.spacing.small),
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(MaterialTheme.spacing.small),
                     number = homeUiState.courseHeader.totalActiveDays,
                     label = stringResource(R.string.stats_total_days),
                     leadingContent = {
@@ -164,7 +157,9 @@ fun HomeBody(
                         )
                     })
                 StatisticContainer(
-                    modifier = Modifier.weight(1F).padding(MaterialTheme.spacing.small),
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(MaterialTheme.spacing.small),
                     number = formatDurationAsText(homeUiState.courseHeader.dailyAverageSeconds),
                     label = stringResource(R.string.stats_daily_average),
                     leadingContent = {
@@ -182,7 +177,9 @@ fun HomeBody(
                 horizontalArrangement = Arrangement.Center
             ) {
                 StatisticContainer(
-                    modifier = Modifier.weight(1F).padding(MaterialTheme.spacing.small),
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(MaterialTheme.spacing.small),
                     number = homeUiState.courseHeader.videoCount.toString(),
                     label = stringResource(R.string.stats_videos_watched),
                     leadingContent = {
@@ -193,7 +190,9 @@ fun HomeBody(
                         )
                     })
                 StatisticContainer(
-                    modifier = Modifier.weight(1F).padding(MaterialTheme.spacing.small),
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(MaterialTheme.spacing.small),
                     number = stringResource(R.string.yay),
                     label = stringResource(R.string.yay),
                     leadingContent = {

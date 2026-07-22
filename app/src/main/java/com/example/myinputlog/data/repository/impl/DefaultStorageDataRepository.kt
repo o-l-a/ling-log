@@ -56,10 +56,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.YearMonth
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 class DefaultStorageDataRepository @Inject constructor(
@@ -389,7 +391,31 @@ class DefaultStorageDataRepository @Inject constructor(
     override fun getDailyWatchStats(
         courseId: String, start: Long, end: Long
     ): Flow<List<DailyWatchStat>> = scoped {
-        statsDao.getDailyWatchStats(courseId, start, end).flowOn(Dispatchers.IO)
+        statsDao.getDailyWatchStats(courseId, start, end).map { dbStats ->
+            if (dbStats.isEmpty()) return@map emptyList()
+
+            val zoneId = ZoneId.systemDefault()
+
+            val availableDates = dbStats.map { LocalDate.parse(it.dateString) }
+            val earliestDate = availableDates.minOrNull() ?: return@map emptyList()
+
+            val endDate = Instant.ofEpochMilli(end).atZone(zoneId).toLocalDate()
+
+            val statsMap = dbStats.associateBy { it.dateString }
+
+            val daysCount = ChronoUnit.DAYS.between(earliestDate, endDate)
+
+            (0..daysCount).map { i ->
+                val currentDate = earliestDate.plusDays(i)
+                val dateKey = currentDate.toString()
+
+                statsMap[dateKey] ?: DailyWatchStat(
+                    dateString = dateKey,
+                    totalSeconds = 0L,
+                    videoCount = 0
+                )
+            }
+        }.flowOn(Dispatchers.IO)
     }
 
     override fun getRegionStats(
