@@ -9,6 +9,7 @@ import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.CourseWithStats
 import com.example.myinputlog.data.local.model.DailyWatchStat
+import com.example.myinputlog.data.local.model.DailyWatchWrapper
 import com.example.myinputlog.data.local.model.LabelWithStats
 import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
@@ -91,7 +92,7 @@ interface StorageDataRepository {
     // stats
     fun getMonthlyStatsFlow(courseId: String, monthId: String): Flow<MonthlyStatsUiModel?>
     fun getTodaySecondsFlow(courseId: String): Flow<Long>
-    fun getDailyWatchStats(courseId: String, start: Long, end: Long): Flow<List<DailyWatchStat>>
+    fun getDailyWatchStats(courseId: String, start: Long, end: Long): Flow<DailyWatchWrapper>
     fun getBaselineProgress(courseId: String, start: Long): Flow<Long>
     fun getRegionStats(courseId: String, start: Long, end: Long): Flow<List<RegionStat>>
     fun getLabelStats(courseId: String, start: Long, end: Long): Flow<List<LabelWithStats>>

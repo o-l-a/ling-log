@@ -4,6 +4,11 @@ data class DailyWatchStat(
     val date: Long, val totalSeconds: Long, val videoCount: Long
 )
 
+data class DailyWatchWrapper(
+    val dailyStats: List<DailyWatchStat>,
+    val years: List<Long>
+)
+
 data class DailyStatRow(
     val dayOfMonth: String, val totalSeconds: Long, val videoCount: Long
 )

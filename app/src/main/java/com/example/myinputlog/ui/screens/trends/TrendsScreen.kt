@@ -109,6 +109,7 @@ fun TrendsBody(
             if (trendsUiState.cumulativeProgress.isNotEmpty()) {
                 CumulativeTrendsChart(
                     trendsUiState.cumulativeProgress,
+                    trendsUiState.years,
                     modifier = Modifier.height(MaterialTheme.spacing.horizontalChartHeight)
                 )
             }

@@ -63,7 +63,10 @@ private val BottomAxisValueFormatter = object : CartesianValueFormatter {
 
 @Composable
 private fun ComposeCumulativeTrendsChart(
-    modelProducer: CartesianChartModelProducer, modifier: Modifier = Modifier, dayStep: Int = 1
+    modelProducer: CartesianChartModelProducer,
+    years: List<Long>,
+    modifier: Modifier = Modifier,
+    dayStep: Int = 1
 ) {
     val lineColor = MaterialTheme.colorScheme.primary
     val marker = rememberMarker()
@@ -104,12 +107,18 @@ private fun ComposeCumulativeTrendsChart(
                 valueFormatter = BottomAxisValueFormatter, itemPlacer = remember {
                     HorizontalAxis.ItemPlacer.aligned(spacing = { dayStep })
                 }),
-            persistentMarkers = { marker at 20656 }), modelProducer, modifier, scrollState
+            persistentMarkers = { _ ->
+                years.forEach { x ->
+                    marker at x.toFloat()
+                }
+            }), modelProducer, modifier, scrollState
     )
 }
 
 @Composable
-fun CumulativeTrendsChart(progressPoints: List<ProgressPoint>, modifier: Modifier = Modifier) {
+fun CumulativeTrendsChart(
+    progressPoints: List<ProgressPoint>, years: List<Long>, modifier: Modifier = Modifier
+) {
     val modelProducer = remember { CartesianChartModelProducer() }
     LaunchedEffect(progressPoints) {
         modelProducer.runTransaction {
@@ -118,5 +127,5 @@ fun CumulativeTrendsChart(progressPoints: List<ProgressPoint>, modifier: Modifie
             }
         }
     }
-    ComposeCumulativeTrendsChart(modelProducer, modifier)
+    ComposeCumulativeTrendsChart(modelProducer, years, modifier)
 }

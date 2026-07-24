@@ -3,7 +3,7 @@ package com.example.myinputlog.ui.screens.trends
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.R
-import com.example.myinputlog.data.local.model.DailyWatchStat
+import com.example.myinputlog.data.local.model.DailyWatchWrapper
 import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.ChannelUiModel
@@ -102,7 +102,7 @@ class TrendsViewModel @Inject constructor(
     ): TrendsUiState {
 
         var runningTotal = timeStats.baseline
-        val progressPoints = timeStats.currentDaily.map { daily ->
+        val progressPoints = timeStats.currentDaily.dailyStats.map { daily ->
             runningTotal += daily.totalSeconds
             val percentage = if (timeStats.goal > 0) {
                 (runningTotal.toFloat() / timeStats.goal.toFloat()) * 100f
@@ -113,10 +113,11 @@ class TrendsViewModel @Inject constructor(
         return TrendsUiState.Success(
             selectedPeriod = period,
             cumulativeProgress = progressPoints,
+            years = timeStats.currentDaily.years,
             goalTargetInHours = timeStats.goal / 3600F,
             currentProgressInHours = runningTotal / 3600F,
-            currentPeriodDailyStats = timeStats.currentDaily,
-            previousPeriodDailyStats = timeStats.previousDaily,
+            currentPeriodDailyStats = timeStats.currentDaily.dailyStats,
+            previousPeriodDailyStats = timeStats.previousDaily.dailyStats,
             regionStats = catStats.regions,
             topLabels = catStats.labels.take(_labelLimit.value),
             topChannels = catStats.channels
@@ -147,8 +148,8 @@ private data class Config(
 private data class TimeStats(
     val goal: Long,
     val baseline: Long,
-    val currentDaily: List<DailyWatchStat>,
-    val previousDaily: List<DailyWatchStat>
+    val currentDaily: DailyWatchWrapper,
+    val previousDaily: DailyWatchWrapper
 )
 
 private data class CategoryStats(

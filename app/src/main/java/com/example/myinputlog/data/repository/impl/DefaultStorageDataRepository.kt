@@ -22,6 +22,7 @@ import com.example.myinputlog.data.local.model.ChannelWithLabelIds
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.CourseWithStats
 import com.example.myinputlog.data.local.model.DailyWatchStat
+import com.example.myinputlog.data.local.model.DailyWatchWrapper
 import com.example.myinputlog.data.local.model.LabelWithStats
 import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
@@ -390,9 +391,9 @@ class DefaultStorageDataRepository @Inject constructor(
 
     override fun getDailyWatchStats(
         courseId: String, start: Long, end: Long
-    ): Flow<List<DailyWatchStat>> = scoped {
+    ): Flow<DailyWatchWrapper> = scoped {
         statsDao.getDailyWatchStats(courseId, start, end).map { dbStats ->
-            if (dbStats.isEmpty()) return@map emptyList()
+            if (dbStats.isEmpty()) return@map DailyWatchWrapper(emptyList(), emptyList())
             val statsMap = dbStats.associateBy { it.date }
 
             val zoneId = ZoneId.systemDefault()
@@ -400,20 +401,25 @@ class DefaultStorageDataRepository @Inject constructor(
             val endDate = Instant.ofEpochMilli(end).atZone(zoneId).toLocalDate()
             val daysCount = ChronoUnit.DAYS.between(startDate, endDate)
 
-            (0..daysCount).map { i ->
-                val currentDate = startDate.plusDays(i)
-                val dateKey = currentDate.toEpochDay()
-                statsMap[dateKey] ?: DailyWatchStat(
-                    date = dateKey, totalSeconds = 0L, videoCount = 0
-                )
+            val years = (startDate.year..endDate.year).map {
+                LocalDate.ofYearDay(it, 1).toEpochDay()
             }
+
+            DailyWatchWrapper(
+                (0..daysCount).map { i ->
+                    val currentDate = startDate.plusDays(i)
+                    val dateKey = currentDate.toEpochDay()
+                    statsMap[dateKey] ?: DailyWatchStat(
+                        date = dateKey, totalSeconds = 0L, videoCount = 0
+                    )
+                }, years
+            )
         }.flowOn(Dispatchers.IO)
     }
 
-    override fun getBaselineProgress(courseId: String, start: Long): Flow<Long> =
-        scoped {
-            statsDao.getBaselineProgress(courseId, start)
-        }.flowOn(Dispatchers.IO)
+    override fun getBaselineProgress(courseId: String, start: Long): Flow<Long> = scoped {
+        statsDao.getBaselineProgress(courseId, start)
+    }.flowOn(Dispatchers.IO)
 
     override fun getRegionStats(
         courseId: String, start: Long, end: Long

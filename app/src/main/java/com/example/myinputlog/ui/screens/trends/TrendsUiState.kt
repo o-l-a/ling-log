@@ -5,6 +5,7 @@ import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.TrendsTimePeriod
+import java.time.Year
 
 sealed interface TrendsUiState {
     data object Loading : TrendsUiState
@@ -13,6 +14,7 @@ sealed interface TrendsUiState {
         val selectedPeriod: TrendsTimePeriod = TrendsTimePeriod.LAST_4_WEEKS,
 
         val cumulativeProgress: List<ProgressPoint> = emptyList(),
+        val years: List<Long>,
         val goalTargetInHours: Float = 0f,
         val currentProgressInHours: Float = 0f,
 
