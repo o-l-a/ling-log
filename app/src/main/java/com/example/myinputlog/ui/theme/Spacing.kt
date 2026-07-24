@@ -25,7 +25,8 @@ data class Spacing(
     val extraLargePlus: Dp = 72.dp,
     val extraLargePlusPlus: Dp = 96.dp,
     val doubleExtraLarge: Dp = 128.dp,
-    val doubleExtraLargePlus: Dp = 160.dp
+    val doubleExtraLargePlus: Dp = 160.dp,
+    val horizontalChartHeight: Dp = 216.dp
 )
 
 val LocalSpacing = compositionLocalOf { Spacing() }

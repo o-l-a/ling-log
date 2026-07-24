@@ -28,13 +28,13 @@ interface StatsDao {
     @Query(
         """
         SELECT 
-            strftime('%Y-%m-%d', watchedOn / 1000, 'unixepoch') as dateString,
+            watchedOn / (1000 * 86400) as date,
             SUM(durationInSeconds) as totalSeconds,
             COUNT(*) as videoCount
         FROM videos
         WHERE courseId = :courseId AND watchedOn BETWEEN :start AND :end AND isDeleted = 0
-        GROUP BY dateString
-        ORDER BY dateString ASC
+        GROUP BY date
+        ORDER BY date ASC
     """
     )
     fun getDailyWatchStats(courseId: String, start: Long, end: Long): Flow<List<DailyWatchStat>>

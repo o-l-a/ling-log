@@ -24,8 +24,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.time.LocalDate
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -95,9 +93,9 @@ class TrendsViewModel @Inject constructor(
         val progressPoints = timeStats.currentDaily.map { daily ->
             runningTotal += daily.totalSeconds
             val percentage = if (timeStats.goal > 0) {
-                (runningTotal.toFloat() / timeStats.goal.toFloat()).coerceAtMost(1f)
+                (runningTotal.toFloat() / timeStats.goal.toFloat()) * 100f
             } else 0f
-            ProgressPoint(daily.dateString, percentage)
+            ProgressPoint(daily.date, percentage)
         }
 
         return TrendsUiState.Success(

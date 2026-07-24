@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -32,7 +33,6 @@ import com.example.myinputlog.ui.models.TrendsPeriodOption
 import com.example.myinputlog.ui.models.TrendsTimePeriod
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
-import com.example.myinputlog.ui.screens.common.composable.charts.ComposeCarSales
 import com.example.myinputlog.ui.screens.common.composable.charts.CumulativeTrendsChart
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
@@ -91,8 +91,6 @@ fun TrendsBody(
     onChannelLimitChange: () -> Unit
 ) {
     val scrollState = rememberLazyListState()
-    val x = List(trendsUiState.cumulativeProgress.size) { it + 1L}
-    val y = trendsUiState.cumulativeProgress.map { it.percentageOfGoal }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -108,10 +106,15 @@ fun TrendsBody(
             )
         }
         item {
-            CumulativeTrendsChart(trendsUiState)
+            if (trendsUiState.cumulativeProgress.isNotEmpty()) {
+                CumulativeTrendsChart(
+                    trendsUiState.cumulativeProgress,
+                    modifier = Modifier.height(MaterialTheme.spacing.horizontalChartHeight)
+                )
+            }
         }
         item {
-            ComposeCarSales(x, y)
+            Text(trendsUiState.cumulativeProgress.toString())
         }
         item {
             Text(trendsUiState.currentPeriodDailyStats.toString())

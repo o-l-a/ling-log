@@ -26,5 +26,5 @@ sealed interface TrendsUiState {
 }
 
 data class ProgressPoint(
-    val dateString: String, val percentageOfGoal: Float
+    val date: Long, val percentageOfGoal: Float
 )

@@ -18,12 +18,18 @@ enum class TrendsTimePeriod {
     fun getTimeRanges(): Pair<TimeRange, TimeRange> {
         val today = LocalDate.now()
 
+        if (this == ALL_TIME) {
+            return TimeRange(
+                start = 0L,
+                end = today.toEpochMilli()
+            ) to TimeRange(start = 0L, end = 0L)
+        }
+
         val (currentStart, previousStart) = when (this) {
             LAST_7_DAYS -> today.minusDays(6) to today.minusDays(13)
             LAST_4_WEEKS -> today.minusWeeks(4) to today.minusWeeks(8)
             LAST_6_MONTHS -> today.minusMonths(6) to today.minusMonths(12)
             LAST_YEAR -> today.minusYears(1) to today.minusYears(2)
-            ALL_TIME -> today.minusYears(1) to today.minusYears(2)
         }
 
         val currentRange = TimeRange(

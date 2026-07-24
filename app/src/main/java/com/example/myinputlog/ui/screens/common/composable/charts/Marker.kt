@@ -1,69 +1,49 @@
 package com.example.myinputlog.ui.screens.common.composable.charts
 
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.myinputlog.ui.theme.spacing
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisGuidelineComponent
 import com.patrykandpatrick.vico.compose.cartesian.marker.CartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.marker.DefaultCartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
+import com.patrykandpatrick.vico.compose.common.DashedShape
 import com.patrykandpatrick.vico.compose.common.Fill
 import com.patrykandpatrick.vico.compose.common.Insets
-import com.patrykandpatrick.vico.compose.common.LayeredComponent
-import com.patrykandpatrick.vico.compose.common.MarkerCornerBasedShape
-import com.patrykandpatrick.vico.compose.common.component.ShapeComponent
-import com.patrykandpatrick.vico.compose.common.component.TextComponent
-import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import java.time.LocalDate
+
+internal val yearValueFormatter = DefaultCartesianMarker.ValueFormatter { _, targets ->
+    val x = targets.first().x
+    val year = LocalDate.ofEpochDay(x.toLong()).year
+    "$year"
+}
 
 @Composable
 internal fun rememberMarker(
-    valueFormatter: DefaultCartesianMarker.ValueFormatter = DefaultCartesianMarker.ValueFormatter.default(),
-    showIndicator: Boolean = true,
+    valueFormatter: DefaultCartesianMarker.ValueFormatter = yearValueFormatter
 ): CartesianMarker {
-    val labelBackgroundShape = MarkerCornerBasedShape(CircleShape)
-    val labelBackground = rememberShapeComponent(
-        fill = Fill(MaterialTheme.colorScheme.background),
-        shape = labelBackgroundShape,
-        strokeFill = Fill(MaterialTheme.colorScheme.outline),
-        strokeThickness = 1.dp,
-    )
+
     val label = rememberTextComponent(
         style = TextStyle(
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
-            fontSize = 12.sp,
+            fontSize = MaterialTheme.typography.labelMediumEmphasized.fontSize,
+            fontWeight = MaterialTheme.typography.labelMediumEmphasized.fontWeight
         ),
-        padding = Insets(8.dp, 4.dp),
-        background = labelBackground,
-        minWidth = TextComponent.MinWidth.fixed(40.dp),
+        padding = Insets(MaterialTheme.spacing.small, MaterialTheme.spacing.extraSmall),
     )
-    val indicatorFrontComponent =
-        rememberShapeComponent(Fill(MaterialTheme.colorScheme.surface), CircleShape)
-    val guideline = rememberAxisGuidelineComponent()
+    val guideline = rememberAxisGuidelineComponent(
+        fill = Fill(MaterialTheme.colorScheme.secondary),
+        thickness = MaterialTheme.spacing.extraExtraSmall,
+        shape = DashedShape(
+            dashLength = MaterialTheme.spacing.extraSmall,
+            gapLength = MaterialTheme.spacing.extraExtraSmall
+        )
+    )
     return rememberDefaultCartesianMarker(
-        label = label,
-        valueFormatter = valueFormatter,
-        indicator = if (showIndicator) {
-            { color ->
-                LayeredComponent(
-                    back = ShapeComponent(Fill(color.copy(alpha = 0.15f)), CircleShape),
-                    front = LayeredComponent(
-                        back = ShapeComponent(fill = Fill(color), shape = CircleShape),
-                        front = indicatorFrontComponent,
-                        padding = Insets(5.dp),
-                    ),
-                    padding = Insets(10.dp),
-                )
-            }
-        } else {
-            null
-        },
-        indicatorSize = 36.dp,
-        guideline = guideline,
+        label = label, valueFormatter = valueFormatter, guideline = guideline
     )
 }

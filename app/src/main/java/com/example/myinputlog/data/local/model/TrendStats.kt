@@ -1,7 +1,7 @@
 package com.example.myinputlog.data.local.model
 
 data class DailyWatchStat(
-    val dateString: String, val totalSeconds: Long, val videoCount: Long
+    val date: Long, val totalSeconds: Long, val videoCount: Long
 )
 
 data class DailyStatRow(

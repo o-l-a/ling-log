@@ -396,23 +396,18 @@ class DefaultStorageDataRepository @Inject constructor(
 
             val zoneId = ZoneId.systemDefault()
 
-            val availableDates = dbStats.map { LocalDate.parse(it.dateString) }
+            val availableDates = dbStats.map { LocalDate.ofEpochDay(it.date) }
             val earliestDate = availableDates.minOrNull() ?: return@map emptyList()
-
             val endDate = Instant.ofEpochMilli(end).atZone(zoneId).toLocalDate()
-
-            val statsMap = dbStats.associateBy { it.dateString }
+            val statsMap = dbStats.associateBy { it.date }
 
             val daysCount = ChronoUnit.DAYS.between(earliestDate, endDate)
 
             (0..daysCount).map { i ->
                 val currentDate = earliestDate.plusDays(i)
-                val dateKey = currentDate.toString()
-
+                val dateKey = currentDate.toEpochDay()
                 statsMap[dateKey] ?: DailyWatchStat(
-                    dateString = dateKey,
-                    totalSeconds = 0L,
-                    videoCount = 0
+                    date = dateKey, totalSeconds = 0L, videoCount = 0
                 )
             }
         }.flowOn(Dispatchers.IO)
