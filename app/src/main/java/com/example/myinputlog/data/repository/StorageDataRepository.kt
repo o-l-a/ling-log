@@ -92,6 +92,7 @@ interface StorageDataRepository {
     fun getMonthlyStatsFlow(courseId: String, monthId: String): Flow<MonthlyStatsUiModel?>
     fun getTodaySecondsFlow(courseId: String): Flow<Long>
     fun getDailyWatchStats(courseId: String, start: Long, end: Long): Flow<List<DailyWatchStat>>
+    fun getBaselineProgress(courseId: String, start: Long): Flow<Long>
     fun getRegionStats(courseId: String, start: Long, end: Long): Flow<List<RegionStat>>
     fun getLabelStats(courseId: String, start: Long, end: Long): Flow<List<LabelWithStats>>
     fun getTopChannelsWithStatsAndLabels(

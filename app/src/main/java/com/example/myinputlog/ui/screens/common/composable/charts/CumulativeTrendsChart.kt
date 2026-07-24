@@ -104,7 +104,7 @@ private fun ComposeCumulativeTrendsChart(
                 valueFormatter = BottomAxisValueFormatter, itemPlacer = remember {
                     HorizontalAxis.ItemPlacer.aligned(spacing = { dayStep })
                 }),
-            persistentMarkers = { marker at 1784419200 }), modelProducer, modifier, scrollState
+            persistentMarkers = { marker at 20656 }), modelProducer, modifier, scrollState
     )
 }
 

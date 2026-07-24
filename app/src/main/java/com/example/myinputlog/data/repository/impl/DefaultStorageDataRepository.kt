@@ -393,18 +393,15 @@ class DefaultStorageDataRepository @Inject constructor(
     ): Flow<List<DailyWatchStat>> = scoped {
         statsDao.getDailyWatchStats(courseId, start, end).map { dbStats ->
             if (dbStats.isEmpty()) return@map emptyList()
-
-            val zoneId = ZoneId.systemDefault()
-
-            val availableDates = dbStats.map { LocalDate.ofEpochDay(it.date) }
-            val earliestDate = availableDates.minOrNull() ?: return@map emptyList()
-            val endDate = Instant.ofEpochMilli(end).atZone(zoneId).toLocalDate()
             val statsMap = dbStats.associateBy { it.date }
 
-            val daysCount = ChronoUnit.DAYS.between(earliestDate, endDate)
+            val zoneId = ZoneId.systemDefault()
+            val startDate = Instant.ofEpochMilli(start).atZone(zoneId).toLocalDate()
+            val endDate = Instant.ofEpochMilli(end).atZone(zoneId).toLocalDate()
+            val daysCount = ChronoUnit.DAYS.between(startDate, endDate)
 
             (0..daysCount).map { i ->
-                val currentDate = earliestDate.plusDays(i)
+                val currentDate = startDate.plusDays(i)
                 val dateKey = currentDate.toEpochDay()
                 statsMap[dateKey] ?: DailyWatchStat(
                     date = dateKey, totalSeconds = 0L, videoCount = 0
@@ -412,6 +409,11 @@ class DefaultStorageDataRepository @Inject constructor(
             }
         }.flowOn(Dispatchers.IO)
     }
+
+    override fun getBaselineProgress(courseId: String, start: Long): Flow<Long> =
+        scoped {
+            statsDao.getBaselineProgress(courseId, start)
+        }.flowOn(Dispatchers.IO)
 
     override fun getRegionStats(
         courseId: String, start: Long, end: Long

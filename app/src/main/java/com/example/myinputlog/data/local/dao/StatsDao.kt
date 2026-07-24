@@ -41,6 +41,16 @@ interface StatsDao {
 
     @Query(
         """
+        SELECT SUM(v.durationInSeconds) + c.otherSourceHours * 3600
+        FROM videos AS v
+        JOIN courses AS c ON v.courseId = c.id
+        WHERE v.courseId = :courseId AND v.watchedOn < :start AND v.isDeleted = 0
+    """
+    )
+    fun getBaselineProgress(courseId: String, start: Long): Flow<Long>
+
+    @Query(
+        """
         SELECT 
             c.defaultLanguage as regionName,
             SUM(v.durationInSeconds) as totalSeconds

@@ -8,6 +8,7 @@ import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.models.TimeRange
 import com.example.myinputlog.ui.models.TrendsPeriodOption
 import com.example.myinputlog.ui.models.TrendsTimePeriod
 import com.example.myinputlog.ui.models.toChannelUiModel
@@ -15,10 +16,12 @@ import com.example.myinputlog.ui.models.toLabelUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -48,21 +51,39 @@ class TrendsViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val trendsUiState: StateFlow<TrendsUiState> = configFlow.flatMapLatest { config ->
         val (currentRange, previousRange) = config.period.getTimeRanges()
+        combine(
+            timeStatsFlow(config, currentRange, previousRange),
+            categoryStatsFlow(config, currentRange)
+        ) { timeStats, catStats ->
+            mapToUiState(config.period, timeStats, catStats)
+        }
+    }.flowOn(Dispatchers.Default).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = TrendsUiState.Loading
+    )
 
+    private fun timeStatsFlow(
+        config: Config, currentRange: TimeRange, previousRange: TimeRange
+    ): Flow<TimeStats> {
         val courseGoalFlow = repository.courses.map { courses ->
             courses.find { it.course.id == config.courseId }?.course?.goalInHours?.times(3600L)
                 ?: 0L
-        }
+        }.distinctUntilChanged()
 
-        val timeStatsFlow = combine(
+        return combine(
             courseGoalFlow,
+            repository.getBaselineProgress(config.courseId, currentRange.start),
             repository.getDailyWatchStats(config.courseId, currentRange.start, currentRange.end),
-            repository.getDailyWatchStats(config.courseId, previousRange.start, previousRange.end)
-        ) { goal, currentDaily, previousDaily ->
-            TimeStats(goal, currentDaily, previousDaily)
-        }
+            repository.getDailyWatchStats(config.courseId, previousRange.start, previousRange.end),
+            ::TimeStats
+        )
+    }
 
-        val categoryStatsFlow = combine(
+    private fun categoryStatsFlow(
+        config: Config, currentRange: TimeRange
+    ): Flow<CategoryStats> {
+        return combine(
             repository.getRegionStats(config.courseId, currentRange.start, currentRange.end),
             repository.getLabelStats(config.courseId, currentRange.start, currentRange.end),
             repository.getTopChannelsWithStatsAndLabels(
@@ -70,26 +91,17 @@ class TrendsViewModel @Inject constructor(
             )
         ) { regions, labels, channels ->
             CategoryStats(
-                regions,
-                labels.map { it.toLabelUiModel() },
-                channels.map { it.toChannelUiModel() })
+                regions = regions,
+                labels = labels.map { it.toLabelUiModel() },
+                channels = channels.map { it.toChannelUiModel() })
         }
-
-        combine(timeStatsFlow, categoryStatsFlow) { timeStats, catStats ->
-            mapToUiState(config.period, timeStats, catStats)
-        }.flowOn(Dispatchers.Default)
-
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = TrendsUiState.Loading
-    )
+    }
 
     private fun mapToUiState(
         period: TrendsTimePeriod, timeStats: TimeStats, catStats: CategoryStats
     ): TrendsUiState {
 
-        var runningTotal = 0L
+        var runningTotal = timeStats.baseline
         val progressPoints = timeStats.currentDaily.map { daily ->
             runningTotal += daily.totalSeconds
             val percentage = if (timeStats.goal > 0) {
@@ -133,7 +145,10 @@ private data class Config(
 )
 
 private data class TimeStats(
-    val goal: Long, val currentDaily: List<DailyWatchStat>, val previousDaily: List<DailyWatchStat>
+    val goal: Long,
+    val baseline: Long,
+    val currentDaily: List<DailyWatchStat>,
+    val previousDaily: List<DailyWatchStat>
 )
 
 private data class CategoryStats(
