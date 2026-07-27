@@ -8,7 +8,6 @@ import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.CourseWithStats
-import com.example.myinputlog.data.local.model.DailyWatchStat
 import com.example.myinputlog.data.local.model.DailyWatchWrapper
 import com.example.myinputlog.data.local.model.LabelWithStats
 import com.example.myinputlog.data.local.model.RegionStat

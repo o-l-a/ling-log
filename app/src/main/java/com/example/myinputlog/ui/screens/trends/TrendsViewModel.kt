@@ -1,5 +1,6 @@
 package com.example.myinputlog.ui.screens.trends
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.R
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -109,13 +111,17 @@ class TrendsViewModel @Inject constructor(
             } else 0f
             ProgressPoint(daily.date, percentage)
         }
+        val totalPoints = progressPoints.size
 
+        val displayPoints = decimatePoints(progressPoints, timeStats.currentDaily.years)
+        Log.d(TAG, "Number of points: ${progressPoints.size} vs ${displayPoints.size}")
         return TrendsUiState.Success(
             selectedPeriod = period,
-            cumulativeProgress = progressPoints,
+            cumulativeProgress = displayPoints,
+            totalPoints = totalPoints,
             years = timeStats.currentDaily.years,
-            goalTargetInHours = timeStats.goal / 3600F,
-            currentProgressInHours = runningTotal / 3600F,
+            goalTargetInSeconds = timeStats.goal,
+            currentProgressInSeconds = runningTotal,
             currentPeriodDailyStats = timeStats.currentDaily.dailyStats,
             previousPeriodDailyStats = timeStats.previousDaily.dailyStats,
             regionStats = catStats.regions,
@@ -138,6 +144,31 @@ class TrendsViewModel @Inject constructor(
 
     fun expandChannels() {
         _channelLimit.value = 50
+    }
+
+    /**
+     * Removes points from dataset. Keeps calculated step & required markers.
+     */
+    private fun decimatePoints(
+        points: List<ProgressPoint>, mustKeep: List<Long>, maxSize: Int = 150, targetSize: Int = 90
+    ): List<ProgressPoint> {
+        if (points.size <= maxSize) return points
+
+        val milestoneSet = mustKeep.toSet()
+        val monthStarts = points.filter { point ->
+            LocalDate.ofEpochDay(point.date).dayOfMonth == 1
+        }.map { it.date }.toSet()
+        val lastDate = points.lastOrNull()?.date
+
+        val step = points.size / targetSize
+
+        return points.filterIndexed { index, point ->
+            index % step == 0 || milestoneSet.contains(point.date) || monthStarts.contains(point.date) || point.date == lastDate
+        }.sortedBy { it.date }
+    }
+
+    companion object {
+        private const val TAG = "TrendsViewModel"
     }
 }
 

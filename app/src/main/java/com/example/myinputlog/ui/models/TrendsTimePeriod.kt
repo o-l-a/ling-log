@@ -4,12 +4,12 @@ import androidx.annotation.StringRes
 import java.time.LocalDate
 import java.time.ZoneId
 
-enum class TrendsTimePeriod {
-    LAST_7_DAYS,
-    LAST_4_WEEKS,
-    LAST_6_MONTHS,
-    LAST_YEAR,
-    ALL_TIME;
+enum class TrendsTimePeriod(val dayStep: Int) {
+    LAST_7_DAYS(1),
+    LAST_4_WEEKS(4),
+    LAST_6_MONTHS(14),
+    LAST_YEAR(32),
+    ALL_TIME(28);
 
     /**
      * Returns a pair of Pair<Long, Long> representing:

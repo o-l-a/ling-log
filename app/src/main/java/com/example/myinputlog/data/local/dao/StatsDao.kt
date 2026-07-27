@@ -32,7 +32,7 @@ interface StatsDao {
             SUM(durationInSeconds) as totalSeconds,
             COUNT(*) as videoCount
         FROM videos
-        WHERE courseId = :courseId AND watchedOn BETWEEN :start AND :end AND isDeleted = 0
+        WHERE courseId = :courseId AND (watchedOn / 1000.0) * 1000 BETWEEN :start AND :end AND isDeleted = 0
         GROUP BY date
         ORDER BY date ASC
     """
@@ -41,10 +41,18 @@ interface StatsDao {
 
     @Query(
         """
-        SELECT SUM(v.durationInSeconds) + c.otherSourceHours * 3600
-        FROM videos AS v
-        JOIN courses AS c ON v.courseId = c.id
-        WHERE v.courseId = :courseId AND v.watchedOn < :start AND v.isDeleted = 0
+        SELECT 
+        (
+            SELECT COALESCE(SUM(v.durationInSeconds), 0)
+            FROM videos AS v
+            WHERE v.courseId = :courseId 
+              AND v.watchedOn < :start 
+              AND v.isDeleted = 0
+        ) + (
+            SELECT c.otherSourceHours * 3600
+            FROM courses AS c
+            WHERE c.id = :courseId
+        )
     """
     )
     fun getBaselineProgress(courseId: String, start: Long): Flow<Long>

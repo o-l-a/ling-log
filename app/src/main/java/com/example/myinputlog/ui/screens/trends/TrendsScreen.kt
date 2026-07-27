@@ -107,16 +107,21 @@ fun TrendsBody(
         }
         item {
             if (trendsUiState.cumulativeProgress.isNotEmpty()) {
+                Text(
+                    stringResource(
+                        R.string.trends_progress_chart_title
+                    ), style = MaterialTheme.typography.bodyLarge
+                )
                 CumulativeTrendsChart(
                     trendsUiState.cumulativeProgress,
                     trendsUiState.years,
-                    modifier = Modifier.height(MaterialTheme.spacing.horizontalChartHeight)
+                    trendsUiState.selectedPeriod.dayStep,
+                    modifier = Modifier.height(MaterialTheme.spacing.horizontalChartHeight),
+                    trendsUiState.selectedPeriod.dayStep < 28,
+                    trendsUiState.totalPoints
                 )
             }
-        }
-        item {
-            Text(trendsUiState.cumulativeProgress.toString())
-        }
+        }s
         item {
             Text(trendsUiState.currentPeriodDailyStats.toString())
         }

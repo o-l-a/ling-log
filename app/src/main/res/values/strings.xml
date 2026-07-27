@@ -180,6 +180,7 @@
     <string name="period_last_6_months_short">6M</string>
     <string name="period_last_year_short">1Y</string>
     <string name="period_all_time_short">All time</string>
+    <string name="trends_progress_chart_title">Total progress</string>
 
     <!--    confetti options   -->
     <string name="confetti_option_1">Default</string>

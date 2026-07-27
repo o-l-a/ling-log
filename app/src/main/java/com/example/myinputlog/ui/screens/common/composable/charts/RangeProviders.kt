@@ -13,7 +13,7 @@ val TopSpacedRangeProvider = object : CartesianLayerRangeProvider {
     override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double = minY
     override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
         val amplitude = maxY - minY
-        return if (amplitude == 0.0) {
+        return if (amplitude < 0.0) {
             maxY + 1.0
         } else {
             maxY + (amplitude * 0.15)
