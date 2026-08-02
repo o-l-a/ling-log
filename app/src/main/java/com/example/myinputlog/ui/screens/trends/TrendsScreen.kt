@@ -34,6 +34,7 @@ import com.example.myinputlog.ui.models.TrendsTimePeriod
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.ui.screens.common.composable.charts.CumulativeTrendsChart
+import com.example.myinputlog.ui.screens.common.composable.charts.TrendsDoubleColumnChart
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.theme.spacing
@@ -121,12 +122,18 @@ fun TrendsBody(
                     trendsUiState.totalPoints
                 )
             }
-        }s
-        item {
-            Text(trendsUiState.currentPeriodDailyStats.toString())
         }
         item {
-            Text(trendsUiState.previousPeriodDailyStats.toString())
+            Text(
+                stringResource(
+                    R.string.trends_progress_chart_title
+                ), style = MaterialTheme.typography.bodyLarge
+            )
+            TrendsDoubleColumnChart(
+                trendsUiState.chartBucketData,
+                Modifier.height(MaterialTheme.spacing.horizontalChartHeight),
+                isAllTime = trendsUiState.selectedPeriod == TrendsTimePeriod.ALL_TIME
+            )
         }
         item {
             Text(trendsUiState.regionStats.toString())

@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.R
-import com.example.myinputlog.data.local.model.DailyWatchWrapper
 import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.ChannelUiModel
@@ -28,7 +27,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -102,31 +100,23 @@ class TrendsViewModel @Inject constructor(
     private fun mapToUiState(
         period: TrendsTimePeriod, timeStats: TimeStats, catStats: CategoryStats
     ): TrendsUiState {
+        val aggregatedData = TrendsDataAggregator.aggregate(period, timeStats)
+        val totalPoints = timeStats.currentDaily.dailyStats.size
+        Log.d(TAG, "Number of points: $totalPoints vs ${aggregatedData.cumulativeProgress.size}")
 
-        var runningTotal = timeStats.baseline
-        val progressPoints = timeStats.currentDaily.dailyStats.map { daily ->
-            runningTotal += daily.totalSeconds
-            val percentage = if (timeStats.goal > 0) {
-                (runningTotal.toFloat() / timeStats.goal.toFloat()) * 100f
-            } else 0f
-            ProgressPoint(daily.date, percentage)
-        }
-        val totalPoints = progressPoints.size
-
-        val displayPoints = decimatePoints(progressPoints, timeStats.currentDaily.years)
-        Log.d(TAG, "Number of points: ${progressPoints.size} vs ${displayPoints.size}")
         return TrendsUiState.Success(
             selectedPeriod = period,
-            cumulativeProgress = displayPoints,
+            cumulativeProgress = aggregatedData.cumulativeProgress,
             totalPoints = totalPoints,
             years = timeStats.currentDaily.years,
             goalTargetInSeconds = timeStats.goal,
-            currentProgressInSeconds = runningTotal,
+            currentProgressInSeconds = aggregatedData.finalRunningTotal,
             currentPeriodDailyStats = timeStats.currentDaily.dailyStats,
             previousPeriodDailyStats = timeStats.previousDaily.dailyStats,
             regionStats = catStats.regions,
             topLabels = catStats.labels.take(_labelLimit.value),
-            topChannels = catStats.channels
+            topChannels = catStats.channels,
+            chartBucketData = aggregatedData.chartBucketData
         )
     }
 
@@ -146,27 +136,6 @@ class TrendsViewModel @Inject constructor(
         _channelLimit.value = 50
     }
 
-    /**
-     * Removes points from dataset. Keeps calculated step & required markers.
-     */
-    private fun decimatePoints(
-        points: List<ProgressPoint>, mustKeep: List<Long>, maxSize: Int = 150, targetSize: Int = 90
-    ): List<ProgressPoint> {
-        if (points.size <= maxSize) return points
-
-        val milestoneSet = mustKeep.toSet()
-        val monthStarts = points.filter { point ->
-            LocalDate.ofEpochDay(point.date).dayOfMonth == 1
-        }.map { it.date }.toSet()
-        val lastDate = points.lastOrNull()?.date
-
-        val step = points.size / targetSize
-
-        return points.filterIndexed { index, point ->
-            index % step == 0 || milestoneSet.contains(point.date) || monthStarts.contains(point.date) || point.date == lastDate
-        }.sortedBy { it.date }
-    }
-
     companion object {
         private const val TAG = "TrendsViewModel"
     }
@@ -174,13 +143,6 @@ class TrendsViewModel @Inject constructor(
 
 private data class Config(
     val courseId: String, val period: TrendsTimePeriod, val channelLimit: Int, val labelLimit: Int
-)
-
-private data class TimeStats(
-    val goal: Long,
-    val baseline: Long,
-    val currentDaily: DailyWatchWrapper,
-    val previousDaily: DailyWatchWrapper
 )
 
 private data class CategoryStats(
