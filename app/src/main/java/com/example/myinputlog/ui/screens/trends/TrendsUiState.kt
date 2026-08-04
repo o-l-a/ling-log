@@ -24,7 +24,8 @@ sealed interface TrendsUiState {
         val regionStats: List<RegionStat> = emptyList(),
         val topLabels: List<LabelUiModel> = emptyList(),
         val topChannels: List<ChannelUiModel> = emptyList(),
-        val chartBucketData: ChartBucketData = ChartBucketData()
+        val currentPeriodSummary: PeriodSummary = PeriodSummary(),
+        val previousPeriodSummary: PeriodSummary = PeriodSummary()
     ) : TrendsUiState
 }
 

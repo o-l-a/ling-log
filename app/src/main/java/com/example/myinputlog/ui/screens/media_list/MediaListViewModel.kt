@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
+import androidx.paging.map
 import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.models.VideoListItem
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.models.toCountryUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
@@ -37,6 +39,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MediaListViewModel @Inject constructor(
     private val repository: StorageDataRepository,
+    private val transformer: SeparatorTransformer
 ) : ViewModel() {
     val currentCourseId: StateFlow<String> = repository.currentCourseId.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = ""
@@ -71,7 +74,7 @@ class MediaListViewModel @Inject constructor(
         currentCourseId, debouncedFilters, _appliedSort, ::VideoQuery
     ).flatMapLatest { query ->
         repository.videoPagingFlow(query.courseId, query.filters, query.sort)
-            .insertHeaderAndSeparators(query.sort).flowOn(Dispatchers.Default)
+            .insertHeaderAndSeparators(query.sort, transformer).flowOn(Dispatchers.Default)
     }.cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -279,11 +282,16 @@ class MediaListViewModel @Inject constructor(
     }
 }
 
-fun Flow<PagingData<VideoUiModel>>.insertHeaderAndSeparators(sort: SortOptions): Flow<PagingData<VideoUiModel>> {
+fun Flow<PagingData<VideoUiModel>>.insertHeaderAndSeparators(
+    sort: SortOptions, transformer: SeparatorTransformer = SeparatorTransformer()
+): Flow<PagingData<VideoListItem>> {
     return this.map { pagingData ->
-        val transformer = SeparatorTransformer()
-        pagingData.insertSeparators { before, after ->
-            transformer.transform(before, after, sort)
+        pagingData.map { videoModel ->
+            VideoListItem.Video(videoModel)
+        }.insertSeparators { before: VideoListItem.Video?, after: VideoListItem.Video? ->
+            transformer.transform(
+                before = before?.video, after = after?.video, sort = sort
+            )
         }
     }
 }

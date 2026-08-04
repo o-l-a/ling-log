@@ -116,7 +116,8 @@ class TrendsViewModel @Inject constructor(
             regionStats = catStats.regions,
             topLabels = catStats.labels.take(_labelLimit.value),
             topChannels = catStats.channels,
-            chartBucketData = aggregatedData.chartBucketData
+            currentPeriodSummary = aggregatedData.currentSummary,
+            previousPeriodSummary = aggregatedData.previousSummary
         )
     }
 

@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.common.composable.charts
+package com.example.myinputlog.ui.screens.common.composable.stats
 
 import android.text.format.DateFormat
 import com.patrykandpatrick.vico.compose.cartesian.CartesianMeasuringContext

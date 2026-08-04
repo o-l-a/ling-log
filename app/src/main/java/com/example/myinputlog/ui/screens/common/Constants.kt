@@ -49,7 +49,7 @@ fun formatDurationAsText(duration: Long): String {
     val hours = TimeUnit.SECONDS.toHours(duration)
     val minutes = TimeUnit.SECONDS.toMinutes(duration - TimeUnit.HOURS.toSeconds(hours))
 
-    return if (hours > 99) {
+    return if (hours > 99 || minutes == 0L) {
         "${hours}h"
     } else if (hours > 0) {
         "${hours}h ${minutes}m"

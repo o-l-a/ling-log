@@ -7,7 +7,7 @@ import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.toCountryUiModelOrNull
 import com.example.myinputlog.ui.models.toLabelUiModel
 import com.example.myinputlog.ui.screens.common.ext.toLocalDate
-import com.example.myinputlog.ui.screens.media_list.SeparatorTransformer
+import com.example.myinputlog.ui.screens.common.formatters.RelativeDateFormatter
 
 fun ChannelMetadata.toChannelEntity(): ChannelEntity = ChannelEntity(
     id = id,
@@ -25,7 +25,7 @@ fun ChannelMetadata.toChannelEntity(): ChannelEntity = ChannelEntity(
 fun ChannelWithStatsAndLabels.toChannelMetadata(
     allLabels: Set<LabelUiModel>,
     availableLanguages: List<CountryUiModel>,
-    separatorTransformer: SeparatorTransformer
+    formatter: RelativeDateFormatter
 ): ChannelMetadata = ChannelMetadata(
     id = channel.id,
     title = channel.title,
@@ -44,7 +44,7 @@ fun ChannelWithStatsAndLabels.toChannelMetadata(
     totalVideoCount = totalVideoCount,
     firstWatchedOn = firstWatchedOn,
     firstWatchedOnDisplay = firstWatchedOn?.let {
-        separatorTransformer.getWatchedOnHeader(
+        formatter.format(
             it.toLocalDate(), false
         )
     })

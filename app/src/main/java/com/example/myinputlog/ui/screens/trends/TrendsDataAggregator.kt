@@ -4,26 +4,19 @@ import com.example.myinputlog.data.local.model.DailyWatchWrapper
 import com.example.myinputlog.ui.models.TrendsTimePeriod
 import java.time.Instant
 import java.time.LocalDate
-import java.time.YearMonth
 import java.time.ZoneId
 
-sealed interface BucketDescriptor {
-    data class Day(val date: LocalDate) : BucketDescriptor
-    data class Week(val startDate: LocalDate) : BucketDescriptor
-    data class Month(val date: LocalDate) : BucketDescriptor
-    data class Year(val year: Int) : BucketDescriptor
-}
-
-data class ChartBucketData(
-    val currentProgress: List<Long> = emptyList(),
-    val previousProgress: List<Long> = emptyList(),
-    val descriptors: List<BucketDescriptor> = emptyList()
+data class PeriodSummary(
+    val startDate: LocalDate = LocalDate.now(),
+    val endDate: LocalDate = LocalDate.now(),
+    val totalSeconds: Long = 0L
 )
 
 data class AggregatedProgress(
     val cumulativeProgress: List<ProgressPoint>,
     val finalRunningTotal: Long,
-    val chartBucketData: ChartBucketData
+    val currentSummary: PeriodSummary,
+    val previousSummary: PeriodSummary
 )
 
 data class TimeStats(
@@ -42,10 +35,6 @@ object TrendsDataAggregator {
     private fun Long.toPercentageOf(goal: Long): Float =
         if (goal > 0) (this.toFloat() / goal.toFloat()) * 100f else 0f
 
-    private data class Bucket(
-        val currentSecs: Long, val previousSecs: Long, val desc: BucketDescriptor
-    )
-
     fun aggregate(
         period: TrendsTimePeriod, timeStats: TimeStats
     ): AggregatedProgress {
@@ -55,78 +44,56 @@ object TrendsDataAggregator {
             getRunningTotal(timeStats.baseline, timeStats.goal, timeStats.currentDaily)
 
         if (timeStats.goal <= 0) {
+            val today = LocalDate.now()
             return AggregatedProgress(
                 cumulativeProgress = cumulativeProgress,
                 finalRunningTotal = finalRunningTotal,
-                chartBucketData = ChartBucketData(emptyList(), emptyList(), emptyList())
+                currentSummary = PeriodSummary(today, today, 0L),
+                previousSummary = PeriodSummary(today, today, 0L)
             )
         }
 
-        val (currentRange, previousRange) = period.getTimeRanges()
-        val currentStart = currentRange.start.toLocalDate()
-        val previousStart = previousRange.start.toLocalDate()
+        val currentStart: LocalDate
+        val currentEnd: LocalDate
+        val currentTotal: Long
 
-        val currentDailyMap = timeStats.currentDaily.dailyStats.associate {
-            LocalDate.ofEpochDay(it.date) to it.totalSeconds
-        }
-        val previousDailyMap = timeStats.previousDaily.dailyStats.associate {
-            LocalDate.ofEpochDay(it.date) to it.totalSeconds
-        }
+        val previousStart: LocalDate
+        val previousEnd: LocalDate
+        val previousTotal: Long
 
-        val buckets: List<Bucket> = when (period) {
-            TrendsTimePeriod.LAST_7_DAYS -> (0L..6L).map { i ->
-                val cDate = currentStart.plusDays(i)
-                val pDate = previousStart.plusDays(i)
-                Bucket(
-                    currentSecs = currentDailyMap[cDate] ?: 0L,
-                    previousSecs = previousDailyMap[pDate] ?: 0L,
-                    desc = BucketDescriptor.Day(cDate)
-                )
+        if (period == TrendsTimePeriod.ALL_TIME) {
+            val earliestCurrent = timeStats.currentDaily.dailyStats.minOfOrNull { it.date }
+            currentStart = earliestCurrent?.let { LocalDate.ofEpochDay(it) } ?: LocalDate.now()
+            currentEnd = LocalDate.now()
+            currentTotal = timeStats.currentDaily.dailyStats.sumOf { it.totalSeconds }
+
+            previousStart = currentStart
+            previousEnd = currentEnd
+            previousTotal = 0L
+        } else {
+            val (currentRange, previousRange) = period.getTimeRanges()
+
+            currentStart = currentRange.start.toLocalDate()
+            currentEnd = currentRange.end.toLocalDate()
+            previousStart = previousRange.start.toLocalDate()
+            previousEnd = previousRange.end.toLocalDate()
+
+            currentTotal = timeStats.currentDaily.dailyStats.sumOf {
+                val date = LocalDate.ofEpochDay(it.date)
+                if (date in currentStart..currentEnd) it.totalSeconds else 0L
             }
 
-            TrendsTimePeriod.LAST_4_WEEKS -> (0L..3L).map { i ->
-                val cStart = currentStart.plusWeeks(i)
-                val pStart = previousStart.plusWeeks(i)
-                Bucket(
-                    currentSecs = currentDailyMap.sumInRange(cStart, cStart.plusDays(6)),
-                    previousSecs = previousDailyMap.sumInRange(pStart, pStart.plusDays(6)),
-                    desc = BucketDescriptor.Week(cStart)
-                )
-            }
-
-            TrendsTimePeriod.LAST_6_MONTHS, TrendsTimePeriod.LAST_YEAR -> {
-                val numMonths = if (period == TrendsTimePeriod.LAST_6_MONTHS) 6L else 12L
-                (0L until numMonths).map { i ->
-                    val cMonth = YearMonth.from(currentStart.plusMonths(i))
-                    val pMonth = YearMonth.from(previousStart.plusMonths(i))
-                    Bucket(
-                        currentSecs = currentDailyMap.sumInMonth(cMonth),
-                        previousSecs = previousDailyMap.sumInMonth(pMonth),
-                        desc = BucketDescriptor.Month(cMonth.atDay(1))
-                    )
-                }
-            }
-
-            TrendsTimePeriod.ALL_TIME -> {
-                val todayYear = LocalDate.now().year
-                val minYear = currentDailyMap.keys.minOfOrNull { it.year } ?: todayYear
-
-                (minYear..todayYear).map { year ->
-                    val cSecs = currentDailyMap.filterKeys { it.year == year }.values.sum()
-                    Bucket(
-                        currentSecs = cSecs, previousSecs = 0L, desc = BucketDescriptor.Year(year)
-                    )
-                }
+            previousTotal = timeStats.previousDaily.dailyStats.sumOf {
+                val date = LocalDate.ofEpochDay(it.date)
+                if (date in previousStart..previousEnd) it.totalSeconds else 0L
             }
         }
 
         return AggregatedProgress(
             cumulativeProgress = cumulativeProgress,
             finalRunningTotal = finalRunningTotal,
-            chartBucketData = ChartBucketData(
-                currentProgress = buckets.map { it.currentSecs },
-                previousProgress = buckets.map { it.previousSecs },
-                descriptors = buckets.map { it.desc })
+            currentSummary = PeriodSummary(currentStart, currentEnd, currentTotal),
+            previousSummary = PeriodSummary(previousStart, previousEnd, previousTotal)
         )
     }
 
@@ -158,23 +125,5 @@ object TrendsDataAggregator {
             val isMonthStart = LocalDate.ofEpochDay(point.date).dayOfMonth == 1
             index % step == 0 || point.date in milestoneSet || isMonthStart || point.date == lastDate
         }.sortedBy { it.date }
-    }
-
-    private fun Map<LocalDate, Long>.sumInRange(start: LocalDate, end: LocalDate): Long {
-        var sum = 0L
-        var current = start
-        while (!current.isAfter(end)) {
-            sum += this[current] ?: 0L
-            current = current.plusDays(1)
-        }
-        return sum
-    }
-
-    private fun Map<LocalDate, Long>.sumInMonth(yearMonth: YearMonth): Long {
-        var sum = 0L
-        for (day in 1..yearMonth.lengthOfMonth()) {
-            sum += this[yearMonth.atDay(day)] ?: 0L
-        }
-        return sum
     }
 }

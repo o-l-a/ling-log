@@ -30,6 +30,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.myinputlog.R
+import com.example.myinputlog.ui.models.VideoListItem
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.screens.common.composable.label.SmallLabelChipRow
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
@@ -46,7 +47,7 @@ internal enum class ListDisplayState {
 fun VideoListBody(
     modifier: Modifier = Modifier,
     currentCourseId: String,
-    videos: LazyPagingItems<VideoUiModel>,
+    videos: LazyPagingItems<VideoListItem>,
     navigateToYouTubeVideo: (String, String) -> Unit,
     lazyColumnListState: LazyListState
 ) {
@@ -105,25 +106,45 @@ fun VideoListBody(
                 ) {
                     if (videos.itemCount > 0) {
                         items(
-                            count = videos.itemCount,
-                            key = videos.itemKey { "${it.id}${it.separatorTitle}" }) { index ->
-                            videos[index]?.let { video ->
-                                VideoContainer(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .animateItem(
-                                            fadeInSpec = tween(300),
-                                            fadeOutSpec = tween(300),
-                                            placementSpec = spring(
-                                                stiffness = Spring.StiffnessMediumLow,
-                                                visibilityThreshold = IntOffset.VisibilityThreshold
-                                            )
-                                        ),
-                                    video = video,
-                                    isSeparator = video.isSeparator,
-                                    onVideoClicked = {
-                                        navigateToYouTubeVideo(currentCourseId, video.id)
-                                    })
+                            count = videos.itemCount, key = videos.itemKey { item ->
+                                when (item) {
+                                    is VideoListItem.Video -> "video_${item.video.id}"
+                                    is VideoListItem.Separator -> "sep_${item.title.hashCode()}"
+                                }
+                            }) { index ->
+                            videos[index]?.let {
+                                val animatedModifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateItem(
+                                        fadeInSpec = tween(300),
+                                        fadeOutSpec = tween(300),
+                                        placementSpec = spring(
+                                            stiffness = Spring.StiffnessMediumLow,
+                                            visibilityThreshold = IntOffset.VisibilityThreshold
+                                        )
+                                    )
+
+                                when (val item = videos[index]) {
+                                    is VideoListItem.Video -> {
+                                        VideoContainer(
+                                            modifier = animatedModifier,
+                                            video = item.video,
+                                            onVideoClicked = {
+                                                navigateToYouTubeVideo(
+                                                    currentCourseId, item.video.id
+                                                )
+                                            })
+                                    }
+
+                                    is VideoListItem.Separator -> {
+                                        SeparatorContainer(
+                                            modifier = animatedModifier,
+                                            separatorTitle = item.title.asString()
+                                        )
+                                    }
+
+                                    else -> {}
+                                }
                             }
                         }
                         when (videos.loadState.append) {
@@ -148,47 +169,50 @@ fun VideoListBody(
 }
 
 /**
- * Shows as a ListItem for a video and as a separator for just a date
+ * Shows as a ListItem for a video
  */
 @Composable
 fun VideoContainer(
-    modifier: Modifier = Modifier,
-    video: VideoUiModel,
-    isSeparator: Boolean = false,
-    onVideoClicked: (String) -> Unit
+    modifier: Modifier = Modifier, video: VideoUiModel, onVideoClicked: (String) -> Unit
 ) {
-    if (!isSeparator) {
-        ListItem(modifier = modifier.clickable { onVideoClicked(video.id) }, headlineContent = {
-            Column {
-                Text(
-                    text = video.title,
-                    maxLines = video.titleLines(),
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraExtraSmall))
-                Text(
-                    text = video.supportingLine(),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
-                SmallLabelChipRow(labels = video.labels.toList())
-            }
-        }, leadingContent = {
-            VideoThumbnail(
-                modifier = Modifier.height(MaterialTheme.spacing.extraLargePlus),
-                videoThumbnailUrl = video.thumbnailHighUrl,
-                duration = video.durationInSeconds,
-                isListItemLeading = true
+    ListItem(modifier = modifier.clickable { onVideoClicked(video.id) }, headlineContent = {
+        Column {
+            Text(
+                text = video.title,
+                maxLines = video.titleLines(),
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium
             )
-        })
-    } else {
-        Text(
-            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium),
-            text = video.separatorTitle.asString(),
-            style = MaterialTheme.typography.titleMedium
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraExtraSmall))
+            Text(
+                text = video.supportingLine(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
+            SmallLabelChipRow(labels = video.labels.toList())
+        }
+    }, leadingContent = {
+        VideoThumbnail(
+            modifier = Modifier.height(MaterialTheme.spacing.extraLargePlus),
+            videoThumbnailUrl = video.thumbnailHighUrl,
+            duration = video.durationInSeconds,
+            isListItemLeading = true
         )
-    }
+    })
+}
+
+/**
+ * Shows as a separator for just a date
+ */
+@Composable
+fun SeparatorContainer(
+    modifier: Modifier = Modifier, separatorTitle: String
+) {
+    Text(
+        modifier = modifier.padding(horizontal = MaterialTheme.spacing.medium),
+        text = separatorTitle,
+        style = MaterialTheme.typography.titleMedium
+    )
 }

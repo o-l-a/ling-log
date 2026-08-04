@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.common.composable.charts
+package com.example.myinputlog.ui.screens.common.composable.stats
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable

@@ -24,7 +24,7 @@ import com.example.myinputlog.ui.screens.common.UiText
 import com.example.myinputlog.ui.screens.common.ext.extractYouTubeVideoId
 import com.example.myinputlog.ui.screens.common.ext.stripUrl
 import com.example.myinputlog.ui.screens.common.ext.toLocalDate
-import com.example.myinputlog.ui.screens.media_list.SeparatorTransformer
+import com.example.myinputlog.ui.screens.common.formatters.RelativeDateFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,7 +55,8 @@ class VideoViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val apiDataRepository: ApiDataRepository,
     private val storageDataRepository: StorageDataRepository,
-    private val stringProvider: StringProvider
+    private val stringProvider: StringProvider,
+    private val formatter: RelativeDateFormatter
 ) : ViewModel() {
     sealed class VideoUiEvent {
         data class ShowSnackbar(val message: UiText) : VideoUiEvent()
@@ -65,8 +66,6 @@ class VideoViewModel @Inject constructor(
     private val videoRoute = savedStateHandle.toRoute<VideoRoute>()
     private val defaultCourseId: String = videoRoute.courseId
     private val videoId = sanitizeInitialVideoId(videoRoute.videoId)
-
-    private val separatorTransformer = SeparatorTransformer()
 
     private val _videoForm = MutableStateFlow(VideoForm())
     private val _loadingState = MutableStateFlow<VideoLoadState>(VideoLoadState.LoadingFromStorage)
@@ -163,8 +162,7 @@ class VideoViewModel @Inject constructor(
             } else {
                 _videoForm.update {
                     it.copy(
-                        selectedCourse = selectedCourse,
-                        watchedOnDisplay = separatorTransformer.getWatchedOnHeader(
+                        selectedCourse = selectedCourse, watchedOnDisplay = formatter.format(
                             Date().toLocalDate(), false
                         )
                     )
@@ -180,8 +178,7 @@ class VideoViewModel @Inject constructor(
             loadChannel(video.channel.id)
             _videoForm.update {
                 it.toFormWithVideoMetadata(video).copy(
-                    selectedCourse = selectedCourse,
-                    watchedOnDisplay = separatorTransformer.getWatchedOnHeader(
+                    selectedCourse = selectedCourse, watchedOnDisplay = formatter.format(
                         video.video.watchedOn.toLocalDate(), false
                     )
                 )
@@ -341,7 +338,7 @@ class VideoViewModel @Inject constructor(
         val newDate = milliseconds?.let { date -> Date(date) } ?: Date()
         _videoForm.update {
             it.copy(
-                watchedOn = newDate, watchedOnDisplay = separatorTransformer.getWatchedOnHeader(
+                watchedOn = newDate, watchedOnDisplay = formatter.format(
                     newDate.toLocalDate(), false
                 )
             )

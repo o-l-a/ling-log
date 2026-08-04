@@ -1,4 +1,4 @@
-package com.example.myinputlog.ui.screens.common.composable.charts
+package com.example.myinputlog.ui.screens.common.composable.stats
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -14,8 +14,10 @@ import com.example.myinputlog.ui.theme.spacing
 import com.patrykandpatrick.vico.compose.cartesian.AutoScrollCondition
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.Scroll
+import com.patrykandpatrick.vico.compose.cartesian.axis.Axis
 import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.compose.cartesian.data.lineModel
@@ -26,8 +28,32 @@ import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.Fill
 
+import java.math.RoundingMode
+import java.text.NumberFormat
+
+private val axisFormatters = Array(4) { decimals ->
+    NumberFormat.getNumberInstance().apply {
+        roundingMode = RoundingMode.HALF_UP
+        isGroupingUsed = true
+        maximumFractionDigits = decimals
+        minimumFractionDigits = decimals
+    }
+}
+
 private val StartAxisValueFormatter =
-    CartesianValueFormatter.decimal(decimalCount = 2, suffix = "%")
+    CartesianValueFormatter { context, value, verticalAxisPosition ->
+        val position = verticalAxisPosition ?: Axis.Position.Vertical.Start
+        val bounds = context.ranges.getYRange(position)
+        val yRange = bounds.maxY - bounds.minY
+
+        val decimalPlaces = when {
+            yRange < 0.1 -> 3
+            yRange < 1.0 -> 2
+            yRange < 10.0 -> 1
+            else -> 0
+        }
+        "${axisFormatters[decimalPlaces].format(value)}%"
+    }
 
 @Composable
 private fun ComposeCumulativeTrendsChart(
@@ -90,7 +116,9 @@ private fun ComposeCumulativeTrendsChart(
             ), startAxis = VerticalAxis.rememberStart(
                 valueFormatter = StartAxisValueFormatter
             ), bottomAxis = HorizontalAxis.rememberBottom(
-                valueFormatter = bottomAxisFormatter, itemPlacer = dynamicItemPlacer
+                label = rememberAxisLabelComponent(style = MaterialTheme.typography.bodySmall),
+                valueFormatter = bottomAxisFormatter,
+                itemPlacer = dynamicItemPlacer
             ), persistentMarkers = { _ ->
                 years.forEach { x ->
                     marker at x.toFloat()
