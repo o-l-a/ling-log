@@ -23,7 +23,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -382,13 +384,27 @@ fun MediaFilterBottomSheet(
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss, sheetState = sheetState, modifier = Modifier.fillMaxWidth()
-    ) {
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        modifier = Modifier.fillMaxWidth(),
+        dragHandle = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                BottomSheetDefaults.DragHandle(
+                    modifier = Modifier.padding(bottom = MaterialTheme.spacing.small)
+                )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                )
+            }
+        }) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.7f)
-                .padding(MaterialTheme.spacing.small)
+                .padding(horizontal = MaterialTheme.spacing.small)
                 .padding(bottom = MaterialTheme.spacing.large),
             state = scrollState
         ) {
