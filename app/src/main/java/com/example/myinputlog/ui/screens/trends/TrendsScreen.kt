@@ -37,6 +37,7 @@ import com.example.myinputlog.ui.models.TrendsTimePeriod
 import com.example.myinputlog.ui.models.toCountryUiModel
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
+import com.example.myinputlog.ui.screens.common.composable.channel.ChannelRepresentation
 import com.example.myinputlog.ui.screens.common.composable.input.FilterDropdownChip
 import com.example.myinputlog.ui.screens.common.composable.label.ClickableLabelChip
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
@@ -194,15 +195,26 @@ fun TrendsBody(
                                     RankingContributorListItem(
                                         durationText = formatDurationAsText(channel.totalTimeInSeconds),
                                         modifier = Modifier.animateItem(),
-                                        representation = { Text(channel.title) })
+                                        representation = { ChannelRepresentation(channel) })
                                 }
                             }
                         }
                     }
 
                     RankingCategory.CHANNEL -> {
-                        itemsIndexed(trendsUiState.topChannels) { index, channel ->
-                            Text(channel.title)
+                        trendsUiState.topChannels.forEachIndexed {  index, channel ->
+                            item(key = "channel_${channel.id}") {
+                                RankingListItem(
+                                    rankIndex = index + 1,
+                                    durationText = formatDurationAsText(channel.totalTimeInSeconds),
+                                    isExpandable = false,
+                                    isExpanded = false,
+                                    onClick = {},
+                                    modifier = Modifier.animateItem(),
+                                    representation = {
+                                        ChannelRepresentation(channel)
+                                    })
+                            }
                         }
                     }
 
