@@ -11,6 +11,7 @@ enum class RankingCategory(@get:StringRes val labelRes: Int) {
 
 enum class RankingLimit(val limit: Int) {
     TOP_3(3),
+    TOP_5(5),
     TOP_10(10),
     TOP_30(30)
 }

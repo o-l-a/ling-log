@@ -441,7 +441,8 @@ class DefaultStorageDataRepository @Inject constructor(
     override fun getTopChannelsWithStatsAndLabels(
         courseId: String, start: Long, end: Long, limit: Int
     ): Flow<List<ChannelWithStatsAndLabels>> = scoped {
-        statsDao.getTopChannelsWithStatsAndLabels(courseId, start, end).flowOn(Dispatchers.IO)
+        statsDao.getTopChannelsWithStatsAndLabels(courseId, start, end, limit)
+            .flowOn(Dispatchers.IO)
     }
 
     // preferences

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -19,26 +20,32 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.RankingCategory
 import com.example.myinputlog.ui.models.RankingLimit
 import com.example.myinputlog.ui.models.TrendsTimePeriod
+import com.example.myinputlog.ui.models.toCountryUiModel
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.ui.screens.common.composable.input.FilterDropdownChip
+import com.example.myinputlog.ui.screens.common.composable.label.ClickableLabelChip
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.stats.CumulativeTrendsChart
+import com.example.myinputlog.ui.screens.common.composable.stats.RankingContributorListItem
+import com.example.myinputlog.ui.screens.common.composable.stats.RankingListItem
 import com.example.myinputlog.ui.screens.common.composable.stats.TotalHoursComparisonCard
+import com.example.myinputlog.ui.screens.common.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,16 +59,12 @@ fun TrendsScreen(
     val currentCourseId by trendsViewModel.currentCourseId.collectAsStateWithLifecycle()
     val trendsUiState by trendsViewModel.trendsUiState.collectAsStateWithLifecycle()
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {},
-        bottomBar = {
-            MyInputLogBottomNavBar(
-                selectedScreen = Screen.Trends,
-                onBottomNavClicked = onBottomNavClicked,
-                navigateToVideoEntry = { navigateToVideoEntry(currentCourseId) })
-        }) { innerPadding ->
+    Scaffold(topBar = {}, bottomBar = {
+        MyInputLogBottomNavBar(
+            selectedScreen = Screen.Trends,
+            onBottomNavClicked = onBottomNavClicked,
+            navigateToVideoEntry = { navigateToVideoEntry(currentCourseId) })
+    }) { innerPadding ->
         when (val currentState = trendsUiState) {
             TrendsUiState.Error -> {
                 EmptyCollectionBox(
@@ -96,6 +99,9 @@ fun TrendsBody(
     onCategoryLimitChange: (RankingLimit) -> Unit
 ) {
     val scrollState = rememberLazyListState()
+
+    var expandedLabelId by rememberSaveable { mutableStateOf<String?>(null) }
+    var expandedCountry by rememberSaveable { mutableStateOf<String?>(null) }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -148,12 +154,72 @@ fun TrendsBody(
             }
         }
         item {
-            RankingFilterRow(
+            RankingFilterSection(
                 trendsUiState.selectedRankingCategory,
                 onCategoryChange,
                 trendsUiState.selectedRankingLimit,
                 onCategoryLimitChange
             )
+        }
+        when (trendsUiState) {
+            is TrendsUiState.Success -> {
+                when (trendsUiState.selectedRankingCategory) {
+                    RankingCategory.LABEL -> {
+                        trendsUiState.topLabels.forEachIndexed { index, label ->
+                            item(key = "label_${label.id}") {
+                                RankingListItem(
+                                    rankIndex = index + 1,
+                                    durationText = formatDurationAsText(label.totalSeconds),
+                                    isExpandable = trendsUiState.topChannels.isNotEmpty(),
+                                    isExpanded = expandedLabelId == label.id,
+                                    onClick = {
+                                        expandedLabelId =
+                                            if (expandedLabelId == label.id) null else label.id
+                                    },
+                                    modifier = Modifier.animateItem(),
+                                    representation = {
+                                        ClickableLabelChip(
+                                            onClick = {},
+                                            title = label.title,
+                                            backgroundColor = Color(label.color),
+                                            textColor = Color(label.textColor),
+                                        )
+                                    })
+                            }
+
+                            if (expandedLabelId == label.id) {
+                                items(
+                                    items = trendsUiState.topChannels.take(3),
+                                    key = { "label_sub_${label.id}_${it.id}" }) { channel ->
+                                    RankingContributorListItem(
+                                        durationText = formatDurationAsText(channel.totalTimeInSeconds),
+                                        modifier = Modifier.animateItem(),
+                                        representation = { Text(channel.title) })
+                                }
+                            }
+                        }
+                    }
+
+                    RankingCategory.CHANNEL -> {
+                        itemsIndexed(trendsUiState.topChannels) { index, channel ->
+                            Text(channel.title)
+                        }
+                    }
+
+                    RankingCategory.COUNTRY -> {
+                        itemsIndexed(trendsUiState.regionStats) { index, regionStat ->
+                            val country = regionStat.regionName.toCountryUiModel()
+                            Text(country.displayName)
+                        }
+                    }
+                }
+            }
+
+            is TrendsUiState.Empty -> {
+                item("emptyCategory") {
+                    EmptyCollectionBox(bodyMessage = R.string.empty_stats_collection_body)
+                }
+            }
         }
     }
 }
@@ -176,22 +242,22 @@ fun PeriodSection(
 
             FilterChip(
                 selected = isSelected, onClick = { onPeriodChange(option) }, label = {
-                    Text(
-                        text = stringResource(option.labelRes)
+                Text(
+                    text = stringResource(option.labelRes)
+                )
+            }, leadingIcon = if (isSelected) {
+                {
+                    Icon(
+                        imageVector = Icons.Default.Check, contentDescription = null
                     )
-                }, leadingIcon = if (isSelected) {
-                    {
-                        Icon(
-                            imageVector = Icons.Default.Check, contentDescription = null
-                        )
-                    }
-                } else null)
+                }
+            } else null)
         }
     }
 }
 
 @Composable
-fun RankingFilterRow(
+fun RankingFilterSection(
     selectedCategory: RankingCategory,
     onCategoryChanged: (RankingCategory) -> Unit,
     selectedLimit: RankingLimit,
