@@ -427,15 +427,15 @@ class DefaultStorageDataRepository @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     override fun getRegionStats(
-        courseId: String, start: Long, end: Long
+        courseId: String, start: Long, end: Long, limit: Int
     ): Flow<List<RegionStat>> = scoped {
-        statsDao.getRegionStats(courseId, start, end).flowOn(Dispatchers.IO)
+        statsDao.getRegionStats(courseId, start, end, limit).flowOn(Dispatchers.IO)
     }
 
     override fun getLabelStats(
-        courseId: String, start: Long, end: Long
+        courseId: String, start: Long, end: Long, limit: Int
     ): Flow<List<LabelWithStats>> = scoped {
-        statsDao.getLabelStats(courseId, start, end).flowOn(Dispatchers.IO)
+        statsDao.getLabelStats(courseId, start, end, limit).flowOn(Dispatchers.IO)
     }
 
     override fun getTopChannelsWithStatsAndLabels(

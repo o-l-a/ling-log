@@ -4,6 +4,8 @@ import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.CourseUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.screens.common.UiText
+import com.example.myinputlog.ui.screens.common.ext.toLocalDate
+import java.time.ZoneId
 import java.util.Date
 
 
@@ -20,7 +22,9 @@ data class VideoForm(
     val videoId: String = "",
     val videoUrl: String = "",
     val title: String = "",
-    val watchedOn: Date = Date(),
+    val watchedOn: Date = Date.from(
+        Date().toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant()
+    ),
     val initialWatchedOn: Date = Date(),
     val watchedOnDisplay: UiText = UiText.DynamicString(""),
     val initialSpeakersNationality: CountryUiModel? = null,

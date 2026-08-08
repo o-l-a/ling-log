@@ -29,10 +29,12 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.models.TrendsPeriodOption
+import com.example.myinputlog.ui.models.RankingCategory
+import com.example.myinputlog.ui.models.RankingLimit
 import com.example.myinputlog.ui.models.TrendsTimePeriod
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
+import com.example.myinputlog.ui.screens.common.composable.input.FilterDropdownChip
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.composable.stats.CumulativeTrendsChart
@@ -72,12 +74,13 @@ fun TrendsScreen(
                 LoadingBox()
             }
 
-            is TrendsUiState.Success -> TrendsBody(
+            is TrendsUiState.Content -> TrendsBody(
                 modifier = Modifier.padding(innerPadding),
                 trendsUiState = currentState,
-                periodOptions = trendsViewModel.timePeriodOptions,
+                periodOptions = TrendsTimePeriod.entries,
                 onPeriodChange = trendsViewModel::setTimePeriod,
-                onChannelLimitChange = trendsViewModel::expandChannels
+                onCategoryChange = trendsViewModel::setRankingCategory,
+                onCategoryLimitChange = trendsViewModel::setRankingLimit
             )
         }
     }
@@ -86,10 +89,11 @@ fun TrendsScreen(
 @Composable
 fun TrendsBody(
     modifier: Modifier = Modifier,
-    trendsUiState: TrendsUiState.Success,
-    periodOptions: List<TrendsPeriodOption>,
+    trendsUiState: TrendsUiState.Content,
+    periodOptions: List<TrendsTimePeriod>,
     onPeriodChange: (period: TrendsTimePeriod) -> Unit,
-    onChannelLimitChange: () -> Unit
+    onCategoryChange: (RankingCategory) -> Unit,
+    onCategoryLimitChange: (RankingLimit) -> Unit
 ) {
     val scrollState = rememberLazyListState()
 
@@ -106,39 +110,50 @@ fun TrendsBody(
                 onPeriodChange = onPeriodChange
             )
         }
-        item {
-            if (trendsUiState.cumulativeProgress.isNotEmpty()) {
-                Text(
-                    stringResource(
-                        R.string.trends_progress_chart_title
-                    ), style = MaterialTheme.typography.bodyLarge
-                )
-                CumulativeTrendsChart(
-                    trendsUiState.cumulativeProgress,
-                    trendsUiState.years,
-                    trendsUiState.selectedPeriod.dayStep,
-                    modifier = Modifier.height(MaterialTheme.spacing.horizontalChartHeight),
-                    trendsUiState.selectedPeriod.dayStep < 28,
-                    trendsUiState.totalPoints
-                )
+        when (trendsUiState) {
+            is TrendsUiState.Success -> {
+                item(key = "totalProgress") {
+                    Text(
+                        stringResource(
+                            R.string.trends_progress_chart_title
+                        ), style = MaterialTheme.typography.bodyLarge
+                    )
+                    CumulativeTrendsChart(
+                        trendsUiState.cumulativeProgress,
+                        trendsUiState.years,
+                        trendsUiState.selectedPeriod.dayStep,
+                        modifier = Modifier
+                            .height(MaterialTheme.spacing.horizontalChartHeight)
+                            .animateItem(),
+                        trendsUiState.selectedPeriod.dayStep < 28,
+                        trendsUiState.totalPoints
+                    )
+                }
+                item(key = "progressCard") {
+                    TotalHoursComparisonCard(
+                        trendsUiState.currentPeriodSummary,
+                        trendsUiState.previousPeriodSummary,
+                        Modifier
+                            .height(MaterialTheme.spacing.extraLargePlusPlus)
+                            .animateItem(),
+                        isAllTime = trendsUiState.selectedPeriod == TrendsTimePeriod.ALL_TIME
+                    )
+                }
+            }
+
+            is TrendsUiState.Empty -> {
+                item("emptyProgress") {
+                    EmptyCollectionBox(bodyMessage = R.string.empty_stats_collection_body)
+                }
             }
         }
         item {
-            TotalHoursComparisonCard(
-                trendsUiState.currentPeriodSummary,
-                trendsUiState.previousPeriodSummary,
-                Modifier.height(MaterialTheme.spacing.extraLargePlusPlus),
-                isAllTime = trendsUiState.selectedPeriod == TrendsTimePeriod.ALL_TIME
+            RankingFilterRow(
+                trendsUiState.selectedRankingCategory,
+                onCategoryChange,
+                trendsUiState.selectedRankingLimit,
+                onCategoryLimitChange
             )
-        }
-        item {
-            Text(trendsUiState.regionStats.toString())
-        }
-        item {
-            Text(trendsUiState.topLabels.toString())
-        }
-        item {
-            Text(trendsUiState.topChannels.toString())
         }
     }
 }
@@ -147,7 +162,7 @@ fun TrendsBody(
 @Composable
 fun PeriodSection(
     modifier: Modifier = Modifier,
-    periodOptions: List<TrendsPeriodOption>,
+    periodOptions: List<TrendsTimePeriod>,
     selectedPeriod: TrendsTimePeriod,
     onPeriodChange: (period: TrendsTimePeriod) -> Unit
 ) {
@@ -157,20 +172,53 @@ fun PeriodSection(
         verticalAlignment = Alignment.CenterVertically
     ) {
         items(periodOptions) { option ->
-            val isSelected = selectedPeriod == option.period
+            val isSelected = selectedPeriod == option
 
             FilterChip(
-                selected = isSelected, onClick = { onPeriodChange(option.period) }, label = {
-                Text(
-                    text = stringResource(option.labelRes)
-                )
-            }, leadingIcon = if (isSelected) {
-                {
-                    Icon(
-                        imageVector = Icons.Default.Check, contentDescription = null
+                selected = isSelected, onClick = { onPeriodChange(option) }, label = {
+                    Text(
+                        text = stringResource(option.labelRes)
                     )
-                }
-            } else null)
+                }, leadingIcon = if (isSelected) {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.Check, contentDescription = null
+                        )
+                    }
+                } else null)
+        }
+    }
+}
+
+@Composable
+fun RankingFilterRow(
+    selectedCategory: RankingCategory,
+    onCategoryChanged: (RankingCategory) -> Unit,
+    selectedLimit: RankingLimit,
+    onLimitChanged: (RankingLimit) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        item {
+            FilterDropdownChip(
+                selectedItem = selectedCategory,
+                items = RankingCategory.entries,
+                itemLabelMapper = { stringResource(id = it.labelRes) },
+                onItemSelected = onCategoryChanged,
+            )
+        }
+
+        item {
+            FilterDropdownChip(
+                selectedItem = selectedLimit,
+                items = RankingLimit.entries,
+                itemLabelMapper = { "Top ${it.limit}" },
+                onItemSelected = onLimitChanged
+            )
         }
     }
 }

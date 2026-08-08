@@ -1,11 +1,26 @@
 package com.example.myinputlog.ui.models
 
 import androidx.annotation.StringRes
+import com.example.myinputlog.R
 import java.time.LocalDate
 import java.time.ZoneId
 
-enum class TrendsTimePeriod(val dayStep: Int) {
-    LAST_7_DAYS(1), LAST_4_WEEKS(4), LAST_6_MONTHS(14), LAST_YEAR(32), ALL_TIME(28);
+enum class TrendsTimePeriod(val dayStep: Int, @get:StringRes val labelRes: Int) {
+    LAST_7_DAYS(
+        1, R.string.period_last_7_days
+    ),
+    LAST_4_WEEKS(
+        4, R.string.period_last_4_weeks
+    ),
+    LAST_6_MONTHS(
+        14, R.string.period_last_6_months
+    ),
+    LAST_YEAR(
+        32, R.string.period_last_year
+    ),
+    ALL_TIME(
+        28, R.string.period_all_time
+    );
 
     /**
      * Returns a pair of Pair<Long, Long> representing:
@@ -49,7 +64,3 @@ private fun LocalDate.toEpochMilli(): Long {
 }
 
 private fun LocalDate.firstDayOfMonth(): LocalDate = this.withDayOfMonth(1)
-
-data class TrendsPeriodOption(
-    val period: TrendsTimePeriod, @get:StringRes val labelRes: Int
-)

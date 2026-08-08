@@ -27,8 +27,8 @@
 
     <!--    settings nav descriptions    -->
     <string name="course_list_nav_description">Kursy</string>
-    <string name="label_list_nav_description">Labelki</string>
-    <string name="label_nav_description">Labelka</string>
+    <string name="label_list_nav_description">Tagi</string>
+    <string name="label_nav_description">Tag</string>
     <string name="ui_settings_nav_description">Wygląd</string>
     <string name="account_nav_description">Konto</string>
 
@@ -108,9 +108,10 @@
     <string name="empty_collection_headline">Trochę tu pusto.</string>
     <string name="empty_course_collection_body_course_tab">Dodaj pierwszy kurs.</string>
     <string name="empty_course_collection_body_other_tabs">Dodaj pierwszy kurs w zakładce Profil.</string>
-    <string name="empty_label_collection_body">Twoje labelki pojawią się tutaj, kiedy je dodasz.</string>
+    <string name="empty_label_collection_body">Twoje tagi pojawią się tutaj, kiedy je dodasz.</string>
     <string name="empty_video_collection_body">Żadne filmy nie spełniają kryteriów wyszukiwania. Dodaj filmy lub zmień kryteria.</string>
     <string name="empty_channel_collection_body">Żadne kanały nie spełniają kryteriów wyszukiwania. Dodaj filmy lub zmień kryteria.</string>
+    <string name="empty_stats_collection_body">Brak danych dla wybranego zakresu.</string>
     <string name="empty_playlist">Wygląda na to, że ta playlista jest pusta.</string>
     <string name="video_save_error">Nie udało się zapisać filmu. Spróbuj ponownie później.</string>
     <string name="video_delete_error">Nie udało się usunąć filmu. Spróbuj ponownie później.</string>
@@ -149,13 +150,13 @@
     <string name="label_color_label">Kolor tła</string>
     <string name="label_text_color_label">Kolor tekstu</string>
     <string name="label_auto_text_color">Automatycznie oblicz kolor tekstu</string>
-    <string name="labels_text_field_label">Labelki</string>
-    <string name="labels_search_placeholder">Zacznij pisać, żeby dodać labelki…</string>
+    <string name="labels_text_field_label">Tagi</string>
+    <string name="labels_search_placeholder">Zacznij pisać, żeby dodać tagi…</string>
 
     <!--    video edit    -->
     <string name="video_watched_on_label">Ustaw datę obejrzenia</string>
     <string name="video_watched_on_chip_label">Obejrzane: %s</string>
-    <string name="video_country_label">Język/akcent</string>
+    <string name="video_country_label">Kraj</string>
     <string name="video_course_label">Kurs</string>
     <string name="video_title_label">Tytuł</string>
     <string name="video_channel_label">Kanał</string>
@@ -165,7 +166,7 @@
 
     <!--    channel    -->
     <string name="channel_video_count">Filmy</string>
-    <string name="channel_apply_labels_to_videos">Zastosuj labelki do filmów z tego kanału</string>
+    <string name="channel_apply_labels_to_videos">Zastosuj tagi do filmów z tego kanału</string>
     <string name="channel_default_language">Domyślny kraj</string>
     <string name="channel_select_default_language">Wybierz domyślny kraj…</string>
     <string name="channel_first_watched_on">Oglądasz od: %s</string>

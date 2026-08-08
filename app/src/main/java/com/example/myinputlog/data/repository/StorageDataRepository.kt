@@ -93,8 +93,14 @@ interface StorageDataRepository {
     fun getTodaySecondsFlow(courseId: String): Flow<Long>
     fun getDailyWatchStats(courseId: String, start: Long, end: Long): Flow<DailyWatchWrapper>
     fun getBaselineProgress(courseId: String, start: Long): Flow<Long>
-    fun getRegionStats(courseId: String, start: Long, end: Long): Flow<List<RegionStat>>
-    fun getLabelStats(courseId: String, start: Long, end: Long): Flow<List<LabelWithStats>>
+    fun getRegionStats(
+        courseId: String, start: Long, end: Long, limit: Int = 5
+    ): Flow<List<RegionStat>>
+
+    fun getLabelStats(
+        courseId: String, start: Long, end: Long, limit: Int = 5
+    ): Flow<List<LabelWithStats>>
+
     fun getTopChannelsWithStatsAndLabels(
         courseId: String, start: Long, end: Long, limit: Int = 5
     ): Flow<List<ChannelWithStatsAndLabels>>

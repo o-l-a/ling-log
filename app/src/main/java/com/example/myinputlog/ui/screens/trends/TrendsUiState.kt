@@ -4,13 +4,30 @@ import com.example.myinputlog.data.local.model.DailyWatchStat
 import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.models.RankingCategory
+import com.example.myinputlog.ui.models.RankingLimit
 import com.example.myinputlog.ui.models.TrendsTimePeriod
 
 sealed interface TrendsUiState {
     data object Loading : TrendsUiState
     data object Error : TrendsUiState
+
+    sealed interface Content : TrendsUiState {
+        val selectedPeriod: TrendsTimePeriod
+        val selectedRankingCategory: RankingCategory
+        val selectedRankingLimit: RankingLimit
+    }
+
+    data class Empty(
+        override val selectedPeriod: TrendsTimePeriod = TrendsTimePeriod.LAST_4_WEEKS,
+        override val selectedRankingCategory: RankingCategory = RankingCategory.LABEL,
+        override val selectedRankingLimit: RankingLimit = RankingLimit.TOP_3
+    ) : Content
+
     data class Success(
-        val selectedPeriod: TrendsTimePeriod = TrendsTimePeriod.LAST_4_WEEKS,
+        override val selectedPeriod: TrendsTimePeriod = TrendsTimePeriod.LAST_4_WEEKS,
+        override val selectedRankingCategory: RankingCategory = RankingCategory.LABEL,
+        override val selectedRankingLimit: RankingLimit = RankingLimit.TOP_3,
 
         val cumulativeProgress: List<ProgressPoint> = emptyList(),
         val totalPoints: Int = 0,
@@ -26,7 +43,7 @@ sealed interface TrendsUiState {
         val topChannels: List<ChannelUiModel> = emptyList(),
         val currentPeriodSummary: PeriodSummary = PeriodSummary(),
         val previousPeriodSummary: PeriodSummary = PeriodSummary()
-    ) : TrendsUiState
+    ) : Content
 }
 
 data class ProgressPoint(

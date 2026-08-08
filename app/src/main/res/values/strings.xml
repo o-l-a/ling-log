@@ -110,6 +110,7 @@
     <string name="empty_label_collection_body">Your labels will appear here after you add them.</string>
     <string name="empty_video_collection_body">No videos match your criteria. Add videos or change criteria.</string>
     <string name="empty_channel_collection_body">No channels match your criteria. Add videos or change criteria.</string>
+    <string name="empty_stats_collection_body">No data found for selected period.</string>
     <string name="empty_playlist">This playlist seems to be empty.</string>
     <string name="video_save_error">Failed to save the video. Try again later.</string>
     <string name="video_delete_error">Failed to delete the video. Try again later.</string>
@@ -154,7 +155,7 @@
     <!--    video edit    -->
     <string name="video_watched_on_label">Set watch date</string>
     <string name="video_watched_on_chip_label">Watched: %s</string>
-    <string name="video_country_label">Language/accent</string>
+    <string name="video_country_label">Country</string>
     <string name="video_course_label">Course</string>
     <string name="video_title_label">Title</string>
     <string name="video_channel_label">Channel</string>

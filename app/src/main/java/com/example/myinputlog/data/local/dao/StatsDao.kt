@@ -69,9 +69,12 @@ interface StatsDao {
           AND v.isDeleted = 0
         GROUP BY c.defaultLanguage
         ORDER BY totalSeconds DESC
+        LIMIT :limit
     """
     )
-    fun getRegionStats(courseId: String, start: Long, end: Long): Flow<List<RegionStat>>
+    fun getRegionStats(
+        courseId: String, start: Long, end: Long, limit: Int = 5
+    ): Flow<List<RegionStat>>
 
     @Query(
         """
@@ -84,11 +87,15 @@ interface StatsDao {
         WHERE v.courseId = :courseId 
           AND v.watchedOn BETWEEN :start AND :end 
           AND v.isDeleted = 0
+          AND l.isDeleted = 0
         GROUP BY l.id
         ORDER BY totalTimeInSeconds DESC
+        LIMIT :limit
     """
     )
-    fun getLabelStats(courseId: String, start: Long, end: Long): Flow<List<LabelWithStats>>
+    fun getLabelStats(
+        courseId: String, start: Long, end: Long, limit: Int = 5
+    ): Flow<List<LabelWithStats>>
 
     @Transaction
     @Query(

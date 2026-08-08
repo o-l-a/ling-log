@@ -16,6 +16,7 @@ import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.entities.VideoLabelCrossRef
 import com.example.myinputlog.data.local.model.VideoWithChannelAndLabels
 import com.example.myinputlog.data.local.model.VideoWithLabelIds
+import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
 @Dao
@@ -43,6 +44,19 @@ interface VideoDao {
         observedEntities = [VideoEntity::class, ChannelEntity::class, LabelEntity::class, VideoLabelCrossRef::class]
     )
     fun getVideosPagingSource(query: SupportSQLiteQuery): PagingSource<Int, VideoWithChannelAndLabels>
+
+    @Transaction
+    @Query(
+        """
+        SELECT * FROM videos 
+        WHERE courseId = :courseId 
+          AND watchedOn BETWEEN :startMillis AND :endMillis 
+          AND isDeleted = 0
+    """
+    )
+    fun getVideosInTimeRange(
+        courseId: String, startMillis: Long, endMillis: Long
+    ): Flow<List<VideoWithChannelAndLabels>>
 
     // UPSERTS
     @Upsert

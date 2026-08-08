@@ -3,13 +3,13 @@ package com.example.myinputlog.ui.screens.trends
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myinputlog.R
 import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.models.RankingCategory
+import com.example.myinputlog.ui.models.RankingLimit
 import com.example.myinputlog.ui.models.TimeRange
-import com.example.myinputlog.ui.models.TrendsPeriodOption
 import com.example.myinputlog.ui.models.TrendsTimePeriod
 import com.example.myinputlog.ui.models.toChannelUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
@@ -39,13 +39,13 @@ class TrendsViewModel @Inject constructor(
     )
 
     private val _timePeriod = MutableStateFlow(TrendsTimePeriod.LAST_4_WEEKS)
-    private val _channelLimit = MutableStateFlow(5)
-    private val _labelLimit = MutableStateFlow(5)
+    private val _rankingCategory = MutableStateFlow(RankingCategory.LABEL)
+    private val _rankingLimit = MutableStateFlow(RankingLimit.TOP_3)
 
     private val configFlow = combine(
-        currentCourseId.filter { it.isNotEmpty() }, _timePeriod, _channelLimit, _labelLimit
-    ) { courseId, period, channelLimit, labelLimit ->
-        Config(courseId, period, channelLimit, labelLimit)
+        currentCourseId.filter { it.isNotEmpty() }, _timePeriod, _rankingCategory, _rankingLimit
+    ) { courseId, period, rankingCategory, rankingLimit ->
+        Config(courseId, period, rankingCategory, rankingLimit)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -55,7 +55,7 @@ class TrendsViewModel @Inject constructor(
             timeStatsFlow(config, currentRange, previousRange),
             categoryStatsFlow(config, currentRange)
         ) { timeStats, catStats ->
-            mapToUiState(config.period, timeStats, catStats)
+            mapToUiState(config, timeStats, catStats)
         }
     }.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
@@ -84,10 +84,12 @@ class TrendsViewModel @Inject constructor(
         config: Config, currentRange: TimeRange
     ): Flow<CategoryStats> {
         return combine(
-            repository.getRegionStats(config.courseId, currentRange.start, currentRange.end),
-            repository.getLabelStats(config.courseId, currentRange.start, currentRange.end),
-            repository.getTopChannelsWithStatsAndLabels(
-                config.courseId, currentRange.start, currentRange.end, config.channelLimit
+            repository.getRegionStats(
+                config.courseId, currentRange.start, currentRange.end, config.rankingLimit.limit
+            ), repository.getLabelStats(
+                config.courseId, currentRange.start, currentRange.end, config.rankingLimit.limit
+            ), repository.getTopChannelsWithStatsAndLabels(
+                config.courseId, currentRange.start, currentRange.end, config.rankingLimit.limit
             )
         ) { regions, labels, channels ->
             CategoryStats(
@@ -98,14 +100,23 @@ class TrendsViewModel @Inject constructor(
     }
 
     private fun mapToUiState(
-        period: TrendsTimePeriod, timeStats: TimeStats, catStats: CategoryStats
+        config: Config, timeStats: TimeStats, catStats: CategoryStats
     ): TrendsUiState {
-        val aggregatedData = TrendsDataAggregator.aggregate(period, timeStats)
+        if (timeStats.currentDaily.dailyStats.isEmpty()) {
+            return TrendsUiState.Empty(
+                selectedPeriod = config.period,
+                selectedRankingCategory = config.rankingCategory,
+                selectedRankingLimit = config.rankingLimit,
+            )
+        }
+        val aggregatedData = TrendsDataAggregator.aggregate(config.period, timeStats)
         val totalPoints = timeStats.currentDaily.dailyStats.size
         Log.d(TAG, "Number of points: $totalPoints vs ${aggregatedData.cumulativeProgress.size}")
 
         return TrendsUiState.Success(
-            selectedPeriod = period,
+            selectedPeriod = config.period,
+            selectedRankingCategory = config.rankingCategory,
+            selectedRankingLimit = config.rankingLimit,
             cumulativeProgress = aggregatedData.cumulativeProgress,
             totalPoints = totalPoints,
             years = timeStats.currentDaily.years,
@@ -114,27 +125,23 @@ class TrendsViewModel @Inject constructor(
             currentPeriodDailyStats = timeStats.currentDaily.dailyStats,
             previousPeriodDailyStats = timeStats.previousDaily.dailyStats,
             regionStats = catStats.regions,
-            topLabels = catStats.labels.take(_labelLimit.value),
+            topLabels = catStats.labels,
             topChannels = catStats.channels,
             currentPeriodSummary = aggregatedData.currentSummary,
             previousPeriodSummary = aggregatedData.previousSummary
         )
     }
 
-    val timePeriodOptions = listOf(
-        TrendsPeriodOption(TrendsTimePeriod.LAST_7_DAYS, R.string.period_last_7_days),
-        TrendsPeriodOption(TrendsTimePeriod.LAST_4_WEEKS, R.string.period_last_4_weeks),
-        TrendsPeriodOption(TrendsTimePeriod.LAST_6_MONTHS, R.string.period_last_6_months),
-        TrendsPeriodOption(TrendsTimePeriod.LAST_YEAR, R.string.period_last_year),
-        TrendsPeriodOption(TrendsTimePeriod.ALL_TIME, R.string.period_all_time)
-    )
-
     fun setTimePeriod(period: TrendsTimePeriod) {
         _timePeriod.value = period
     }
 
-    fun expandChannels() {
-        _channelLimit.value = 50
+    fun setRankingCategory(category: RankingCategory) {
+        _rankingCategory.value = category
+    }
+
+    fun setRankingLimit(limit: RankingLimit) {
+        _rankingLimit.value = limit
     }
 
     companion object {
@@ -143,7 +150,10 @@ class TrendsViewModel @Inject constructor(
 }
 
 private data class Config(
-    val courseId: String, val period: TrendsTimePeriod, val channelLimit: Int, val labelLimit: Int
+    val courseId: String,
+    val period: TrendsTimePeriod,
+    val rankingCategory: RankingCategory,
+    val rankingLimit: RankingLimit
 )
 
 private data class CategoryStats(
