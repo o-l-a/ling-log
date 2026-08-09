@@ -1,6 +1,7 @@
 package com.example.myinputlog.ui.models
 
 import com.example.myinputlog.data.local.entities.LabelEntity
+import com.example.myinputlog.data.local.model.ChannelContribution
 import com.example.myinputlog.data.local.model.LabelWithStats
 
 
@@ -11,7 +12,8 @@ data class LabelUiModel(
     val textColor: Long = 0xFF000000,
     val isSeparator: Boolean = false,
     val isSelected: Boolean = false,
-    val totalSeconds: Long = 0L
+    val totalSeconds: Long = 0L,
+    val channelBreakdown: List<ChannelContribution> = emptyList()
 ) {
     val firstLetter: String get() = title.firstOrNull().toString().uppercase()
 }
@@ -25,5 +27,6 @@ fun LabelWithStats.toLabelUiModel(): LabelUiModel = LabelUiModel(
     title = label.title,
     color = label.color,
     textColor = label.textColor,
-    totalSeconds = totalTimeInSeconds
+    totalSeconds = totalTimeInSeconds,
+    channelBreakdown = channelBreakdown
 )

@@ -170,6 +170,7 @@
     <string name="channel_default_language">Domyślny kraj</string>
     <string name="channel_select_default_language">Wybierz domyślny kraj…</string>
     <string name="channel_first_watched_on">Oglądasz od: %s</string>
+    <string name="channel_other_channels">Inne kanały</string>
 
     <!--    trends    -->
     <string name="period_last_7_days">7 dni</string>

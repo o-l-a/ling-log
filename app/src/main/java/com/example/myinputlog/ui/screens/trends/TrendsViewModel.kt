@@ -3,15 +3,16 @@ package com.example.myinputlog.ui.screens.trends
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.ChannelUiModel
+import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.RankingCategory
 import com.example.myinputlog.ui.models.RankingLimit
 import com.example.myinputlog.ui.models.TimeRange
 import com.example.myinputlog.ui.models.TrendsTimePeriod
 import com.example.myinputlog.ui.models.toChannelUiModel
+import com.example.myinputlog.ui.models.toCountryUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -93,7 +94,7 @@ class TrendsViewModel @Inject constructor(
             )
         ) { regions, labels, channels ->
             CategoryStats(
-                regions = regions,
+                regions = regions.map { it.toCountryUiModel() },
                 labels = labels.map { it.toLabelUiModel() },
                 channels = channels.map { it.toChannelUiModel() })
         }
@@ -157,7 +158,7 @@ private data class Config(
 )
 
 private data class CategoryStats(
-    val regions: List<RegionStat>,
+    val regions: List<CountryUiModel>,
     val labels: List<LabelUiModel>,
     val channels: List<ChannelUiModel>
 )

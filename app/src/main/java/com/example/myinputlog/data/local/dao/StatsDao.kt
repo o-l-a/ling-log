@@ -3,6 +3,7 @@ package com.example.myinputlog.data.local.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
+import com.example.myinputlog.data.local.model.ChannelContribution
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.DailyStatRow
 import com.example.myinputlog.data.local.model.DailyWatchStat
@@ -60,14 +61,14 @@ interface StatsDao {
     @Query(
         """
         SELECT 
-            c.defaultLanguage as regionName,
+            v.speakersNationality as regionName,
             SUM(v.durationInSeconds) as totalSeconds
         FROM videos v
-        INNER JOIN channels c ON v.channelId = c.id
         WHERE v.courseId = :courseId 
           AND v.watchedOn BETWEEN :start AND :end 
           AND v.isDeleted = 0
-        GROUP BY c.defaultLanguage
+          AND v.speakersNationality IS NOT NULL
+        GROUP BY v.speakersNationality
         ORDER BY totalSeconds DESC
         LIMIT :limit
     """
@@ -96,6 +97,52 @@ interface StatsDao {
     fun getLabelStats(
         courseId: String, start: Long, end: Long, limit: Int = 5
     ): Flow<List<LabelWithStats>>
+
+    @Query(
+        """
+        SELECT 
+            c.id as channelId, 
+            c.title as channelName, 
+            c.thumbnailMediumUrl,
+            SUM(v.durationInSeconds) as totalSeconds
+        FROM channels c
+        INNER JOIN videos v ON c.id = v.channelId
+        WHERE v.speakersNationality = :regionName 
+            AND v.courseId = :courseId 
+            AND v.watchedOn BETWEEN :start AND :end 
+            AND v.speakersNationality IS NOT NULL
+            AND v.isDeleted = 0
+        GROUP BY c.id
+        ORDER BY totalSeconds DESC
+        LIMIT 3
+    """
+    )
+    suspend fun getTop3ChannelsForRegion(
+        courseId: String, regionName: String?, start: Long, end: Long
+    ): List<ChannelContribution>
+
+    @Query(
+        """
+        SELECT 
+            c.id as channelId, 
+            c.title as channelName, 
+            c.thumbnailMediumUrl,
+            SUM(v.durationInSeconds) as totalSeconds
+        FROM channels c
+        INNER JOIN videos v ON c.id = v.channelId
+        INNER JOIN video_label_cross_ref ref ON v.id = ref.videoId
+        WHERE ref.labelId = :labelId 
+            AND v.courseId = :courseId 
+            AND v.watchedOn BETWEEN :start AND :end 
+            AND v.isDeleted = 0
+        GROUP BY c.id
+        ORDER BY totalSeconds DESC
+        LIMIT 3
+    """
+    )
+    suspend fun getTop3ChannelsForLabel(
+        courseId: String, labelId: String, start: Long, end: Long
+    ): List<ChannelContribution>
 
     @Transaction
     @Query(

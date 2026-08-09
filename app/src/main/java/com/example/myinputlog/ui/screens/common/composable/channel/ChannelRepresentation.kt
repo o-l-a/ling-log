@@ -8,19 +8,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.myinputlog.ui.models.ChannelUiModel
+import androidx.compose.ui.res.stringResource
+import com.example.myinputlog.R
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable
 fun ChannelRepresentation(
-    channel: ChannelUiModel, modifier: Modifier = Modifier
+    title: String, url: String?, modifier: Modifier = Modifier
 ) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        ChannelThumbnail(
-            modifier = Modifier.size(MaterialTheme.spacing.large),
-            channelThumbnailUrl = channel.thumbnailMediumUrl
-        )
-        Spacer(Modifier.size(MaterialTheme.spacing.medium))
-        Text(channel.title)
+        if (url == null) {
+            Spacer(modifier = Modifier.size(MaterialTheme.spacing.large))
+            Spacer(Modifier.size(MaterialTheme.spacing.medium))
+            Text(stringResource(R.string.channel_other_channels))
+        } else {
+            ChannelThumbnail(
+                modifier = Modifier.size(MaterialTheme.spacing.large), channelThumbnailUrl = url
+            )
+            Spacer(Modifier.size(MaterialTheme.spacing.medium))
+            Text(title)
+        }
     }
 }

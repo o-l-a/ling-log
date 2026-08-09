@@ -18,6 +18,7 @@ import com.example.myinputlog.data.local.entities.CountryGroupEntity
 import com.example.myinputlog.data.local.entities.CourseEntity
 import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
+import com.example.myinputlog.data.local.model.ChannelContribution
 import com.example.myinputlog.data.local.model.ChannelWithLabelIds
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.CourseWithStats
@@ -49,6 +50,9 @@ import com.example.myinputlog.ui.theme.AppTheme
 import com.example.myinputlog.worker.PushSyncWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -429,13 +433,48 @@ class DefaultStorageDataRepository @Inject constructor(
     override fun getRegionStats(
         courseId: String, start: Long, end: Long, limit: Int
     ): Flow<List<RegionStat>> = scoped {
-        statsDao.getRegionStats(courseId, start, end, limit).flowOn(Dispatchers.IO)
+        statsDao.getRegionStats(courseId, start, end, limit).map { regions ->
+                coroutineScope {
+                    regions.map { region ->
+                        async {
+                            val top3 = statsDao.getTop3ChannelsForRegion(
+                                courseId, region.regionName, start, end
+                            )
+                            val others = region.totalSeconds - top3.sumOf { it.totalSeconds }
+                            val breakdown = if (others > 0) {
+                                top3 + ChannelContribution(null, "Others", null, others)
+                            } else {
+                                top3
+                            }
+                            region.copy(channelBreakdown = breakdown)
+                        }
+                    }.awaitAll()
+                }
+            }.flowOn(Dispatchers.IO)
     }
 
     override fun getLabelStats(
         courseId: String, start: Long, end: Long, limit: Int
     ): Flow<List<LabelWithStats>> = scoped {
-        statsDao.getLabelStats(courseId, start, end, limit).flowOn(Dispatchers.IO)
+        statsDao.getLabelStats(courseId, start, end, limit).map { labels ->
+                coroutineScope {
+                    labels.map { labelStat ->
+                        async {
+                            val top3 = statsDao.getTop3ChannelsForLabel(
+                                courseId, labelStat.label.id, start, end
+                            )
+                            val others =
+                                labelStat.totalTimeInSeconds - top3.sumOf { it.totalSeconds }
+                            val breakdown = if (others > 0) {
+                                top3 + ChannelContribution(null, "Others", null, others)
+                            } else {
+                                top3
+                            }
+                            labelStat.copy(channelBreakdown = breakdown)
+                        }
+                    }.awaitAll()
+                }
+            }.flowOn(Dispatchers.IO)
     }
 
     override fun getTopChannelsWithStatsAndLabels(

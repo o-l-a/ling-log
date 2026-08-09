@@ -3,6 +3,7 @@ package com.example.myinputlog.ui.screens.trends
 import com.example.myinputlog.data.local.model.DailyWatchStat
 import com.example.myinputlog.data.local.model.RegionStat
 import com.example.myinputlog.ui.models.ChannelUiModel
+import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.RankingCategory
 import com.example.myinputlog.ui.models.RankingLimit
@@ -38,7 +39,7 @@ sealed interface TrendsUiState {
         val currentPeriodDailyStats: List<DailyWatchStat> = emptyList(),
         val previousPeriodDailyStats: List<DailyWatchStat> = emptyList(),
 
-        val regionStats: List<RegionStat> = emptyList(),
+        val regionStats: List<CountryUiModel> = emptyList(),
         val topLabels: List<LabelUiModel> = emptyList(),
         val topChannels: List<ChannelUiModel> = emptyList(),
         val currentPeriodSummary: PeriodSummary = PeriodSummary(),

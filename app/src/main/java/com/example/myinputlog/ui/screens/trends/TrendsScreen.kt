@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -34,10 +33,10 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.RankingCategory
 import com.example.myinputlog.ui.models.RankingLimit
 import com.example.myinputlog.ui.models.TrendsTimePeriod
-import com.example.myinputlog.ui.models.toCountryUiModel
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
 import com.example.myinputlog.ui.screens.common.composable.channel.ChannelRepresentation
+import com.example.myinputlog.ui.screens.common.composable.country.CountryRepresentation
 import com.example.myinputlog.ui.screens.common.composable.input.FilterDropdownChip
 import com.example.myinputlog.ui.screens.common.composable.label.ClickableLabelChip
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
@@ -190,19 +189,23 @@ fun TrendsBody(
 
                             if (expandedLabelId == label.id) {
                                 items(
-                                    items = trendsUiState.topChannels.take(3),
-                                    key = { "label_sub_${label.id}_${it.id}" }) { channel ->
+                                    items = label.channelBreakdown,
+                                    key = { "label_sub_${label.id}_${it.channelId}" }) { channel ->
                                     RankingContributorListItem(
-                                        durationText = formatDurationAsText(channel.totalTimeInSeconds),
+                                        durationText = formatDurationAsText(channel.totalSeconds),
                                         modifier = Modifier.animateItem(),
-                                        representation = { ChannelRepresentation(channel) })
+                                        representation = {
+                                            ChannelRepresentation(
+                                                channel.channelName, channel.thumbnailMediumUrl
+                                            )
+                                        })
                                 }
                             }
                         }
                     }
 
                     RankingCategory.CHANNEL -> {
-                        trendsUiState.topChannels.forEachIndexed {  index, channel ->
+                        trendsUiState.topChannels.forEachIndexed { index, channel ->
                             item(key = "channel_${channel.id}") {
                                 RankingListItem(
                                     rankIndex = index + 1,
@@ -212,16 +215,46 @@ fun TrendsBody(
                                     onClick = {},
                                     modifier = Modifier.animateItem(),
                                     representation = {
-                                        ChannelRepresentation(channel)
+                                        ChannelRepresentation(
+                                            channel.title, channel.thumbnailMediumUrl
+                                        )
                                     })
                             }
                         }
                     }
 
                     RankingCategory.COUNTRY -> {
-                        itemsIndexed(trendsUiState.regionStats) { index, regionStat ->
-                            val country = regionStat.regionName.toCountryUiModel()
-                            Text(country.displayName)
+                        trendsUiState.regionStats.forEachIndexed { index, country ->
+                            item(key = "country_${country.isoCode}") {
+                                RankingListItem(
+                                    rankIndex = index + 1,
+                                    durationText = formatDurationAsText(country.totalSeconds),
+                                    isExpandable = trendsUiState.topChannels.isNotEmpty(),
+                                    isExpanded = expandedCountry == country.isoCode,
+                                    onClick = {
+                                        expandedCountry =
+                                            if (expandedCountry == country.isoCode) null else country.isoCode
+                                    },
+                                    modifier = Modifier.animateItem(),
+                                    representation = {
+                                        CountryRepresentation(country)
+                                    })
+                            }
+
+                            if (expandedCountry == country.isoCode) {
+                                items(
+                                    items = country.channelBreakdown,
+                                    key = { "country_sub_${country.isoCode}_${it.channelId}" }) { channel ->
+                                    RankingContributorListItem(
+                                        durationText = formatDurationAsText(channel.totalSeconds),
+                                        modifier = Modifier.animateItem(),
+                                        representation = {
+                                            ChannelRepresentation(
+                                                channel.channelName, channel.thumbnailMediumUrl
+                                            )
+                                        })
+                                }
+                            }
                         }
                     }
                 }

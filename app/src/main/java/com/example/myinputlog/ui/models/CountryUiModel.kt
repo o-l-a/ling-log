@@ -1,10 +1,16 @@
 package com.example.myinputlog.ui.models
 
 import android.util.Log
+import com.example.myinputlog.data.local.model.ChannelContribution
+import com.example.myinputlog.data.local.model.RegionStat
 import java.util.Locale
 
 data class CountryUiModel(
-    val isoCode: String, val displayName: String, val flagEmoji: String
+    val isoCode: String,
+    val displayName: String,
+    val flagEmoji: String,
+    val totalSeconds: Long = 0L,
+    val channelBreakdown: List<ChannelContribution> = emptyList()
 ) {
     companion object {
         fun unknown(code: String = "??") = CountryUiModel(
@@ -55,3 +61,7 @@ private fun String.toFlagEmoji(): String {
 
     return String(Character.toChars(firstChar)) + String(Character.toChars(secondChar))
 }
+
+fun RegionStat.toCountryUiModel(): CountryUiModel = regionName.toCountryUiModel().copy(
+    totalSeconds = totalSeconds, channelBreakdown = channelBreakdown
+)
