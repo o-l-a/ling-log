@@ -14,10 +14,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -26,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -53,12 +49,9 @@ fun HomeScreen(
 ) {
     val homeUiState by homeViewModel.homeUiState.collectAsStateWithLifecycle()
     val currentCourseId by homeViewModel.currentCourseId.collectAsStateWithLifecycle()
-
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-
     Box(modifier = modifier.fillMaxSize()) {
         Scaffold(
-            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), bottomBar = {
+            modifier = modifier, bottomBar = {
                 MyInputLogBottomNavBar(
                     selectedScreen = Screen.Home,
                     onBottomNavClicked = onBottomNavClicked,
@@ -94,7 +87,7 @@ fun HomeScreen(
                     HomeBody(
                         modifier = modifier.padding(innerPadding),
                         homeUiState = state,
-                        getStatsForMonth = homeViewModel::getStatsForMonth,
+                        getStatsForMonth = homeViewModel::getMonthlyDashboard,
                         doParty = homeViewModel::confetti
                     )
                     if (state.isParty) {
@@ -121,19 +114,13 @@ fun HomeBody(
     doParty: () -> Unit
 ) {
     val scrollState = rememberLazyListState()
-    val isScrollEnabled by remember {
-        derivedStateOf {
-            scrollState.canScrollForward || scrollState.canScrollBackward
-        }
-    }
     var clockSpinTrigger by remember { mutableIntStateOf(0) }
 
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
         contentPadding = PaddingValues(MaterialTheme.spacing.extraSmall),
-        state = scrollState,
-        userScrollEnabled = isScrollEnabled
+        state = scrollState
     ) {
         item {
             Row(

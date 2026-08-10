@@ -6,6 +6,7 @@ import com.example.myinputlog.data.local.entities.CountryGroupEntity
 import com.example.myinputlog.data.local.entities.CourseEntity
 import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
+import com.example.myinputlog.data.local.model.ChannelLabelCount
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.CourseWithStats
 import com.example.myinputlog.data.local.model.DailyWatchWrapper
@@ -101,9 +102,15 @@ interface StorageDataRepository {
         courseId: String, start: Long, end: Long, limit: Int = 5
     ): Flow<List<LabelWithStats>>
 
+    fun getSimpleLabelStats(
+        courseId: String, start: Long, end: Long, limit: Int
+    ): Flow<List<LabelWithStats>>
+
     fun getTopChannelsWithStatsAndLabels(
         courseId: String, start: Long, end: Long, limit: Int = 5
     ): Flow<List<ChannelWithStatsAndLabels>>
+
+    fun getChannelLabelCounts(courseId: String, start: Long, end: Long): Flow<ChannelLabelCount>
 
     // preferences
     suspend fun setCurrentCourse(courseId: String)

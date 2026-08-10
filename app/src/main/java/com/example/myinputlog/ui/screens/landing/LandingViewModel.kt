@@ -3,8 +3,8 @@ package com.example.myinputlog.ui.screens.landing
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.data.service.AccountService
+import com.example.myinputlog.ui.navigation.HomeRoute
 import com.example.myinputlog.ui.navigation.LoginRoute
-import com.example.myinputlog.ui.navigation.TrendsRoute
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -19,8 +19,7 @@ class LandingViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = accountService.get().currentUserId
             if (userId.isNotBlank()) {
-                // TODO: change to HomeRoute
-                navigateWithPopUp(TrendsRoute)
+                navigateWithPopUp(HomeRoute)
             } else {
                 navigateWithPopUp(LoginRoute)
             }

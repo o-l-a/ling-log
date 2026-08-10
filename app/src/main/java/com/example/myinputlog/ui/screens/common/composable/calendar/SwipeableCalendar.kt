@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.ui.screens.home.MonthlyStatsResult
@@ -27,7 +28,8 @@ fun SwipeableCalendar(
     val coroutineScope = rememberCoroutineScope()
 
     HorizontalPager(
-        state = pagerState, modifier = modifier.fillMaxWidth()
+        state = pagerState, modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
     ) { page ->
         val pageYearMonth = remember(page) {
             val offset = page - INITIAL_PAGE_INDEX

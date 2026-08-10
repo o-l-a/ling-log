@@ -11,3 +11,14 @@ data class DayAggregation(
     val totalTimeInSeconds: Long = 0L,
     val totalVideoCount: Long = 0L
 )
+
+data class TopItemsUiModel<T>(
+    val items: List<T>,
+    val extraItemCount: Long
+)
+
+data class MonthlyDashboardUiModel(
+    val stats: MonthlyStatsUiModel,
+    val topChannels: TopItemsUiModel<ChannelUiModel>,
+    val topLabels: TopItemsUiModel<LabelUiModel>
+)

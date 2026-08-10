@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.example.myinputlog.data.local.model.ChannelContribution
+import com.example.myinputlog.data.local.model.ChannelLabelCount
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
 import com.example.myinputlog.data.local.model.DailyStatRow
 import com.example.myinputlog.data.local.model.DailyWatchStat
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StatsDao {
+    // Home screen stats
     @Query(
         """
         SELECT 
@@ -26,6 +28,20 @@ interface StatsDao {
     )
     fun getDailyStats(courseId: String, start: Long, end: Long): Flow<List<DailyStatRow>>
 
+    @Query(
+        """
+        SELECT
+            COUNT(DISTINCT v.channelId) AS channelCount,
+            COUNT(DISTINCT l.id) AS labelCount
+        FROM videos AS v
+        LEFT JOIN video_label_cross_ref ref ON v.id = ref.videoId
+        LEFT JOIN labels AS l ON ref.labelId = l.id
+        WHERE v.courseId = :courseId AND v.watchedOn BETWEEN :start AND :end AND v.isDeleted = 0
+    """
+    )
+    fun getChannelLabelCounts(courseId: String, start: Long, end: Long): Flow<ChannelLabelCount>
+
+    // Trends screen stats
     @Query(
         """
         SELECT 
@@ -90,7 +106,7 @@ interface StatsDao {
           AND v.isDeleted = 0
           AND l.isDeleted = 0
         GROUP BY l.id
-        ORDER BY totalTimeInSeconds DESC
+        ORDER BY totalTimeInSeconds DESC, l.title ASC
         LIMIT :limit
     """
     )

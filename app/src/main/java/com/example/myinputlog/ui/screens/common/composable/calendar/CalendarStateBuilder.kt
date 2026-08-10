@@ -1,6 +1,7 @@
 package com.example.myinputlog.ui.screens.common.composable.calendar
 
 import com.example.myinputlog.ui.models.DayAggregation
+import com.example.myinputlog.ui.models.TopItemsUiModel
 import com.example.myinputlog.ui.screens.home.MonthlyStatsResult
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -50,30 +51,27 @@ object CalendarStateBuilder {
         val firstDayOfWeek = monthOnDisplay.atDay(1).dayOfWeek.value
         val leadingEmptyDays = (firstDayOfWeek - 1 + 7) % 7
 
-        var daysSoFar = leadingEmptyDays + daysOfMonth
+        val daysSoFar = leadingEmptyDays + daysOfMonth
 
-        val trailingEmptyDaysWithinWeek = if (daysSoFar % 7 != 0) {
+        val trailingEmptyDays = if (daysSoFar % 7 != 0) {
             7 - (daysSoFar % 7)
         } else {
             0
         }
 
-        daysSoFar += trailingEmptyDaysWithinWeek
-
-        val trailingEmptyDaysWithinMonth = if (daysSoFar / 7 < 6) {
-            7 * (6 - daysSoFar / 7)
-        } else {
-            0
-        }
-
-        val trailingEmptyDays = trailingEmptyDaysWithinWeek + trailingEmptyDaysWithinMonth
-
-        val monthlyMap = when (monthlyStatsResult) {
+        val (monthlyMap, topLabels, topChannels) = when (monthlyStatsResult) {
             is MonthlyStatsResult.Success -> {
-                monthlyStatsResult.data.days
+                val data = monthlyStatsResult.data
+                Triple(data.stats.days, data.topLabels, data.topChannels)
             }
 
-            else -> emptyMap()
+            else -> {
+                Triple(
+                    emptyMap(),
+                    TopItemsUiModel(emptyList(), 0),
+                    TopItemsUiModel(emptyList(), 0)
+                )
+            }
         }
 
         val isLoading = monthlyStatsResult !is MonthlyStatsResult.Success
@@ -94,6 +92,8 @@ object CalendarStateBuilder {
             calendarItems = calendarItems,
             loadingCalendarItems = loadingCalendarItems,
             today = today,
+            topLabels = topLabels,
+            topChannels = topChannels,
             isLoading = isLoading
         )
     }

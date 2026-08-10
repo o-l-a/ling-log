@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,10 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.example.myinputlog.ui.screens.common.composable.channel.SmallChannelRepresentationRow
+import com.example.myinputlog.ui.screens.common.composable.label.SmallLabelChipRow
 import com.example.myinputlog.ui.screens.common.ext.conditional
-import com.example.myinputlog.ui.theme.MyInputLogTheme
 import com.example.myinputlog.ui.theme.spacing
 
 @Composable
@@ -46,8 +44,22 @@ fun MyInputLogCalendar(
             onForwardClicked = onForwardClicked
         )
         CalendarWeekdays(shortWeekdays = calendarUiState.weekdays)
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
         CalendarEntries(calendarUiState.isLoading, calendarUiState.calendarItems)
+        SmallLabelChipRow(
+            modifier = Modifier
+                .padding(horizontal = MaterialTheme.spacing.extraSmall)
+                .padding(top = MaterialTheme.spacing.smallPlus),
+            labels = calendarUiState.topLabels.items,
+            extraItemCount = calendarUiState.topLabels.extraItemCount.toInt()
+        )
+        SmallChannelRepresentationRow(
+            modifier = Modifier
+                .padding(horizontal = MaterialTheme.spacing.extraSmall)
+                .padding(top = MaterialTheme.spacing.small),
+            channels = calendarUiState.topChannels.items,
+            extraItemCount = calendarUiState.topChannels.extraItemCount.toInt()
+        )
     }
 }
 
@@ -141,24 +153,6 @@ fun CalendarEntries(
                     )
                 }
             }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun PreviewMyInputLogCalendar() {
-    MyInputLogTheme {
-        Surface {
-            MyInputLogCalendar(
-                calendarUiState = CalendarUiState(
-                monthName = "April 2026",
-                weekdays = listOf(),
-                calendarItems = listOf(),
-                loadingCalendarItems = listOf(),
-                today = 18,
-                isLoading = false
-            ), onBackClicked = {}, onForwardClicked = {})
         }
     }
 }

@@ -4,10 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.data.utils.StringProvider
-import com.example.myinputlog.ui.models.CourseUiModel
+import com.example.myinputlog.ui.models.MonthlyDashboardUiModel
 import com.example.myinputlog.ui.models.MonthlyStatsUiModel
+import com.example.myinputlog.ui.models.TopItemsUiModel
 import com.example.myinputlog.ui.models.mapToCourseUiModel
+import com.example.myinputlog.ui.models.toChannelUiModel
 import com.example.myinputlog.ui.models.toCourseUiModel
+import com.example.myinputlog.ui.models.toLabelUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,14 +22,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import java.time.YearMonth
+import java.time.ZoneId
 import javax.inject.Inject
 
 sealed interface MonthlyStatsResult {
     data object Loading : MonthlyStatsResult
-    data class Success(val data: MonthlyStatsUiModel) : MonthlyStatsResult
+    data class Success(val data: MonthlyDashboardUiModel) : MonthlyStatsResult
     data class Error(val e: Throwable) : MonthlyStatsResult
 }
 
@@ -79,21 +82,46 @@ class HomeViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getStatsForMonth(monthId: String): Flow<MonthlyStatsResult> {
+    fun getMonthlyDashboard(monthId: String): Flow<MonthlyStatsResult> {
         return currentCourseId.flatMapLatest { courseId ->
             if (courseId.isBlank()) {
-                flowOf(MonthlyStatsResult.Loading)
-            } else {
-                repository.getMonthlyStatsFlow(courseId, monthId).map { stats ->
-                    MonthlyStatsResult.Success(stats ?: MonthlyStatsUiModel(id = monthId))
-                }
+                return@flatMapLatest flowOf(MonthlyStatsResult.Loading)
+            }
+
+            val yearMonth = YearMonth.parse(monthId)
+            val zoneId = ZoneId.systemDefault()
+            val start = yearMonth.atDay(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+            val end = yearMonth.atEndOfMonth().atTime(23, 59, 59).atZone(zoneId).toInstant()
+                .toEpochMilli()
+
+            val limit = 20
+
+            val statsFlow = repository.getMonthlyStatsFlow(courseId, monthId)
+            val channelsFlow =
+                repository.getTopChannelsWithStatsAndLabels(courseId, start, end, limit)
+            val labelsFlow = repository.getSimpleLabelStats(courseId, start, end, limit)
+            val countsFlow = repository.getChannelLabelCounts(courseId, start, end)
+
+            combine(
+                statsFlow, channelsFlow, labelsFlow, countsFlow
+            ) { stats, topChannelsDb, topLabelsDb, counts ->
+                val safeStats = stats ?: MonthlyStatsUiModel(id = monthId)
+
+                val channelUiItems = topChannelsDb.map { it.toChannelUiModel() }
+                val labelUiItems = topLabelsDb.map { it.toLabelUiModel() }
+
+                val extraChannelsCount =
+                    (counts.channelCount - channelUiItems.size).coerceAtLeast(0)
+                val extraLabelsCount = (counts.labelCount - labelUiItems.size).coerceAtLeast(0)
+
+                MonthlyStatsResult.Success(
+                    MonthlyDashboardUiModel(
+                        stats = safeStats,
+                        topChannels = TopItemsUiModel(channelUiItems, extraChannelsCount),
+                        topLabels = TopItemsUiModel(labelUiItems, extraLabelsCount)
+                    )
+                )
             }
         }.flowOn(Dispatchers.Default)
-    }
-
-    fun changeCurrentCourseId(newCourse: CourseUiModel) {
-        viewModelScope.launch {
-            repository.setCurrentCourse(newCourse.id)
-        }
     }
 }

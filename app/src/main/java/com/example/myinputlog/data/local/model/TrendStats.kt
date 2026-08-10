@@ -31,3 +31,8 @@ data class ChannelContribution(
     val thumbnailMediumUrl: String?,
     val totalSeconds: Long
 )
+
+data class ChannelLabelCount(
+    val channelCount: Long,
+    val labelCount: Long
+)
