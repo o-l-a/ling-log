@@ -1,85 +1,80 @@
 package com.example.myinputlog.ui.screens.video
 
-import com.example.myinputlog.data.model.UserCourse
-import com.example.myinputlog.data.model.YouTubeVideo
-import com.example.myinputlog.ui.screens.utils.Country
-import com.example.myinputlog.ui.screens.utils.ext.asStartOfDay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import java.util.Calendar
+import com.example.myinputlog.ui.models.CountryUiModel
+import com.example.myinputlog.ui.models.CourseUiModel
+import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.screens.common.UiText
+import com.example.myinputlog.ui.screens.common.ext.toLocalDate
+import java.time.ZoneId
 import java.util.Date
 
-data class VideoUiState(
+
+sealed interface VideoLoadState {
+    data object LoadingFromStorage : VideoLoadState
+    data object Success : VideoLoadState
+    data object StorageError : VideoLoadState
+    data object NetworkError : VideoLoadState
+    data object MetadataError : VideoLoadState
+}
+
+data class VideoForm(
     val id: String = "",
-    val watchedOn: Date? = getTodayDate(),
-    val speakersNationality: Country? = null,
-    val title: String = "",
-    val channel: String = "",
-    val durationInSeconds: String = "",
+    val videoId: String = "",
     val videoUrl: String = "",
+    val title: String = "",
+    val watchedOn: Date = Date.from(
+        Date().toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant()
+    ),
+    val initialWatchedOn: Date = Date(),
+    val watchedOnDisplay: UiText = UiText.DynamicString(""),
+    val initialSpeakersNationality: CountryUiModel? = null,
+    val speakersNationality: CountryUiModel? = null,
+    val durationInSeconds: Long = 0L,
     val thumbnailDefaultUrl: String = "",
     val thumbnailMediumUrl: String = "",
     val thumbnailHighUrl: String = "",
     val defaultAudioLanguage: String = "",
+    // Channel Data
+    val channelId: String = "",
+    val channelTitle: String = "",
+    val channelCustomUrl: String? = "",
+    val channelCountry: String? = "",
+    val channelThumbnailDefaultUrl: String = "",
+    val channelThumbnailMediumUrl: String = "",
+    val channelThumbnailHighUrl: String = "",
+    // Labels
+    val initialLabels: Set<LabelUiModel> = emptySet(),
+    val allLabels: Set<LabelUiModel> = emptySet(),
+    // Selection
+    val searchQuery: String = "",
+    val selectedCourse: CourseUiModel = CourseUiModel(),
+    val selectedLabels: Set<LabelUiModel> = emptySet(),
+    val saveLabelsForChannel: Boolean = false
+)
 
-    val userCourses: Flow<List<UserCourse>?> = MutableStateFlow(null),
-    val selectedCourseId: String = "",
-    val isLoading: Boolean = true,
-    val isEdit: Boolean = false,
-    val isFormValid: Boolean = false,
+data class VideoUiFlags(
     val isDeleteDialogVisible: Boolean = false,
     val isDatePickerDialogVisible: Boolean = false,
-    val networkError: Boolean = false
+    val isEditStarted: Boolean = false,
+    val isNewChannel: Boolean = false,
+    val isDeleting: Boolean = false
 )
 
-fun YouTubeVideo.toVideoUiState(
-    selectedCourseId: String = "",
-    isLoading: Boolean = true,
-    isEdit: Boolean = false,
-    isFormValid: Boolean = false,
-    isDeleteDialogVisible: Boolean = false,
-    isDatePickerDialogVisible: Boolean = false,
-    networkError: Boolean = false
-): VideoUiState = VideoUiState(
-    id = id,
-    watchedOn = watchedOn,
-    speakersNationality = speakersNationality,
-    title = title,
-    channel = channel,
-    durationInSeconds = durationInSeconds.toString(),
-    videoUrl = videoUrl,
-    thumbnailDefaultUrl = thumbnailDefaultUrl,
-    thumbnailMediumUrl = thumbnailMediumUrl,
-    thumbnailHighUrl = thumbnailHighUrl,
-    defaultAudioLanguage = defaultAudioLanguage,
-    selectedCourseId = selectedCourseId,
-    isLoading = isLoading,
-    isEdit = isEdit,
-    isFormValid = isFormValid,
-    isDeleteDialogVisible = isDeleteDialogVisible,
-    isDatePickerDialogVisible = isDatePickerDialogVisible,
-    networkError = networkError
-)
-
-fun VideoUiState.toYouTubeVideo(): YouTubeVideo = YouTubeVideo(
-    id = id,
-    watchedOn = watchedOn?.asStartOfDay() ?: Date(0),
-    speakersNationality = speakersNationality,
-    title = title,
-    channel = channel,
-    durationInSeconds = durationInSeconds.toLongOrNull() ?: 0L,
-    videoUrl = videoUrl,
-    thumbnailDefaultUrl = thumbnailDefaultUrl,
-    thumbnailMediumUrl = thumbnailMediumUrl,
-    thumbnailHighUrl = thumbnailHighUrl,
-    defaultAudioLanguage = defaultAudioLanguage
-)
-
-fun getTodayDate(): Date {
-    val calendar = Calendar.getInstance()
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
-    return calendar.time
+sealed interface VideoUiState {
+    data object Loading : VideoUiState
+    data object Error : VideoUiState
+    data class Success(
+        val videoForm: VideoForm,
+        val videoLoadState: VideoLoadState = VideoLoadState.LoadingFromStorage,
+        val userCourses: List<CourseUiModel> = listOf(),
+        val suggestions: Set<LabelUiModel> = emptySet(),
+        val allCountries: List<CountryUiModel> = emptyList(),
+        val videoUiFlags: VideoUiFlags = VideoUiFlags(),
+        val isFormValid: Boolean = false,
+        val isMetadataVisible: Boolean = false,
+        val isChannelCheckboxVisible: Boolean = false,
+        val isDeleteEnabled: Boolean = false,
+        val isSaveEnabled: Boolean = false,
+        val isCourseEditable: Boolean = false
+    ) : VideoUiState
 }

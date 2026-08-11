@@ -2,134 +2,126 @@ package com.example.myinputlog.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myinputlog.data.model.UserCourse
-import com.example.myinputlog.data.service.impl.DefaultPreferenceStorageService
-import com.example.myinputlog.data.service.impl.DefaultStorageService
+import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.data.utils.StringProvider
+import com.example.myinputlog.ui.models.MonthlyDashboardUiModel
+import com.example.myinputlog.ui.models.MonthlyStatsUiModel
+import com.example.myinputlog.ui.models.TopItemsUiModel
+import com.example.myinputlog.ui.models.mapToCourseUiModel
+import com.example.myinputlog.ui.models.toChannelUiModel
+import com.example.myinputlog.ui.models.toCourseUiModel
+import com.example.myinputlog.ui.models.toLabelUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
+import java.time.YearMonth
+import java.time.ZoneId
 import javax.inject.Inject
+
+sealed interface MonthlyStatsResult {
+    data object Loading : MonthlyStatsResult
+    data class Success(val data: MonthlyDashboardUiModel) : MonthlyStatsResult
+    data class Error(val e: Throwable) : MonthlyStatsResult
+}
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val storageService: DefaultStorageService,
-    private val preferenceStorageService: DefaultPreferenceStorageService
+    private val repository: StorageDataRepository, private val stringProvider: StringProvider
 ) : ViewModel() {
-    private val _homeUiState = MutableStateFlow(HomeUiState())
-    val homeUiState = _homeUiState.asStateFlow()
-    private val userCourses = storageService.userCourses
+    private val isParty = MutableStateFlow(false)
 
-    init {
-        viewModelScope.launch {
-            val currentCourseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
-            val currentCourse = userCourses.firstOrNull()?.find {
-                it.id == currentCourseId
-            } ?: userCourses.firstOrNull()?.getOrNull(0) ?: UserCourse()
-            _homeUiState.update {
-                currentCourse.toHomeUiState().copy(
-                    userCourses = userCourses,
-                    isLoading = false,
+    val currentCourseId: StateFlow<String> = repository.currentCourseId.stateIn(
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = ""
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val todaySeconds: Flow<Long> = currentCourseId.flatMapLatest { id ->
+        if (id.isBlank()) flowOf(0L) else repository.getTodaySecondsFlow(id)
+    }.flowOn(Dispatchers.Default)
+
+    val homeUiState: StateFlow<HomeUiState> = combine(
+        repository.courses, currentCourseId, isParty, repository.confettiColors, todaySeconds
+    ) { courses, id, party, colors, secondsToday ->
+
+        when {
+            courses.isEmpty() -> HomeUiState.Empty
+
+            else -> {
+                val current = courses.find { it.course.id == id } ?: courses.first()
+                val courseHeader = mapToCourseUiModel(
+                    current.toCourseUiModel(stringProvider), secondsToday
+                )
+                HomeUiState.Success(
+                    courseHeader = courseHeader,
+                    userCourses = courses.map { it.toCourseUiModel(stringProvider) },
+                    isParty = party,
+                    confettiColors = colors.colors
                 )
             }
-            updateCalendar()
-            try {
-                val courseStatistics = storageService.getCourseStatistics(currentCourseId)
-                _homeUiState.update {
-                    it.copy(
-                        courseStatistics = courseStatistics,
-                        networkError = false
-                    )
-                }
-            } catch (e: Exception) {
-                _homeUiState.update {
-                    it.copy(networkError = true)
-                }
-            }
         }
-    }
-
-    fun changeCurrentCourseId(newCourse: UserCourse) {
-        viewModelScope.launch {
-            preferenceStorageService.saveCurrentCourseId(newCourse.id)
-            val currentCourse = userCourses.firstOrNull()?.find {
-                it.id == (preferenceStorageService.currentCourseId.firstOrNull() ?: "")
-            } ?: UserCourse()
-            _homeUiState.update {
-                currentCourse.toHomeUiState().copy(
-                    userCourses = userCourses,
-                )
-            }
-            try {
-                val courseStatistics = storageService.getCourseStatistics(currentCourse.id)
-                _homeUiState.update {
-                    it.copy(
-                        courseStatistics = courseStatistics,
-                        networkError = false
-                    )
-                }
-                updateCalendar()
-            } catch (e: Exception) {
-                _homeUiState.update {
-                    it.copy(networkError = true)
-                }
-            }
-        }
-    }
+    }.stateIn(
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), // Save battery
+        initialValue = HomeUiState.Loading
+    )
 
     fun confetti() {
-        _homeUiState.update {
-            it.copy(isParty = true)
-        }
+        isParty.value = true
     }
 
     fun confettiStop() {
-        _homeUiState.update {
-            it.copy(isParty = false)
-        }
+        isParty.value = false
     }
 
-    fun previousMonth() {
-        _homeUiState.update {
-            it.copy(selectedYearMonth = it.selectedYearMonth.minusMonths(1))
-        }
-        updateCalendar()
-    }
-
-    fun nextMonth() {
-        _homeUiState.update {
-            it.copy(selectedYearMonth = it.selectedYearMonth.plusMonths(1))
-        }
-        updateCalendar()
-    }
-
-    private fun updateCalendar() {
-        _homeUiState.update {
-            it.copy(
-                isCalendarLoading = true
-            )
-        }
-        viewModelScope.launch {
-            val currentCourseId = preferenceStorageService.currentCourseId.firstOrNull() ?: ""
-            try {
-                val monthlyAggregateData = storageService.getMonthlyAggregateData(
-                    currentCourseId,
-                    homeUiState.value.selectedYearMonth
-                )
-                _homeUiState.update {
-                    it.copy(
-                        monthlyAggregateData = monthlyAggregateData,
-                        isCalendarLoading = false,
-                        networkError = false
-                    )
-                }
-            } catch (e: Exception) {
-                _homeUiState.update {
-                    it.copy(networkError = true)
-                }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getMonthlyDashboard(monthId: String): Flow<MonthlyStatsResult> {
+        return currentCourseId.flatMapLatest { courseId ->
+            if (courseId.isBlank()) {
+                return@flatMapLatest flowOf(MonthlyStatsResult.Loading)
             }
-        }
+
+            val yearMonth = YearMonth.parse(monthId)
+            val zoneId = ZoneId.systemDefault()
+            val start = yearMonth.atDay(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+            val end = yearMonth.atEndOfMonth().atTime(23, 59, 59).atZone(zoneId).toInstant()
+                .toEpochMilli()
+
+            val limit = 20
+
+            val statsFlow = repository.getMonthlyStatsFlow(courseId, monthId)
+            val channelsFlow =
+                repository.getTopChannelsWithStatsAndLabels(courseId, start, end, limit)
+            val labelsFlow = repository.getSimpleLabelStats(courseId, start, end, limit)
+            val countsFlow = repository.getChannelLabelCounts(courseId, start, end)
+
+            combine(
+                statsFlow, channelsFlow, labelsFlow, countsFlow
+            ) { stats, topChannelsDb, topLabelsDb, counts ->
+                val safeStats = stats ?: MonthlyStatsUiModel(id = monthId)
+
+                val channelUiItems = topChannelsDb.map { it.toChannelUiModel() }
+                val labelUiItems = topLabelsDb.map { it.toLabelUiModel() }
+
+                val extraChannelsCount =
+                    (counts.channelCount - channelUiItems.size).coerceAtLeast(0)
+                val extraLabelsCount = (counts.labelCount - labelUiItems.size).coerceAtLeast(0)
+
+                MonthlyStatsResult.Success(
+                    MonthlyDashboardUiModel(
+                        stats = safeStats,
+                        topChannels = TopItemsUiModel(channelUiItems, extraChannelsCount),
+                        topLabels = TopItemsUiModel(labelUiItems, extraLabelsCount)
+                    )
+                )
+            }
+        }.flowOn(Dispatchers.Default)
     }
 }

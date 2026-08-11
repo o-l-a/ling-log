@@ -16,21 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.navigation.NavigationDestination
-import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
-import kotlinx.coroutines.delay
-
-private const val LANDING_TIMEOUT = 2L
-
-object LandingDestination : NavigationDestination {
-    override val route: String = "landing"
-    override val titleRes: Int = 0
-}
+import com.example.myinputlog.ui.screens.common.composable.MyInputLogAppIcon
 
 @Composable
 fun LandingScreen(
     modifier: Modifier = Modifier,
-    navigateWithPopUp: (String) -> Unit,
+    navigateWithPopUp: (Any) -> Unit,
     viewModel: LandingViewModel
 ) {
     Column(
@@ -47,7 +38,6 @@ fun LandingScreen(
             style = MaterialTheme.typography.headlineMedium
         )
         LaunchedEffect(true) {
-            delay(LANDING_TIMEOUT)
             viewModel.onAppStart(navigateWithPopUp)
         }
     }

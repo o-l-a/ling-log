@@ -1,6 +1,6 @@
 package com.example.myinputlog.data.service.module
 
-import com.example.myinputlog.data.repository.impl.DefaultVideoDataRepository
+import com.example.myinputlog.data.repository.impl.DefaultApiDataRepository
 import com.example.myinputlog.data.service.ApiService
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -54,5 +54,5 @@ object ApiModule {
 
     @Singleton
     @Provides
-    fun provideRepository(apiService: ApiService) = DefaultVideoDataRepository(apiService)
+    fun provideRepository(apiService: ApiService) = DefaultApiDataRepository(apiService)
 }

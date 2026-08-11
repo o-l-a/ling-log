@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.R
 import com.example.myinputlog.data.service.AccountService
+import com.example.myinputlog.worker.SyncManager
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val accountService: AccountService
+    private val accountService: AccountService,
+    private val syncManager: SyncManager
 ) : ViewModel() {
     private val _loginUiState = MutableStateFlow(LoginUiState())
     val loginUiState = _loginUiState.asStateFlow()
@@ -60,6 +62,8 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 accountService.signIn(email, password)
+                syncManager.setupBackgroundSync()
+                syncManager.triggerImmediatePull()
                 onLoginClick()
             } catch (e: Exception) {
                 when (e) {

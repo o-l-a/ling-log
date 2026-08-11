@@ -16,16 +16,19 @@ limitations under the License.
 
 package com.example.myinputlog.data.service.module
 
+import android.content.Context
+import androidx.work.WorkManager
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
-import com.google.firebase.Firebase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
+import jakarta.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -37,4 +40,10 @@ object FirebaseModule {
     @Provides
     @Singleton
     fun firestore(): FirebaseFirestore = Firebase.firestore
+
+    @Provides
+    @Singleton
+    fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
+        return WorkManager.getInstance(context)
+    }
 }

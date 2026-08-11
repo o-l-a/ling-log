@@ -40,14 +40,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.navigation.NavigationDestination
-import com.example.myinputlog.ui.screens.utils.composable.MyInputLogAppIcon
-import com.example.myinputlog.ui.screens.utils.composable.SomethingWentWrongBox
-
-object SignUpDestination : NavigationDestination {
-    override val route: String = "sign_up"
-    override val titleRes: Int = 0
-}
+import com.example.myinputlog.ui.screens.common.MAX_USER_LENGTH
+import com.example.myinputlog.ui.screens.common.composable.MyInputLogAppIcon
+import com.example.myinputlog.ui.screens.common.composable.state.SomethingWentWrongBox
 
 @Composable
 fun SignUpScreen(
@@ -84,7 +79,7 @@ fun SignUpScreen(
             },
             value = signUpUiState.value.username,
             onValueChange = {
-                viewModel.updateUsername(it)
+                viewModel.updateUsername(it.take(MAX_USER_LENGTH))
             },
             isError = !signUpUiState.value.isUsernameValid,
             supportingText = {
@@ -114,7 +109,7 @@ fun SignUpScreen(
             },
             value = signUpUiState.value.email,
             onValueChange = {
-                viewModel.updateEmail(it)
+                viewModel.updateEmail(it.take(MAX_USER_LENGTH))
             },
             isError = !signUpUiState.value.isEmailValid,
             supportingText = {

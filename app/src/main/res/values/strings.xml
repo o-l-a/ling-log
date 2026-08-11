@@ -5,26 +5,42 @@
     <!--    content descriptions    -->
     <string name="back_button_content_description">Back</string>
     <string name="video_thumbnail_content_description">Video Thumbnail</string>
+    <string name="channel_thumbnail_content_description">Channel Thumbnail</string>
 
     <!--    screen titles    -->
     <string name="home_screen_title">Home</string>
+    <string name="media_list_screen_title">Media</string>
     <string name="video_list_screen_title">Videos</string>
+    <string name="channel_list_screen_title">Channels</string>
     <string name="video_screen_title">Video</string>
     <string name="course_screen_title">Course</string>
     <string name="profile_screen_title">Settings</string>
     <string name="recently_watched_screen_title">Recently watched</string>
+    <string name="settings_screen_title">App settings</string>
 
     <!--    bottom nav descriptions    -->
     <string name="home_bottom_nav_description">Home</string>
-    <string name="videos_bottom_nav_description">Videos</string>
+    <string name="media_bottom_nav_description">Media</string>
     <string name="profile_bottom_nav_description">Profile</string>
-    <string name="suggested_bottom_nav_description">Playlists</string>
+    <string name="trends_bottom_nav_description">Trends</string>
+
+    <!--    settings nav descriptions    -->
+    <string name="course_list_nav_description">Courses</string>
+    <string name="label_list_nav_description">Labels</string>
+    <string name="label_nav_description">Label</string>
+    <string name="ui_settings_nav_description">UI Settings</string>
+    <string name="account_nav_description">Account</string>
+
+    <!--    settings    -->
+    <string name="settings_app_theme">App theme</string>
+    <string name="settings_confetti_variant">Confetti variant</string>
 
     <!--    common labels    -->
     <string name="search_text">Search…</string>
     <string name="clear_text">Clear</string>
     <string name="cancel_text">Cancel</string>
     <string name="save_text">Save</string>
+    <string name="add_text">Add</string>
     <string name="log_out">Log out</string>
     <string name="delete_account">Delete account</string>
     <string name="more_text">More</string>
@@ -36,6 +52,26 @@
     <string name="today_text">Today</string>
     <string name="yesterday_text">Yesterday</string>
     <string name="long_ago_text">Long ago</string>
+    <string name="preview_text">Preview:</string>
+    <string name="filters_text">Filters</string>
+    <string name="clear_filters_text">Clear filters</string>
+    <string name="apply_filters_text">Apply filters</string>
+    <string name="select_all_text">Select all</string>
+    <string name="empty_option_text">None</string>
+
+    <!--    sort options    -->
+    <string name="sort_header">Sort</string>
+    <string name="sort_default">Default</string>
+    <string name="sort_watch_date_asc">Watched on (ascending)</string>
+    <string name="sort_watch_date_desc">Watched on (descending)</string>
+    <string name="sort_title_asc">Title (ascending)</string>
+    <string name="sort_title_desc">Title (descending)</string>
+    <string name="sort_channel_title_asc">Channel name (ascending)</string>
+    <string name="sort_channel_title_desc">Channel name (descending)</string>
+    <string name="sort_video_count_asc">Total videos (ascending)</string>
+    <string name="sort_video_count_desc">Total videos (descending)</string>
+    <string name="sort_total_time_asc">Total time (ascending)</string>
+    <string name="sort_total_time_desc">Total time (descending)</string>
 
     <!--    routine screen field labels    -->
     <string name="date_placeholder">dd/mm/yyyy</string>
@@ -69,14 +105,24 @@
     <string name="wrong_url_message">Data could not be retrieved.</string>
     <string name="something_went_wrong">Something went wrong. Try again later.</string>
     <string name="empty_collection_headline">Nothing to see here.</string>
-    <string name="empty_course_collection_body">Head over to the "Profile" tab and add your first course.</string>
-    <string name="empty_video_collection_body">Your videos will appear here after you add them.</string>
+    <string name="empty_course_collection_body_other_tabs">Head over to the "Profile" tab and add your first course.</string>
+    <string name="empty_course_collection_body_course_tab">Add your first course.</string>
+    <string name="empty_label_collection_body">Your labels will appear here after you add them.</string>
+    <string name="empty_video_collection_body">No videos match your criteria. Add videos or change criteria.</string>
+    <string name="empty_channel_collection_body">No channels match your criteria. Add videos or change criteria.</string>
+    <string name="empty_stats_collection_body">No data found for selected period.</string>
     <string name="empty_playlist">This playlist seems to be empty.</string>
+    <string name="video_save_error">Failed to save the video. Try again later.</string>
+    <string name="video_delete_error">Failed to delete the video. Try again later.</string>
+    <string name="channel_delete_error">Failed to delete the channel. Try again later.</string>
+    <string name="unknown_language">Unknown language</string>
 
     <!--    deleting dialog   -->
     <string name="delete_dialog_title">Deleting \"%s\"</string>
     <string name="delete_course_phrase">Are you sure you want to delete course \"%s\"? This action cannot be undone.</string>
     <string name="delete_video_phrase">Are you sure you want to delete video \"%s\"? This action cannot be undone.</string>
+    <string name="delete_label_phrase">Are you sure you want to delete label \"%s\"? This action cannot be undone.</string>
+    <string name="delete_channel_phrase">Are you sure you want to delete channel \"%s\"? This action cannot be undone.</string>
     <string name="confirm_delete">Delete</string>
 
     <!--    course    -->
@@ -87,52 +133,80 @@
     <string name="course_other_source_hours_label">Hours outside platform</string>
     <string name="course_goal_card_text">Goal: %dh</string>
     <string name="course_other_source_hours_card_text">%dh outside platform</string>
+    <string name="course_active_course">Active course</string>
+
+    <!--    country groups    -->
+    <string name="course_country_group_label">Country group</string>
+    <string name="group_spanish_global">Spanish speaking countries</string>
+    <string name="group_french_global">French speaking countries</string>
+    <string name="group_german_global">German speaking countries</string>
+    <string name="group_russian_global">Russian speaking countries</string>
+    <string name="group_japanese_global">Japanese speaking countries</string>
+    <string name="countries_description">Countries</string>
+
+    <!--    label    -->
+    <string name="label_name_label">Text</string>
+    <string name="label_color_label">Background color</string>
+    <string name="label_text_color_label">Text color</string>
+    <string name="label_auto_text_color">Auto calculate text color</string>
+    <string name="labels_text_field_label">Labels</string>
+    <string name="labels_search_placeholder">Start typing to add labels…</string>
 
     <!--    video edit    -->
     <string name="video_watched_on_label">Set watch date</string>
     <string name="video_watched_on_chip_label">Watched: %s</string>
-    <string name="video_country_label">Language/accent</string>
+    <string name="video_country_label">Country</string>
     <string name="video_course_label">Course</string>
     <string name="video_title_label">Title</string>
     <string name="video_channel_label">Channel</string>
     <string name="video_duration_label">Duration</string>
     <string name="video_link_label">Video URL</string>
+    <string name="video_create_channel_with_defaults">Add the channel with these defaults</string>
 
-    <!-- Spanish-speaking countries -->
-    <string name="country_spain">Spain</string>
-    <string name="country_mexico">Mexico</string>
-    <string name="country_argentina">Argentina</string>
-    <string name="country_colombia">Colombia</string>
-    <string name="country_chile">Chile</string>
-    <string name="country_venezuela">Venezuela</string>
-    <string name="country_peru">Peru</string>
-    <string name="country_ecuador">Ecuador</string>
-    <string name="country_cuba">Cuba</string>
-    <string name="country_dominican_republic">Dominican Republic</string>
-    <string name="country_puerto_rico">Puerto Rico</string>
-    <string name="country_uruguay">Uruguay</string>
-    <string name="country_paraguay">Paraguay</string>
-    <string name="country_bolivia">Bolivia</string>
-    <string name="country_guatemala">Guatemala</string>
+    <!--    channel    -->
+    <string name="channel_video_count">Videos</string>
+    <string name="channel_apply_labels_to_videos">Apply labels to this channel\'s videos</string>
+    <string name="channel_default_language">Default country</string>
+    <string name="channel_select_default_language">Select default country…</string>
+    <string name="channel_first_watched_on">First watched on: %s</string>
+    <string name="channel_other_channels">Other channels</string>
+
+    <!--    trends    -->
+    <string name="period_last_7_days">7 days</string>
+    <string name="period_last_4_weeks">4 weeks</string>
+    <string name="period_last_6_months">6 months</string>
+    <string name="period_last_year">1 year</string>
+    <string name="period_all_time">All time</string>
+    <string name="period_last_7_days_short">7D</string>
+    <string name="period_last_4_weeks_short">4W</string>
+    <string name="period_last_6_months_short">6M</string>
+    <string name="period_last_year_short">1Y</string>
+    <string name="period_all_time_short">All time</string>
+    <string name="trends_progress_chart_title">Total progress</string>
+
+    <!--    confetti options   -->
+    <string name="confetti_option_1">Default</string>
+    <string name="confetti_option_2">Variant 1</string>
+    <string name="confetti_option_3">Variant 2</string>
+    <string name="confetti_option_4">Variant 3</string>
+    <string name="confetti_option_5">Variant 4</string>
+    <string name="confetti_option_6">Variant 5</string>
+    <string name="confetti_option_7">Variant 6</string>
 
     <!--    stats labels    -->
     <string name="stats_hours_watched">time spent</string>
-    <string name="stats_hours_watched_today">spent today</string>
-    <string name="stats_videos_watched">videos total</string>
+    <string name="stats_daily_average">daily average</string>
+    <string name="stats_total_days">days of watching</string>
+    <string name="stats_videos_watched">videos watched</string>
     <string name="yay">Yay!</string>
     <string name="good_job">Good job.</string>
     <string name="progress">Progress: %s</string>
     <string name="stats_network_error">The statistics will appear when you go back online.</string>
 
-    <!--    playlists    -->
-    <string name="likes_playlist_title">Liked videos</string>
-    <string name="switch_yt_account">Switch YouTube account</string>
-    <string name="logout_yt_account">Log out from YouTube</string>
-    <string name="hide_email">Hide e-mail</string>
-    <string name="show_email">Show e-mail</string>
-    <string name="grant_access_yt_account_message">Grant access to your YouTube account to see your playlists.</string>
-    <string name="choose_account_label">Choose account</string>
-    <string name="network_error_playlists">Your playlist data will appear when you go back online.</string>
+    <!--    color theme    -->
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_system">System</string>
 
     <!--    placeholder    -->
     <string name="placeholder_long_text">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</string>

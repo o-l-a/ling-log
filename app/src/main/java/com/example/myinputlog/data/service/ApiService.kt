@@ -5,7 +5,7 @@ import com.example.myinputlog.data.remote.ChannelData
 import com.example.myinputlog.data.remote.PlaylistItemsData
 import com.example.myinputlog.data.remote.PlaylistsData
 import com.example.myinputlog.data.remote.VideoData
-import com.example.myinputlog.ui.screens.utils.PAGE_SIZE
+import com.example.myinputlog.ui.screens.common.PAGE_SIZE
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -24,10 +24,10 @@ interface ApiService {
 
     @GET("channels")
     suspend fun getChannelData(
-        @Header("Authorization") token: String,
-        @Query("part") part: String = "contentDetails",
-        @Query("mine") mine: String = "true",
-        @Query("fields") fields: String = "items(contentDetails(relatedPlaylists(likes)))"
+        @Query("id") channelId: String,
+        @Query("key") apiKey: String = API_KEY,
+        @Query("part") part: String = "snippet",
+        @Query("fields") fields: String = "items(id,snippet)"
     ): Response<ChannelData>
 
     @GET("playlists")

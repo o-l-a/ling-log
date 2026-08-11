@@ -3,10 +3,10 @@ package com.example.myinputlog.ui.screens.sign_up
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myinputlog.R
-import com.example.myinputlog.data.service.impl.DefaultAccountService
-import com.example.myinputlog.ui.screens.utils.ext.isValidEmail
-import com.example.myinputlog.ui.screens.utils.ext.isValidPassword
-import com.example.myinputlog.ui.screens.utils.ext.isValidUsername
+import com.example.myinputlog.data.repository.StorageDataRepository
+import com.example.myinputlog.ui.screens.common.ext.isValidEmail
+import com.example.myinputlog.ui.screens.common.ext.isValidPassword
+import com.example.myinputlog.ui.screens.common.ext.isValidUsername
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val accountService: DefaultAccountService
+    private val storageDataRepository: StorageDataRepository
 ) : ViewModel() {
     private val _signUpUiState = MutableStateFlow(SignUpUiState())
     val signUpUiState = _signUpUiState.asStateFlow()
@@ -113,7 +113,7 @@ class SignUpViewModel @Inject constructor(
         if (signUpUiState.value.isFormValid) {
             viewModelScope.launch {
                 try {
-                    accountService.createAccount(
+                    storageDataRepository.createAccount(
                         signUpUiState.value.email,
                         signUpUiState.value.password,
                         signUpUiState.value.username

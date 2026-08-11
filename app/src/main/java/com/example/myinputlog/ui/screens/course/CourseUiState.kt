@@ -1,42 +1,31 @@
 package com.example.myinputlog.ui.screens.course
 
-import com.example.myinputlog.data.model.UserCourse
-import com.example.myinputlog.ui.screens.utils.ext.toNonNegativeLongOrNull
-import com.google.firebase.firestore.DocumentId
+import com.example.myinputlog.ui.models.CountryGroupUiModel
+import com.example.myinputlog.ui.models.CourseUiModel
 
-data class CourseUiState(
-    @DocumentId
-    val id: String = "",
+sealed interface CourseUiState {
+    data object Loading : CourseUiState
+    data object Error : CourseUiState
+    data class Success(
+        val courseId: String = "",
+        val courseFields: CourseFields,
+        val allCountryGroups: List<CountryGroupUiModel> = emptyList(),
+        val isFormValid: Boolean = false,
+        val isDialogVisible: Boolean = false
+    ) : CourseUiState
+}
+
+data class CourseFields(
     val name: String = "",
     val goalInHours: String = "",
     val otherSourceHours: String = "",
-    val hoursWatched: String = "",
-
-    val isLoading: Boolean = true,
-    val isEdit: Boolean = false,
-    val isFormValid: Boolean = false,
-    val isDialogVisible: Boolean = false
+    val countryGroup: CountryGroupUiModel? = null
 )
 
-fun UserCourse.toCourseUiState(
-    isLoading: Boolean = true,
-    isEdit: Boolean = false,
-    isFormValid: Boolean = false,
-    isDialogVisible: Boolean = false,
-): CourseUiState = CourseUiState(
+fun CourseFields.toUserCourse(id: String): CourseUiModel = CourseUiModel(
     id = id,
     name = name,
-    goalInHours = goalInHours.toString(),
-    otherSourceHours = otherSourceHours.toString(),
-    isLoading = isLoading,
-    isEdit = isEdit,
-    isFormValid = isFormValid,
-    isDialogVisible = isDialogVisible
-)
-
-fun CourseUiState.toUserCourse() : UserCourse = UserCourse(
-    id = id,
-    name = name,
-    goalInHours = goalInHours.toNonNegativeLongOrNull() ?: 0L,
-    otherSourceHours = otherSourceHours.toNonNegativeLongOrNull() ?: 0L,
+    goalInHours = goalInHours.toLongOrNull() ?: 0L,
+    otherSourceHours = otherSourceHours.toLongOrNull() ?: 0L,
+    countryGroup = countryGroup!!
 )

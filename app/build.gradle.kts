@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -9,12 +12,28 @@ plugins {
 
 android {
     namespace = "com.example.myinputlog"
-    compileSdk = 36
+    compileSdk = 37
+
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localProperties.load(FileInputStream(localPropertiesFile))
+    }
+
+    signingConfigs {
+        create("release") {
+            val keystorePath = localProperties.getProperty("release.keystore.path")
+            storeFile = keystorePath?.let { file(it) }
+            storePassword = localProperties.getProperty("release.keystore.password")
+            keyAlias = localProperties.getProperty("release.key.alias")
+            keyPassword = localProperties.getProperty("release.key.password")
+        }
+    }
 
     defaultConfig {
         applicationId = "com.example.myinputlog"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -32,8 +51,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true // Enable R8 for production
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -68,16 +91,24 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.emoji2)
+    implementation(libs.androidx.hilt.common)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.work.runtime.ktx)
 
     // Hilt
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler) // Switched from kapt to ksp
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.androidx.hilt.compiler)
 
@@ -101,26 +132,31 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
-    // Auth & OAuth
-    implementation(libs.openid.appauth)
-    implementation("com.auth0.android:jwtdecode:2.0.2")
+    // Room
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.room.paging)
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
 
-    // Networking (Crucial for the "T" error in ApiModule)
+    // Networking
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.serialization)
     implementation(libs.okhttp.logging)
 
-    // Confetti (if you still use it)
-    implementation("nl.dionsegijn:konfetti-compose:2.0.5")
+    // Confetti
+    implementation(libs.konfetti.compose)
 
     implementation(libs.androidx.material.icons.extended)
-    implementation(libs.google.accompanist.systemui)
 
-    implementation(libs.androidx.ui.tooling.preview) // Must be implementation
+    implementation(libs.androidx.ui.tooling.preview)
     debugImplementation(libs.androidx.ui.tooling)
 
     implementation(libs.kotlinx.serialization.json)
 
-    implementation("com.google.android.play:integrity:1.6.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+    implementation(libs.integrity)
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(kotlin("reflect"))
+
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
 }

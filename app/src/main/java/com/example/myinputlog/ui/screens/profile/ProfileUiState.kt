@@ -1,18 +1,15 @@
 package com.example.myinputlog.ui.screens.profile
 
-import com.example.myinputlog.data.model.UserCourse
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
+import java.io.File
 
-data class ProfileUiState(
-    val currentCourseId: String = "",
-    val username: String = "",
-    val email: String = "",
-    val id: String = "",
-    val courses: Flow<List<UserCourse>> = emptyFlow(),
-    val isConfirmDialogVisible: Boolean = false,
-    val isNetworkError: Boolean = false,
-    val isUsernameDialogVisible: Boolean = false,
-    val newUsername: String = "",
-    val hideEmail: Boolean = false
-)
+sealed interface ProfileUiState {
+    data object Loading : ProfileUiState
+    data object Error : ProfileUiState
+    data class Success(
+        val currentCourseId: String = "",
+        val username: String = "",
+        val email: String = "",
+        val imagePath: File? = null,
+        val id: String = "",
+    ) : ProfileUiState
+}

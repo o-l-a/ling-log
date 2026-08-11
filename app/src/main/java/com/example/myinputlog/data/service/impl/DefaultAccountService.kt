@@ -1,14 +1,10 @@
 package com.example.myinputlog.data.service.impl
 
 import android.util.Log
-import com.example.myinputlog.data.model.UserCourse
 import com.example.myinputlog.data.model.UserData
-import com.example.myinputlog.data.model.YouTubeVideo
 import com.example.myinputlog.data.service.AccountService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObjects
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -17,8 +13,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class DefaultAccountService @Inject constructor(
-    private val auth: FirebaseAuth,
-    val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
 ) : AccountService {
     override val currentUserId: String
         get() = auth.currentUser?.uid.orEmpty()
@@ -51,7 +46,7 @@ class DefaultAccountService @Inject constructor(
         deferred.await()
     }
 
-    override suspend fun createAccount(email: String, password: String, username: String) {
+    override suspend fun createAccount(email: String, password: String, username: String): String? {
         try {
             val userCredential = auth.createUserWithEmailAndPassword(email, password).await()
             val user = userCredential.user
@@ -63,12 +58,7 @@ class DefaultAccountService @Inject constructor(
                 }
                 user.updateProfile(profileUpdates).await()
                 Log.d(TAG, "updateProfile:success ${user.displayName}")
-
-                val firestoreTask =
-                    firestore.collection(DefaultStorageService.USER_COLLECTION).document(user.uid)
-                        .set(hashMapOf<String, Any>())
-                firestoreTask.await()
-                Log.d(TAG, "createCollection:success")
+                return user.uid
             } else {
                 Log.e(TAG, "createAccount: User is null")
             }
@@ -76,6 +66,7 @@ class DefaultAccountService @Inject constructor(
             Log.e(TAG, "createAccount:failure", e)
             throw e
         }
+        return null
     }
 
     override suspend fun deleteAccount() {
@@ -83,45 +74,11 @@ class DefaultAccountService @Inject constructor(
 
         if (uid != null) {
             try {
-                deleteAllForUser(uid)
-                firestore.collection(DefaultStorageService.USER_COLLECTION).document(uid).delete()
-                    .await()
                 auth.currentUser?.delete()?.await()
             } catch (e: Exception) {
-                Log.e(TAG, "Error deleting account and document: ${e.message}")
+                Log.e(TAG, "Error deleting account: ${e.message}")
                 throw e
             }
-        }
-    }
-
-    override suspend fun deleteAllForUser(userId: String) {
-        val courseCollection = firestore
-            .collection(DefaultStorageService.USER_COLLECTION)
-            .document(userId)
-            .collection(DefaultStorageService.USER_COURSE_COLLECTION)
-        val courses: List<UserCourse> = courseCollection
-            .get()
-            .await()
-            .toObjects()
-        courses.forEach {
-            deleteAllVideosForCourse(userId, it.id)
-            courseCollection.document(it.id).delete().await()
-        }
-    }
-
-    override suspend fun deleteAllVideosForCourse(userId: String, userCourseId: String) {
-        val videosCollection = firestore
-            .collection(DefaultStorageService.USER_COLLECTION)
-            .document(userId)
-            .collection(DefaultStorageService.USER_COURSE_COLLECTION)
-            .document(userCourseId)
-            .collection(DefaultStorageService.YOU_TUBE_VIDEO_COLLECTION)
-        val videosForCourse: List<YouTubeVideo> = videosCollection
-            .get()
-            .await()
-            .toObjects()
-        videosForCourse.forEach {
-            videosCollection.document(it.id).delete().await()
         }
     }
 

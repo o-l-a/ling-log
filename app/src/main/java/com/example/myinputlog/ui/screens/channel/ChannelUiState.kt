@@ -1,0 +1,59 @@
+package com.example.myinputlog.ui.screens.channel
+
+import com.example.myinputlog.ui.models.CountryUiModel
+import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.screens.common.UiText
+import java.util.Date
+
+
+sealed interface ChannelUiState {
+    data object Loading : ChannelUiState
+    data object Error : ChannelUiState
+    data class Success(
+        val channelLoadState: ChannelLoadState = ChannelLoadState.Loading,
+        val form: ChannelForm = ChannelForm(),
+        val metadata: ChannelMetadata = ChannelMetadata(),
+        val suggestions: Set<LabelUiModel> = emptySet(),
+        val uiFlags: ChannelUiFlags = ChannelUiFlags(),
+    ) : ChannelUiState
+}
+
+sealed interface ChannelLoadState {
+    data object Loading : ChannelLoadState
+    data object Success : ChannelLoadState
+    data object Error : ChannelLoadState
+}
+
+data class ChannelForm(
+    val defaultLanguage: CountryUiModel? = null,
+    val selectedLabels: Set<LabelUiModel> = emptySet(),
+    val searchQuery: String = "",
+    val syncLabelsToVideos: Boolean = false,
+)
+
+data class ChannelMetadata(
+    val id: String = "",
+    val courseId: String = "",
+    val title: String = "",
+    val customUrl: String? = null,
+    val country: String? = null,
+    val thumbnailDefaultUrl: String = "",
+    val thumbnailMediumUrl: String = "",
+    val thumbnailHighUrl: String = "",
+    val initialDefaultLanguage: CountryUiModel? = null,
+    val initialLabels: Set<LabelUiModel> = emptySet(),
+    val allLabels: Set<LabelUiModel> = emptySet(),
+    val availableLanguages: List<CountryUiModel> = emptyList(),
+    val totalTimeInSeconds: Long = 0L,
+    val totalVideoCount: Long = 0L,
+    val firstWatchedOn: Date? = null,
+    val firstWatchedOnDisplay: UiText? = null
+)
+
+data class ChannelUiFlags(
+    val isDeleteEnabled: Boolean = false,
+    val isFormValid: Boolean = false,
+    val isEditStarted: Boolean = false,
+    val haveLabelsChanged: Boolean = false,
+    val isDialogVisible: Boolean = false
+)

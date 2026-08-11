@@ -1,25 +1,31 @@
 package com.example.myinputlog.data.service
 
-import com.example.myinputlog.data.model.CourseStatistics
-import com.example.myinputlog.data.model.UserCourse
-import com.example.myinputlog.data.model.YouTubeVideo
-import com.google.firebase.firestore.Query
-import kotlinx.coroutines.flow.Flow
-import java.time.YearMonth
+import com.example.myinputlog.data.local.entities.CourseEntity
+import com.example.myinputlog.data.local.entities.LabelEntity
+import com.example.myinputlog.data.local.model.ChannelWithLabelIds
+import com.example.myinputlog.data.local.model.VideoWithLabelIds
+import com.example.myinputlog.data.remote.dto.ChannelDto
+import com.example.myinputlog.data.remote.dto.CountryGroupDto
+import com.example.myinputlog.data.remote.dto.CourseDto
+import com.example.myinputlog.data.remote.dto.LabelDto
+import com.example.myinputlog.data.remote.dto.SyncPointersDto
+import com.example.myinputlog.data.remote.dto.VideoDto
+import java.util.Date
 
 interface StorageService {
-    val userCourses: Flow<List<UserCourse>>
-    suspend fun videosByWatchedOnQuery(courseId: String, lastVideoId: String?, limitSize: Long): Query
+    suspend fun pushMonths(userId: String, months: Map<String, List<VideoWithLabelIds>>)
+    suspend fun pushChannels(userId: String, channels: List<ChannelWithLabelIds>)
+    suspend fun pushMetadata(userId: String, courses: List<CourseEntity>, labels: List<LabelEntity>)
 
-    suspend fun getUserCourse(userCourseId: String): UserCourse?
-    suspend fun saveUserCourse(userCourse: UserCourse): String
-    suspend fun updateUserCourse(userCourse: UserCourse)
-    suspend fun deleteUserCourse(userCourseId: String)
-    suspend fun getCourseStatistics(userCourseId: String): CourseStatistics
-    suspend fun getMonthlyAggregateData(userCourseId: String, yearMonth: YearMonth): List<Long>
+    suspend fun getSyncPointers(userId: String): SyncPointersDto?
+    suspend fun getLastUpdatedCourses(userId: String, lastPull: Date): List<CourseDto>
+    suspend fun getLastUpdatedLabels(userId: String): List<LabelDto>
+    suspend fun getLastUpdatedVideos(userId: String, lastPull: Date): List<VideoDto>
+    suspend fun getLastUpdatedChannels(userId: String, lastPull: Date): List<ChannelDto>
+    suspend fun getLastUpdatedCountryGroups(lastPull: Date): List<CountryGroupDto>
 
-    suspend fun getYouTubeVideo(userCourseId: String, youTubeVideoId: String): YouTubeVideo?
-    suspend fun saveYouTubeVideo(userCourseId: String, youTubeVideo: YouTubeVideo)
-    suspend fun updateYouTubeVideo(userCourseId: String, youTubeVideo: YouTubeVideo)
-    suspend fun deleteYouTubeVideo(userCourseId: String, youTubeVideoId: String)
+    suspend fun initializeUser(uid: String)
+    suspend fun deleteAllForUser(
+        userId: String, courseIds: List<String>, channelIds: List<String>, monthKeys: List<String>
+    )
 }

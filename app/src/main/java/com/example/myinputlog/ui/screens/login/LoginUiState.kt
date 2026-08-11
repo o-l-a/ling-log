@@ -9,7 +9,7 @@ data class LoginUiState(
 
     val isFormValid: Boolean = true,
 
-    @StringRes val generalErrorMessage: Int = R.string.something_went_wrong,
+    @get:StringRes val generalErrorMessage: Int = R.string.something_went_wrong,
 
     val isPasswordVisible: Boolean = false,
     val isGeneralErrorVisible: Boolean = false
