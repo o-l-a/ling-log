@@ -72,7 +72,7 @@ class CourseViewModel @Inject constructor(
                         name = course.course.name,
                         goalInHours = course.course.goalInHours.toString(),
                         otherSourceHours = course.course.otherSourceHours.toString(),
-                        countryGroup = course.countryGroup.toUiModel(stringProvider)
+                        countryGroup = course.countryGroup?.toUiModel(stringProvider)
                     )
                 }
             }

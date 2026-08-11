@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -10,6 +13,22 @@ plugins {
 android {
     namespace = "com.example.myinputlog"
     compileSdk = 37
+
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localProperties.load(FileInputStream(localPropertiesFile))
+    }
+
+    signingConfigs {
+        create("release") {
+            val keystorePath = localProperties.getProperty("release.keystore.path")
+            storeFile = keystorePath?.let { file(it) }
+            storePassword = localProperties.getProperty("release.keystore.password")
+            keyAlias = localProperties.getProperty("release.key.alias")
+            keyPassword = localProperties.getProperty("release.key.password")
+        }
+    }
 
     defaultConfig {
         applicationId = "com.example.myinputlog"
@@ -37,6 +56,7 @@ android {
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

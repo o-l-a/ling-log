@@ -22,7 +22,7 @@ fun CourseWithStats.toCourseUiModel(stringProvider: StringProvider): CourseUiMod
     timestamp = course.timestamp,
     goalInHours = course.goalInHours,
     otherSourceHours = course.otherSourceHours,
-    countryGroup = countryGroup.toUiModel(stringProvider),
+    countryGroup = countryGroup?.toUiModel(stringProvider) ?: CountryGroupUiModel(),
     totalTimeInSeconds = totalTimeInSeconds,
     videoCount = totalVideoCount,
     totalActiveDays = totalActiveDays

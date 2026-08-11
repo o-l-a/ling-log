@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class com.example.myinputlog.ui.navigation.** { *; }
+-keep class com.example.myinputlog.data.remote.** { *; }
+-keep class com.example.myinputlog.data.local.** { *; }
+-keepclassmembers class * {
+    *** Companion;
+}
+-keepclassmembers class * {
+    *** serializer(...);
+}

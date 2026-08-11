@@ -9,7 +9,7 @@ data class CourseWithStats(
     @Embedded val course: CourseEntity,
     @Relation(
         parentColumn = "countryGroupId", entityColumn = "id"
-    ) val countryGroup: CountryGroupEntity,
+    ) val countryGroup: CountryGroupEntity?,
     val totalActiveDays: Long = 0L,
     val totalTimeInSeconds: Long = 0L,
     val totalVideoCount: Long = 0L

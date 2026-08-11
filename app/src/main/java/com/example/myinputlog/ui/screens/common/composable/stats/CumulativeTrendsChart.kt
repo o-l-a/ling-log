@@ -26,6 +26,7 @@ import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
 import com.patrykandpatrick.vico.compose.common.Fill
 
 import java.math.RoundingMode
@@ -64,7 +65,7 @@ private fun ComposeCumulativeTrendsChart(
     showDayOnAxis: Boolean = true,
     totalDays: Int = 0
 ) {
-    val baseSpacing = MaterialTheme.spacing.largePlusPlus
+    val baseSpacing = MaterialTheme.spacing.largeTriplePlus
     val lineColor = MaterialTheme.colorScheme.primary
     val marker = rememberMarker()
     val scrollState = rememberVicoScrollState(
@@ -123,7 +124,7 @@ private fun ComposeCumulativeTrendsChart(
                 years.forEach { x ->
                     marker at x.toFloat()
                 }
-            }), modelProducer, modifier, scrollState
+            }), modelProducer, modifier, scrollState, rememberVicoZoomState(zoomEnabled = false)
     )
 }
 
