@@ -24,7 +24,9 @@ object VideoQueryBuilder {
         sql.andIf(true, "v.courseId = ?", courseId)
 
         sql.andIf(
-            filters.searchQuery.isNotBlank(), "v.title LIKE ?", "%${filters.searchQuery}%"
+            filters.searchQuery.isNotBlank(), """
+                (v.title LIKE ? OR c.title LIKE ?)
+                """.trimIndent(), "%${filters.searchQuery}%", "%${filters.searchQuery}%"
         )
 
         if (filters.selectedChannels.isNotEmpty()) {

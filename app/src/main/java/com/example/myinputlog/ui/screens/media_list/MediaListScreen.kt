@@ -134,18 +134,25 @@ fun MediaListScreen(
         }
     }
 
+    var previousVideoLoadState by remember { mutableStateOf<androidx.paging.LoadState?>(null) }
+
     LaunchedEffect(videos.loadState.refresh) {
-        if (videos.loadState.refresh is androidx.paging.LoadState.NotLoading) {
-            videoLazyListState.animateScrollToItem(0)
+        val current = videos.loadState.refresh
+        if (previousVideoLoadState is androidx.paging.LoadState.Loading && current is androidx.paging.LoadState.NotLoading) {
+            videoLazyListState.scrollToItem(0)
         }
+        previousVideoLoadState = current
     }
 
+    var previousChannelLoadState by remember { mutableStateOf<androidx.paging.LoadState?>(null) }
+
     LaunchedEffect(channels.loadState.refresh) {
-        val refreshState = channels.loadState.refresh
-        if (refreshState is androidx.paging.LoadState.NotLoading && channels.itemCount > 0) {
-            kotlinx.coroutines.yield()
-            channelLazyListState.animateScrollToItem(0)
+        val current = channels.loadState.refresh
+
+        if (previousChannelLoadState is androidx.paging.LoadState.Loading && current is androidx.paging.LoadState.NotLoading && channels.itemCount > 0) {
+            channelLazyListState.scrollToItem(0)
         }
+        previousChannelLoadState = current
     }
 
     if (showFilterSheet && mediaListUiState is MediaListUiState.Success) {
@@ -405,8 +412,7 @@ fun MediaFilterBottomSheet(
                 .fillMaxWidth()
                 .fillMaxHeight(0.7f)
                 .padding(horizontal = MaterialTheme.spacing.small)
-                .padding(bottom = MaterialTheme.spacing.large),
-            state = scrollState
+                .padding(bottom = MaterialTheme.spacing.large), state = scrollState
         ) {
             filterArea(
                 title = sortTitle,

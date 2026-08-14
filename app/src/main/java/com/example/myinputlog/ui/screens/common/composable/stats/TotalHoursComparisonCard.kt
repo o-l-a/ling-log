@@ -62,7 +62,7 @@ fun TotalHoursComparisonCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = MaterialTheme.spacing.medium,
+                    horizontal = MaterialTheme.spacing.smallPlus,
                     vertical = MaterialTheme.spacing.smallPlus
                 )
         ) {
@@ -102,7 +102,7 @@ fun TotalHoursComparisonCard(
                     animationSpec = spatialAnimationSpec
                 )
             ) {
-                VerticalDivider(modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium))
+                VerticalDivider(modifier = Modifier.padding(horizontal = MaterialTheme.spacing.smallPlus))
             }
             Column(
                 modifier = Modifier

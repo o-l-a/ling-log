@@ -39,6 +39,7 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.common.MAX_USER_LENGTH
 import com.example.myinputlog.ui.screens.common.composable.MyInputLogAppIcon
 import com.example.myinputlog.ui.screens.common.composable.state.SomethingWentWrongBox
+import com.example.myinputlog.ui.theme.spacing
 
 @Composable
 fun LoginScreen(
@@ -57,6 +58,7 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.doubleExtraLarge))
         MyInputLogAppIcon(modifier = Modifier.size(72.dp))
         Spacer(modifier = Modifier.height(20.dp))
         OutlinedTextField(

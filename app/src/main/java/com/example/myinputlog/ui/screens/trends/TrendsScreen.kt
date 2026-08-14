@@ -10,15 +10,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myinputlog.R
@@ -35,6 +33,7 @@ import com.example.myinputlog.ui.models.RankingLimit
 import com.example.myinputlog.ui.models.TrendsTimePeriod
 import com.example.myinputlog.ui.navigation.Screen
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
+import com.example.myinputlog.ui.screens.common.composable.bars.TrendsScreenTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.channel.ChannelRepresentation
 import com.example.myinputlog.ui.screens.common.composable.country.CountryRepresentation
 import com.example.myinputlog.ui.screens.common.composable.input.FilterDropdownChip
@@ -59,12 +58,32 @@ fun TrendsScreen(
     val currentCourseId by trendsViewModel.currentCourseId.collectAsStateWithLifecycle()
     val trendsUiState by trendsViewModel.trendsUiState.collectAsStateWithLifecycle()
 
-    Scaffold(topBar = {}, bottomBar = {
-        MyInputLogBottomNavBar(
-            selectedScreen = Screen.Trends,
-            onBottomNavClicked = onBottomNavClicked,
-            navigateToVideoEntry = { navigateToVideoEntry(currentCourseId) })
-    }) { innerPadding ->
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            when (val currentUiState = trendsUiState) {
+                is TrendsUiState.Content -> {
+                    TrendsScreenTopAppBar(
+                        scrollBehavior = scrollBehavior,
+                        periodOptions = TrendsTimePeriod.entries,
+                        selectedPeriod = currentUiState.selectedPeriod,
+                        onPeriodChange = trendsViewModel::setTimePeriod
+                    )
+                }
+
+                else -> {}
+            }
+        },
+        bottomBar = {
+            MyInputLogBottomNavBar(
+                selectedScreen = Screen.Trends,
+                onBottomNavClicked = onBottomNavClicked,
+                navigateToVideoEntry = { navigateToVideoEntry(currentCourseId) })
+        }) { innerPadding ->
         when (val currentState = trendsUiState) {
             TrendsUiState.Error -> {
                 EmptyCollectionBox(
@@ -80,8 +99,6 @@ fun TrendsScreen(
             is TrendsUiState.Content -> TrendsBody(
                 modifier = Modifier.padding(innerPadding),
                 trendsUiState = currentState,
-                periodOptions = TrendsTimePeriod.entries,
-                onPeriodChange = trendsViewModel::setTimePeriod,
                 onCategoryChange = trendsViewModel::setRankingCategory,
                 onCategoryLimitChange = trendsViewModel::setRankingLimit
             )
@@ -93,8 +110,6 @@ fun TrendsScreen(
 fun TrendsBody(
     modifier: Modifier = Modifier,
     trendsUiState: TrendsUiState.Content,
-    periodOptions: List<TrendsTimePeriod>,
-    onPeriodChange: (period: TrendsTimePeriod) -> Unit,
     onCategoryChange: (RankingCategory) -> Unit,
     onCategoryLimitChange: (RankingLimit) -> Unit
 ) {
@@ -109,13 +124,13 @@ fun TrendsBody(
         contentPadding = PaddingValues(MaterialTheme.spacing.mediumPlus),
         state = scrollState
     ) {
-        item {
-            PeriodSection(
-                periodOptions = periodOptions,
-                selectedPeriod = trendsUiState.selectedPeriod,
-                onPeriodChange = onPeriodChange
-            )
-        }
+//        item {
+//            PeriodSection(
+//                periodOptions = periodOptions,
+//                selectedPeriod = trendsUiState.selectedPeriod,
+//                onPeriodChange = onPeriodChange
+//            )
+//        }
         when (trendsUiState) {
             is TrendsUiState.Success -> {
                 item(key = "totalProgress") {
@@ -265,38 +280,6 @@ fun TrendsBody(
                     EmptyCollectionBox(bodyMessage = R.string.empty_stats_collection_body)
                 }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun PeriodSection(
-    modifier: Modifier = Modifier,
-    periodOptions: List<TrendsTimePeriod>,
-    selectedPeriod: TrendsTimePeriod,
-    onPeriodChange: (period: TrendsTimePeriod) -> Unit
-) {
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        items(periodOptions) { option ->
-            val isSelected = selectedPeriod == option
-
-            FilterChip(
-                selected = isSelected, onClick = { onPeriodChange(option) }, label = {
-                Text(
-                    text = stringResource(option.labelRes)
-                )
-            }, leadingIcon = if (isSelected) {
-                {
-                    Icon(
-                        imageVector = Icons.Default.Check, contentDescription = null
-                    )
-                }
-            } else null)
         }
     }
 }
