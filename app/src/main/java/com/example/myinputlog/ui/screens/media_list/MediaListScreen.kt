@@ -44,7 +44,6 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -123,36 +122,6 @@ fun MediaListScreen(
 
     val showFab by remember {
         derivedStateOf { activeListState.firstVisibleItemIndex > 0 }
-    }
-
-    val appliedSort = (mediaListUiState as? MediaListUiState.Success)?.appliedSort
-
-    LaunchedEffect(appliedSort) {
-        if (appliedSort != null) {
-            scrollBehavior.state.heightOffset = 0f
-            scrollBehavior.state.contentOffset = 0f
-        }
-    }
-
-    var previousVideoLoadState by remember { mutableStateOf<androidx.paging.LoadState?>(null) }
-
-    LaunchedEffect(videos.loadState.refresh) {
-        val current = videos.loadState.refresh
-        if (previousVideoLoadState is androidx.paging.LoadState.Loading && current is androidx.paging.LoadState.NotLoading) {
-            videoLazyListState.scrollToItem(0)
-        }
-        previousVideoLoadState = current
-    }
-
-    var previousChannelLoadState by remember { mutableStateOf<androidx.paging.LoadState?>(null) }
-
-    LaunchedEffect(channels.loadState.refresh) {
-        val current = channels.loadState.refresh
-
-        if (previousChannelLoadState is androidx.paging.LoadState.Loading && current is androidx.paging.LoadState.NotLoading && channels.itemCount > 0) {
-            channelLazyListState.scrollToItem(0)
-        }
-        previousChannelLoadState = current
     }
 
     if (showFilterSheet && mediaListUiState is MediaListUiState.Success) {
