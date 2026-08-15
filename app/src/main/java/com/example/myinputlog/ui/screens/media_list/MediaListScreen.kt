@@ -238,6 +238,7 @@ fun MediaListScreen(
                             currentCourseId = currentState.currentCourseId,
                             navigateToYouTubeVideo = navigateToYouTubeVideo,
                             lazyColumnListState = videoLazyListState,
+                            appliedSort = currentState.appliedSort,
                             videos = videos
                         )
 

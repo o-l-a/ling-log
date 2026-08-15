@@ -13,5 +13,6 @@ enum class RankingLimit(val limit: Int) {
     TOP_3(3),
     TOP_5(5),
     TOP_10(10),
-    TOP_30(30)
+    TOP_30(30),
+    TOP_100(100)
 }

@@ -23,14 +23,14 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.itemKey
 import com.example.myinputlog.R
-import com.example.myinputlog.ui.models.VideoListItem
+import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.screens.common.composable.label.SmallLabelChipRow
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
@@ -47,9 +47,11 @@ internal enum class ListDisplayState {
 fun VideoListBody(
     modifier: Modifier = Modifier,
     currentCourseId: String,
-    videos: LazyPagingItems<VideoListItem>,
+    videos: LazyPagingItems<VideoUiModel>,
     navigateToYouTubeVideo: (String, String) -> Unit,
-    lazyColumnListState: LazyListState
+    lazyColumnListState: LazyListState,
+    appliedSort: SortOptions,
+    separatorTransformer: SeparatorTransformer = remember { SeparatorTransformer() }
 ) {
     val isInitialLoading = videos.loadState.refresh is LoadState.Loading && videos.itemCount == 0
     val isEmpty = videos.loadState.refresh is LoadState.NotLoading && videos.itemCount == 0
@@ -106,13 +108,12 @@ fun VideoListBody(
                 ) {
                     if (videos.itemCount > 0) {
                         items(
-                            count = videos.itemCount, key = videos.itemKey { item ->
-                                when (item) {
-                                    is VideoListItem.Video -> "video_${item.video.id}"
-                                    is VideoListItem.Separator -> "sep_${item.title.hashCode()}"
-                                }
-                            }) { index ->
-                            videos[index]?.let {
+                            count = videos.itemCount,
+                            key = { index -> videos.peek(index)?.id ?: index }) { index ->
+                            val currentVideo = videos[index]
+                            val previousVideo = if (index > 0) videos.peek(index - 1) else null
+
+                            if (currentVideo != null) {
                                 val animatedModifier = Modifier
                                     .fillMaxWidth()
                                     .animateItem(
@@ -124,26 +125,29 @@ fun VideoListBody(
                                         )
                                     )
 
-                                when (val item = videos[index]) {
-                                    is VideoListItem.Video -> {
+                                val headerText = separatorTransformer.getHeaderTitle(
+                                    before = previousVideo, after = currentVideo, sort = appliedSort
+                                )
+
+                                if (headerText != null) {
+                                    Column(modifier = animatedModifier) {
+                                        SeparatorContainer(separatorTitle = headerText.asString())
                                         VideoContainer(
-                                            modifier = animatedModifier,
-                                            video = item.video,
-                                            onVideoClicked = {
+                                            video = currentVideo, onVideoClicked = {
                                                 navigateToYouTubeVideo(
-                                                    currentCourseId, item.video.id
+                                                    currentCourseId, currentVideo.id
                                                 )
                                             })
                                     }
-
-                                    is VideoListItem.Separator -> {
-                                        SeparatorContainer(
-                                            modifier = animatedModifier,
-                                            separatorTitle = item.title.asString()
-                                        )
-                                    }
-
-                                    else -> {}
+                                } else {
+                                    VideoContainer(
+                                        modifier = animatedModifier,
+                                        video = currentVideo,
+                                        onVideoClicked = {
+                                            navigateToYouTubeVideo(
+                                                currentCourseId, currentVideo.id
+                                            )
+                                        })
                                 }
                             }
                         }

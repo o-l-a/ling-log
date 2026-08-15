@@ -1,7 +1,6 @@
 package com.example.myinputlog.ui.screens.media_list
 
 import com.example.myinputlog.data.local.query.SortOptions
-import com.example.myinputlog.ui.models.VideoListItem
 import com.example.myinputlog.ui.models.VideoUiModel
 import com.example.myinputlog.ui.screens.common.UiText
 import com.example.myinputlog.ui.screens.common.ext.toLocalDate
@@ -12,11 +11,11 @@ class SeparatorTransformer(
 ) {
     /**
      * Calculates if a separator is needed between two [VideoUiModel]s.
-     * Returns a [VideoListItem.Separator] if required, or null if no separator is needed.
+     * Returns a [UiText] if required, or null if no separator is needed.
      */
-    fun transform(
+    fun getHeaderTitle(
         before: VideoUiModel?, after: VideoUiModel?, sort: SortOptions
-    ): VideoListItem.Separator? {
+    ): UiText? {
         if (after == null) return null
 
         return when (sort) {
@@ -25,7 +24,7 @@ class SeparatorTransformer(
                 val afterDate = after.watchedOn.toLocalDate()
 
                 if (beforeDate != afterDate) {
-                    VideoListItem.Separator(title = dateFormatter.format(afterDate))
+                    dateFormatter.format(afterDate)
                 } else null
             }
 
@@ -33,7 +32,7 @@ class SeparatorTransformer(
                 val beforeChannel = before?.channelTitle
                 val afterChannel = after.channelTitle
                 if (beforeChannel != afterChannel) {
-                    VideoListItem.Separator(title = UiText.DynamicString(afterChannel))
+                    UiText.DynamicString(afterChannel)
                 } else null
             }
 
@@ -41,7 +40,7 @@ class SeparatorTransformer(
                 val beforeTitle = before?.firstLetter
                 val afterTitle = after.firstLetter
                 if (beforeTitle != afterTitle) {
-                    VideoListItem.Separator(title = UiText.DynamicString(afterTitle))
+                    UiText.DynamicString(afterTitle)
                 } else null
             }
 

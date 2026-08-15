@@ -2,7 +2,9 @@ package com.example.myinputlog.ui.screens.label_list
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -17,12 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.models.LabelUiModel
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
+import com.example.myinputlog.ui.screens.common.composable.label.LabelChipRow
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
-import com.example.myinputlog.ui.screens.common.composable.label.LabelChipRow
 import com.example.myinputlog.ui.theme.spacing
 
 
@@ -107,6 +109,9 @@ private fun LabelListBody(
                 LabelChipRow(
                     labels = labels, onLabelClicked = { label -> onLabelClicked(label.id) })
             }
+        }
+        item {
+            Spacer(Modifier.height(MaterialTheme.spacing.extraLarge))
         }
     }
 }
