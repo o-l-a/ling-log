@@ -112,12 +112,12 @@ object VideoQueryBuilder {
     private fun applySort(sql: QueryBuilder, sort: SortOptions) {
         when (sort) {
             WATCH_DATE_DESC -> {
-                sql.orderBy("DATE(v.watchedOn / 1000, 'unixepoch') DESC")
+                sql.orderBy("DATE(v.watchedOn / 1000, 'unixepoch', 'localtime') DESC")
                 sql.orderBy("lower(v.title) ASC")
             }
 
             WATCH_DATE_ASC -> {
-                sql.orderBy("DATE(v.watchedOn / 1000, 'unixepoch') ASC")
+                sql.orderBy("DATE(v.watchedOn / 1000, 'unixepoch', 'localtime') ASC")
                 sql.orderBy("lower(v.title) ASC")
             }
 
@@ -140,7 +140,7 @@ object VideoQueryBuilder {
             }
 
             else -> {
-                sql.orderBy("DATE(v.watchedOn / 1000, 'unixepoch') DESC")
+                sql.orderBy("DATE(v.watchedOn / 1000, 'unixepoch', 'localtime') DESC")
                 sql.orderBy("lower(v.title) ASC")
             }
         }

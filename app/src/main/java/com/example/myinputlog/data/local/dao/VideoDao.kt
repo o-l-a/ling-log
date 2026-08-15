@@ -31,7 +31,7 @@ interface VideoDao {
     @RewriteQueriesToDropUnusedColumns
     @Query(
         """SELECT DISTINCT 
-    CAST(strftime('%s', date(watchedOn / 1000, 'unixepoch', 'start of month')) AS INTEGER) * 1000 
+    CAST(strftime('%s', date(watchedOn / 1000, 'unixepoch', 'localtime', 'start of month')) AS INTEGER) * 1000 
     FROM videos"""
     )
     suspend fun getAllUniqueMonthKeys(): List<Date>

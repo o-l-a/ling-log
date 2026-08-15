@@ -16,7 +16,7 @@ interface CourseDao {
     @Query(
         """SELECT 
             c.*, 
-            COUNT(DISTINCT date(v.watchedOn / 1000, 'unixepoch')) as totalActiveDays,
+            COUNT(DISTINCT date(v.watchedOn / 1000, 'unixepoch', 'localtime')) as totalActiveDays,
             COUNT(v.id) AS totalVideoCount,
             COALESCE(SUM(v.durationInSeconds), 0) AS totalTimeInSeconds
         FROM courses c
@@ -33,7 +33,7 @@ interface CourseDao {
     @Query(
         """SELECT 
             c.*, 
-            COUNT(DISTINCT date(v.watchedOn / 1000, 'unixepoch')) as totalActiveDays,
+            COUNT(DISTINCT date(v.watchedOn / 1000, 'unixepoch', 'localtime')) as totalActiveDays,
             COUNT(v.id) AS totalVideoCount,
             COALESCE(SUM(v.durationInSeconds), 0) AS totalTimeInSeconds
         FROM courses c

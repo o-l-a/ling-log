@@ -3,6 +3,7 @@ package com.example.myinputlog.ui.models
 import androidx.annotation.StringRes
 import com.example.myinputlog.R
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 
 enum class TrendsTimePeriod(val dayStep: Int, @get:StringRes val labelRes: Int) {
@@ -31,7 +32,7 @@ enum class TrendsTimePeriod(val dayStep: Int, @get:StringRes val labelRes: Int) 
 
         if (this == ALL_TIME) {
             return TimeRange(
-                start = 0L, end = today.toEpochMilli()
+                start = 0L, end = today.toEndOfDayEpochMilli()
             ) to TimeRange(start = 0L, end = 0L)
         }
 
@@ -46,11 +47,12 @@ enum class TrendsTimePeriod(val dayStep: Int, @get:StringRes val labelRes: Int) 
         }
 
         val currentRange = TimeRange(
-            start = currentStart.toEpochMilli(), end = today.toEpochMilli()
+            start = currentStart.toStartOfDayEpochMilli(), end = today.toEndOfDayEpochMilli()
         )
 
         val previousRange = TimeRange(
-            start = previousStart.toEpochMilli(), end = currentStart.minusDays(1).toEpochMilli()
+            start = previousStart.toStartOfDayEpochMilli(),
+            end = currentStart.minusDays(1).toEndOfDayEpochMilli()
         )
 
         return currentRange to previousRange
@@ -59,8 +61,13 @@ enum class TrendsTimePeriod(val dayStep: Int, @get:StringRes val labelRes: Int) 
 
 data class TimeRange(val start: Long, val end: Long)
 
-private fun LocalDate.toEpochMilli(): Long {
+fun LocalDate.toStartOfDayEpochMilli(): Long {
     return this.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+}
+
+fun LocalDate.toEndOfDayEpochMilli(): Long {
+    return this.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant()
+        .toEpochMilli()
 }
 
 private fun LocalDate.firstDayOfMonth(): LocalDate = this.withDayOfMonth(1)

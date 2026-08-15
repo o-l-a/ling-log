@@ -423,13 +423,14 @@ class DefaultStorageDataRepository @Inject constructor(
             if (dbStats.isEmpty()) return@map DailyWatchWrapper(emptyList(), emptyList())
             val statsMap = dbStats.associateBy { it.date }
 
-            val earliestDate = dbStats.minByOrNull { it.date }!!
-            val startAdjusted = if (start == 0L) {
-                earliestDate.date * 86400000
-            } else start
-            Log.d(TAG, "Start: $start, adjusted $startAdjusted")
             val zoneId = ZoneId.systemDefault()
-            val startDate = Instant.ofEpochMilli(startAdjusted).atZone(zoneId).toLocalDate()
+
+            val startDate = if (start == 0L) {
+                val earliestDate = dbStats.minByOrNull { it.date }!!
+                LocalDate.ofEpochDay(earliestDate.date)
+            } else {
+                Instant.ofEpochMilli(start).atZone(zoneId).toLocalDate()
+            }
             val endDate = Instant.ofEpochMilli(end).atZone(zoneId).toLocalDate()
             val daysCount = ChronoUnit.DAYS.between(startDate, endDate)
 
@@ -446,7 +447,7 @@ class DefaultStorageDataRepository @Inject constructor(
                     )
                 }, years
             )
-        }.flowOn(Dispatchers.IO)
+        }.flowOn(Dispatchers.Default)
     }
 
     override fun getBaselineProgress(courseId: String, start: Long): Flow<Long> = scoped {

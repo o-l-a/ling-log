@@ -124,13 +124,6 @@ fun TrendsBody(
         contentPadding = PaddingValues(MaterialTheme.spacing.mediumPlus),
         state = scrollState
     ) {
-//        item {
-//            PeriodSection(
-//                periodOptions = periodOptions,
-//                selectedPeriod = trendsUiState.selectedPeriod,
-//                onPeriodChange = onPeriodChange
-//            )
-//        }
         when (trendsUiState) {
             is TrendsUiState.Success -> {
                 item(key = "totalProgress") {

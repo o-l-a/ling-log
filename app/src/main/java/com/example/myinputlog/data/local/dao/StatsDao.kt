@@ -18,7 +18,7 @@ interface StatsDao {
     @Query(
         """
         SELECT 
-            strftime('%d', watchedOn / 1000, 'unixepoch') as dayOfMonth,
+            strftime('%d', watchedOn / 1000, 'unixepoch', 'localtime') as dayOfMonth,
             SUM(durationInSeconds) as totalSeconds,
             COUNT(*) as videoCount
         FROM videos
@@ -45,11 +45,11 @@ interface StatsDao {
     @Query(
         """
         SELECT 
-            watchedOn / (1000 * 86400) as date,
+            CAST(strftime('%s', date(watchedOn / 1000, 'unixepoch', 'localtime')) AS INTEGER) / 86400 as date,
             SUM(durationInSeconds) as totalSeconds,
             COUNT(*) as videoCount
         FROM videos
-        WHERE courseId = :courseId AND (watchedOn / 1000.0) * 1000 BETWEEN :start AND :end AND isDeleted = 0
+        WHERE courseId = :courseId AND watchedOn BETWEEN :start AND :end AND isDeleted = 0
         GROUP BY date
         ORDER BY date ASC
     """
