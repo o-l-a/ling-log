@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,7 +36,8 @@ fun MyInputLogCalendar(
     calendarUiState: CalendarUiState,
     onDayClicked: (CalendarDay) -> Unit,
     onBackClicked: () -> Unit,
-    onForwardClicked: () -> Unit
+    onForwardClicked: () -> Unit,
+    onHeaderClicked: () -> Unit
 ) {
     Column(
         modifier = modifier.padding(MaterialTheme.spacing.small)
@@ -43,7 +45,8 @@ fun MyInputLogCalendar(
         CalendarHeader(
             monthName = calendarUiState.monthName,
             onBackClicked = onBackClicked,
-            onForwardClicked = onForwardClicked
+            onForwardClicked = onForwardClicked,
+            onHeaderClicked = onHeaderClicked
         )
         CalendarWeekdays(shortWeekdays = calendarUiState.weekdays)
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
@@ -70,7 +73,8 @@ fun CalendarHeader(
     modifier: Modifier = Modifier,
     monthName: String,
     onBackClicked: () -> Unit,
-    onForwardClicked: () -> Unit
+    onForwardClicked: () -> Unit,
+    onHeaderClicked: () -> Unit
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -80,9 +84,18 @@ fun CalendarHeader(
         IconButton(onClick = onBackClicked) {
             Icon(imageVector = Icons.Filled.ChevronLeft, contentDescription = null)
         }
-        Text(
-            text = monthName,
-        )
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(MaterialTheme.spacing.small))
+                .clickable(enabled = true, onClick = onHeaderClicked)
+        ) {
+            Text(
+                text = monthName, modifier = Modifier.padding(
+                        horizontal = MaterialTheme.spacing.medium,
+                        vertical = MaterialTheme.spacing.extraExtraSmall
+                    )
+            )
+        }
         IconButton(onClick = onForwardClicked) {
             Icon(imageVector = Icons.Filled.ChevronRight, contentDescription = null)
         }

@@ -200,7 +200,7 @@ fun MediaListScreen(
                 SmallFloatingActionButton(
                     onClick = {
                         coroutineScope.launch {
-                            activeListState.animateScrollToItem(0)
+                            activeListState.scrollToItem(0)
                         }
                     }) {
                     Icon(imageVector = Icons.Filled.ArrowUpward, contentDescription = null)

@@ -12,6 +12,7 @@ sealed interface HomeUiState {
         val courseHeader: CourseHeaderUiModel = CourseHeaderUiModel(),
         val userCourses: List<CourseUiModel> = listOf(),
         val confettiColors: List<Long> = listOf(),
-        val isParty: Boolean = false
+        val isParty: Boolean = false,
+        val isDialog: Boolean = false
     ) : HomeUiState
 }
