@@ -15,6 +15,7 @@ import com.example.myinputlog.data.local.entities.LabelEntity
 import com.example.myinputlog.data.local.entities.VideoEntity
 import com.example.myinputlog.data.local.model.ChannelWithLabelIds
 import com.example.myinputlog.data.local.model.ChannelWithStatsAndLabels
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ChannelDao {
@@ -61,6 +62,9 @@ interface ChannelDao {
         observedEntities = [ChannelEntity::class, VideoEntity::class, LabelEntity::class, ChannelLabelCrossRef::class]
     )
     fun getChannelsPagingSource(query: SupportSQLiteQuery): PagingSource<Int, ChannelWithStatsAndLabels>
+
+    @RawQuery(observedEntities = [ChannelEntity::class])
+    fun getChannelCountFlow(query: SupportSQLiteQuery): Flow<Int>
 
     // UPSERTS
     @Upsert

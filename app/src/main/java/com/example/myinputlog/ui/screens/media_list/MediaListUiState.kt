@@ -14,7 +14,9 @@ sealed interface MediaListUiState {
         val allLabels: Set<LabelUiModel> = emptySet(),
         val allCountries: Set<CountryUiModel> = emptySet(),
         val filters: MediaFilters = MediaFilters(),
-        val appliedSort: SortOptions = SortOptions.DEFAULT
+        val appliedSort: SortOptions = SortOptions.DEFAULT,
+        val videoCount: Int,
+        val channelCount: Int
     ) : MediaListUiState
 }
 

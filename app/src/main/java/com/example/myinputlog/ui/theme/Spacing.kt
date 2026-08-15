@@ -26,6 +26,7 @@ data class Spacing(
     val extraLarge: Dp = 64.dp,
     val extraLargePlus: Dp = 72.dp,
     val extraLargePlusPlus: Dp = 96.dp,
+    val extraLargeTriplePlus: Dp = 108.dp,
     val doubleExtraLarge: Dp = 128.dp,
     val doubleExtraLargePlus: Dp = 160.dp,
     val horizontalChartHeight: Dp = 216.dp

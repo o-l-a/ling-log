@@ -81,13 +81,12 @@ import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.launch
 
 sealed class MediaTab(
-    @get:StringRes val resourceId: Int
+    @get:StringRes val resourceId: Int, val count: Int
 ) {
-    object Videos : MediaTab(R.string.video_list_screen_title)
-    object Channels : MediaTab(R.string.channel_list_screen_title)
+    data class Videos(val videoCount: Int) : MediaTab(R.string.video_list_screen_title, videoCount)
+    data class Channels(val channelCount: Int) :
+        MediaTab(R.string.channel_list_screen_title, channelCount)
 }
-
-private val tabs = listOf(MediaTab.Videos, MediaTab.Channels)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,6 +107,19 @@ fun MediaListScreen(
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val coroutineScope = rememberCoroutineScope()
+
+    val tabs = remember(mediaListUiState) {
+        val state = mediaListUiState as? MediaListUiState.Success
+        if (state != null) {
+            listOf(
+                MediaTab.Videos(state.videoCount), MediaTab.Channels(state.channelCount)
+            )
+        } else {
+            listOf(
+                MediaTab.Videos(0), MediaTab.Channels(0)
+            )
+        }
+    }
 
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val videoLazyListState = rememberLazyListState()
@@ -297,13 +309,13 @@ fun MediaListHeader(
                     TabRowDefaults.PrimaryIndicator(
                         modifier = Modifier.tabIndicatorOffset(
                             selectedTabIndex = pagerState.currentPage, matchContentSize = false
-                        ), width = MaterialTheme.spacing.extraLargePlusPlus
+                        ), width = MaterialTheme.spacing.extraLargeTriplePlus
                     )
                 }) {
                 tabs.forEachIndexed { index, tab ->
                     Tab(selected = pagerState.currentPage == index, onClick = {
                         coroutineScope.launch { pagerState.animateScrollToPage(index) }
-                    }, text = { Text(stringResource(tab.resourceId)) })
+                    }, text = { Text("${stringResource(tab.resourceId)} (${tab.count})") })
                 }
             }
         }

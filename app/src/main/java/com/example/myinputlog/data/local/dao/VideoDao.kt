@@ -45,6 +45,9 @@ interface VideoDao {
     )
     fun getVideosPagingSource(query: SupportSQLiteQuery): PagingSource<Int, VideoWithChannelAndLabels>
 
+    @RawQuery(observedEntities = [VideoEntity::class, ChannelEntity::class])
+    fun getVideoCountFlow(query: SupportSQLiteQuery): Flow<Int>
+
     @Transaction
     @Query(
         """

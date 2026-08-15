@@ -168,6 +168,13 @@ class DefaultStorageDataRepository @Inject constructor(
         }
     }
 
+    override fun videoCountFlow(
+        courseId: String, filters: MediaFilters
+    ): Flow<Int> = scoped {
+        val query = VideoQueryBuilder.buildCount(courseId, filters)
+        videoDao.getVideoCountFlow(query)
+    }
+
     override suspend fun getVideo(videoId: String): VideoWithChannelAndLabels? = withScope {
         withContext(Dispatchers.IO) {
             return@withContext videoDao.getVideoWithChannelAndLabelsById(videoId)
@@ -219,6 +226,13 @@ class DefaultStorageDataRepository @Inject constructor(
                 entity.toChannelUiModel(rank)
             }
         }
+    }
+
+    override fun channelCountFlow(
+        courseId: String, filters: MediaFilters
+    ): Flow<Int> = scoped {
+        val query = ChannelQueryBuilder.buildCount(courseId, filters)
+        channelDao.getChannelCountFlow(query)
     }
 
     override suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels? = withScope {

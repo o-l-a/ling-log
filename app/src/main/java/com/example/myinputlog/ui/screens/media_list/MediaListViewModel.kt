@@ -80,14 +80,31 @@ class MediaListViewModel @Inject constructor(
     }.cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    private val videoCountFlow: Flow<Int> = combine(
+        currentCourseId, debouncedFilters, ::Pair
+    ).flatMapLatest { (id, filters) ->
+        repository.videoCountFlow(id, filters)
+    }.distinctUntilChanged().flowOn(Dispatchers.Default)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val channelCountFlow: Flow<Int> = combine(
+        currentCourseId, debouncedFilters, ::Pair
+    ).flatMapLatest { (id, filters) ->
+        repository.channelCountFlow(id, filters)
+    }.distinctUntilChanged().flowOn(Dispatchers.Default)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     val filterChannelFlow = currentCourseId.flatMapLatest { courseId ->
         repository.channelPagingFlow(courseId, MediaFilters(), SortOptions.CHANNEL_TITLE_ASC)
             .flowOn(Dispatchers.Default)
     }.cachedIn(viewModelScope)
 
+    private val mediaCountsFlow = combine(videoCountFlow, channelCountFlow, ::Pair)
+    private val filterOptionsFlow = combine(_allLabels, _allCountries, ::Pair)
+
     val mediaListUiState: StateFlow<MediaListUiState> = combine(
-        currentCourseId, _draftFilters, _allLabels, _allCountries, _appliedSort,
-    ) { id, filters, labels, countries, sort ->
+        currentCourseId, _draftFilters, _appliedSort, filterOptionsFlow, mediaCountsFlow
+    ) { id, filters, sort, (labels, countries), (vCount, cCount) ->
 
         when {
             id.isBlank() -> MediaListUiState.Empty
@@ -98,11 +115,13 @@ class MediaListViewModel @Inject constructor(
                     filters = filters,
                     allLabels = labels.toSet(),
                     allCountries = countries.toSet(),
-                    appliedSort = sort
+                    appliedSort = sort,
+                    videoCount = vCount,
+                    channelCount = cCount
                 )
             }
         }
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = MediaListUiState.Loading

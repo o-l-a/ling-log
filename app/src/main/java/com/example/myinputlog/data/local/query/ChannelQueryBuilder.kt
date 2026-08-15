@@ -24,7 +24,28 @@ object ChannelQueryBuilder {
             LEFT JOIN videos AS v ON c.id = v.channelId AND v.isDeleted = 0
         """.trimIndent()
         )
+        applyFilters(sql, courseId, filters)
+        sql.groupBy("c.id")
+        applySort(sql, sort)
 
+        return sql.build()
+    }
+
+    fun buildCount(
+        courseId: String, filters: MediaFilters, sort: SortOptions = SortOptions.DEFAULT
+    ): SupportSQLiteQuery {
+        val sql = QueryBuilder(
+            """
+            SELECT COUNT(c.id)
+            FROM channels AS c
+        """.trimIndent()
+        )
+        applyFilters(sql, courseId, filters)
+
+        return sql.build()
+    }
+
+    private fun applyFilters(sql: QueryBuilder, courseId: String, filters: MediaFilters) {
         sql.andIf(true, "c.isDeleted = 0")
         sql.andIf(true, "c.courseId = ?", courseId)
 
@@ -83,9 +104,9 @@ object ChannelQueryBuilder {
                 ), bindArgs = filters.selectedCountries.toTypedArray()
             )
         }
+    }
 
-        sql.groupBy("c.id")
-
+    private fun applySort(sql: QueryBuilder, sort: SortOptions) {
         when (sort) {
             CHANNEL_TITLE_DESC -> {
                 sql.orderBy("lower(c.title) DESC")
@@ -121,7 +142,5 @@ object ChannelQueryBuilder {
                 sql.orderBy("lower(c.title) ASC")
             }
         }
-
-        return sql.build()
     }
 }

@@ -43,6 +43,10 @@ interface StorageDataRepository {
         courseId: String, filters: MediaFilters, sort: SortOptions
     ): Flow<PagingData<VideoUiModel>>
 
+    fun videoCountFlow(
+        courseId: String, filters: MediaFilters
+    ): Flow<Int>
+
     suspend fun getVideo(videoId: String): VideoWithChannelAndLabels?
     suspend fun saveVideo(
         video: VideoEntity,
@@ -60,6 +64,10 @@ interface StorageDataRepository {
         sort: SortOptions,
         podium: Map<String, Int> = emptyMap()
     ): Flow<PagingData<ChannelUiModel>>
+
+    fun channelCountFlow(
+        courseId: String, filters: MediaFilters
+    ): Flow<Int>
 
     suspend fun getChannel(channelId: String): ChannelWithStatsAndLabels?
     suspend fun getChannelGlobalRanking(): Map<String, Int>
