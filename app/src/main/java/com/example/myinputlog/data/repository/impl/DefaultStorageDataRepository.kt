@@ -154,11 +154,13 @@ class DefaultStorageDataRepository @Inject constructor(
     }
 
     override fun videoPagingFlow(
-        courseId: String, filters: MediaFilters, sort: SortOptions
+        courseId: String, filters: MediaFilters, sort: SortOptions, initialKey: Int?
     ): Flow<PagingData<VideoUiModel>> = scoped {
         Log.d(TAG, "paging flow with user $uid")
         Pager(
-            config = pagingConfig, pagingSourceFactory = {
+            config = pagingConfig,
+            initialKey = initialKey,
+            pagingSourceFactory = {
                 val query = VideoQueryBuilder.build(courseId, filters, sort)
                 videoDao.getVideosPagingSource(query)
             }).flow.map { pagingData ->
@@ -173,6 +175,12 @@ class DefaultStorageDataRepository @Inject constructor(
     ): Flow<Int> = scoped {
         val query = VideoQueryBuilder.buildCount(courseId, filters)
         videoDao.getVideoCountFlow(query)
+    }
+
+    override suspend fun getVideoOffsetForDate(
+        courseId: String, targetDate: Long
+    ): Int = withScope {
+        videoDao.getVideoOffsetForDate(courseId, targetDate)
     }
 
     override suspend fun getVideo(videoId: String): VideoWithChannelAndLabels? = withScope {

@@ -32,7 +32,7 @@ object ChannelQueryBuilder {
     }
 
     fun buildCount(
-        courseId: String, filters: MediaFilters, sort: SortOptions = SortOptions.DEFAULT
+        courseId: String, filters: MediaFilters
     ): SupportSQLiteQuery {
         val sql = QueryBuilder(
             """

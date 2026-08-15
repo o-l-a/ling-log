@@ -40,12 +40,14 @@ interface StorageDataRepository {
 
     // video
     fun videoPagingFlow(
-        courseId: String, filters: MediaFilters, sort: SortOptions
+        courseId: String, filters: MediaFilters, sort: SortOptions, initialKey: Int? = null
     ): Flow<PagingData<VideoUiModel>>
 
     fun videoCountFlow(
         courseId: String, filters: MediaFilters
     ): Flow<Int>
+
+    suspend fun getVideoOffsetForDate(courseId: String, targetDate: Long): Int
 
     suspend fun getVideo(videoId: String): VideoWithChannelAndLabels?
     suspend fun saveVideo(

@@ -44,6 +44,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -99,6 +100,7 @@ fun MediaListScreen(
     navigateToYouTubeChannel: (String, String) -> Unit
 ) {
     val mediaListUiState by mediaListViewModel.mediaListUiState.collectAsStateWithLifecycle()
+    val scrollToIndex by mediaListViewModel.scrollToIndex.collectAsStateWithLifecycle()
     val currentCourseId by mediaListViewModel.currentCourseId.collectAsStateWithLifecycle()
 
     val videos = mediaListViewModel.videoFlow.collectAsLazyPagingItems()
@@ -134,6 +136,14 @@ fun MediaListScreen(
 
     val showFab by remember {
         derivedStateOf { activeListState.firstVisibleItemIndex > 0 }
+    }
+
+    LaunchedEffect(scrollToIndex, videos.loadState.refresh) {
+        val targetIndex = scrollToIndex
+        if (targetIndex != null && videos.loadState.refresh is androidx.paging.LoadState.NotLoading) {
+            videoLazyListState.scrollToItem(targetIndex)
+            mediaListViewModel.onScrollConsumed()
+        }
     }
 
     if (showFilterSheet && mediaListUiState is MediaListUiState.Success) {

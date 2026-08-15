@@ -48,7 +48,9 @@ object HomeRoute
 /**
  * Media page with video list and channel list
  */
-object MediaListRoute
+data class MediaListRoute(
+    val targetDate: Long? = null
+)
 
 @Serializable
 /**

@@ -2,6 +2,7 @@ package com.example.myinputlog.ui.screens.common.composable.calendar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +33,7 @@ import com.example.myinputlog.ui.theme.spacing
 fun MyInputLogCalendar(
     modifier: Modifier = Modifier,
     calendarUiState: CalendarUiState,
+    onDayClicked: (CalendarDay) -> Unit,
     onBackClicked: () -> Unit,
     onForwardClicked: () -> Unit
 ) {
@@ -45,7 +47,7 @@ fun MyInputLogCalendar(
         )
         CalendarWeekdays(shortWeekdays = calendarUiState.weekdays)
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
-        CalendarEntries(calendarUiState.isLoading, calendarUiState.calendarItems)
+        CalendarEntries(calendarUiState.isLoading, calendarUiState.calendarItems, onDayClicked)
         SmallLabelChipRow(
             modifier = Modifier
                 .padding(horizontal = MaterialTheme.spacing.extraSmall)
@@ -106,7 +108,7 @@ fun CalendarWeekdays(
 
 @Composable
 fun CalendarEntries(
-    isLoading: Boolean, calendarItems: List<CalendarDay>
+    isLoading: Boolean, calendarItems: List<CalendarDay>, onDayClicked: (CalendarDay) -> Unit
 ) {
     calendarItems.chunked(7).forEach { weekItems ->
         Row(
@@ -120,6 +122,10 @@ fun CalendarEntries(
                             vertical = MaterialTheme.spacing.small
                         )
                         .clip(RoundedCornerShape(MaterialTheme.spacing.small))
+                        .clickable(
+                            enabled = day.date != null && day.totalMinutes > 0L, onClick = {
+                                onDayClicked(day)
+                            })
                         .conditional(!isLoading, {
                             background(
                                 when (day.totalMinutes) {

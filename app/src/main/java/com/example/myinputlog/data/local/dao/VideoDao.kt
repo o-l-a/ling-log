@@ -48,6 +48,16 @@ interface VideoDao {
     @RawQuery(observedEntities = [VideoEntity::class, ChannelEntity::class])
     fun getVideoCountFlow(query: SupportSQLiteQuery): Flow<Int>
 
+    @Query(
+        """
+        SELECT COUNT(id) FROM videos 
+        WHERE isDeleted = 0 
+          AND courseId = :courseId 
+          AND watchedOn > :targetDate
+        """
+    )
+    suspend fun getVideoOffsetForDate(courseId: String, targetDate: Long): Int
+
     @Transaction
     @Query(
         """

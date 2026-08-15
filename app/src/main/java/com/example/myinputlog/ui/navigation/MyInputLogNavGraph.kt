@@ -47,6 +47,8 @@ import com.example.myinputlog.ui.screens.ui_settings.UiSettingsScreen
 import com.example.myinputlog.ui.screens.ui_settings.UiSettingsViewModel
 import com.example.myinputlog.ui.screens.video.VideoScreen
 import com.example.myinputlog.ui.screens.video.VideoViewModel
+import java.time.LocalTime
+import java.time.ZoneId
 
 const val DEFAULT_ID = -1
 
@@ -55,7 +57,7 @@ sealed class Screen(
 ) {
     object Home : Screen(HomeRoute, R.string.home_bottom_nav_description, Icons.Filled.Home)
     object Videos :
-        Screen(MediaListRoute, R.string.media_bottom_nav_description, Icons.Filled.VideoLibrary)
+        Screen(MediaListRoute(), R.string.media_bottom_nav_description, Icons.Filled.VideoLibrary)
 
     object AddVideo : Screen("", null, Icons.Filled.Add)
     object Trends : Screen(
@@ -117,6 +119,13 @@ fun NavGraphBuilder.homeGraph(navController: NavHostController) {
             val homeViewModel = hiltViewModel<HomeViewModel>()
             HomeScreen(homeViewModel = homeViewModel, onBottomNavClicked = { route ->
                 navController.navigate(route)
+            }, onDayClicked = { calendarDay ->
+                calendarDay.date?.let { date ->
+                    val endOfDayTimestamp =
+                        date.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant()
+                            .toEpochMilli()
+                    navController.navigate(MediaListRoute(targetDate = endOfDayTimestamp))
+                }
             }, navigateToYouTubeVideoEntry = { courseId ->
                 navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
             })
@@ -126,12 +135,12 @@ fun NavGraphBuilder.homeGraph(navController: NavHostController) {
 
 fun NavGraphBuilder.videosGraph(navController: NavHostController) {
     navigation<MediaGraph>(
-        startDestination = MediaListRoute,
+        startDestination = MediaListRoute(),
     ) {
         composable<MediaListRoute> {
             val mediaListViewModel = hiltViewModel<MediaListViewModel>()
             MediaListScreen(mediaListViewModel = mediaListViewModel, onBottomNavClicked = { route ->
-                navController.navigateWithPopUp(route, MediaListRoute)
+                navController.navigateWithPopUp(route, MediaListRoute())
             }, navigateToYouTubeVideoEntry = { courseId ->
                 navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
             }, navigateToYouTubeVideo = { courseId, videoId ->

@@ -1,8 +1,10 @@
 package com.example.myinputlog.ui.screens.media_list
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import androidx.paging.cachedIn
 import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.data.repository.StorageDataRepository
@@ -10,6 +12,7 @@ import com.example.myinputlog.ui.models.CountryUiModel
 import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.toCountryUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
+import com.example.myinputlog.ui.navigation.MediaListRoute
 import com.example.myinputlog.ui.screens.common.composable.input.FilterChange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -33,8 +37,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MediaListViewModel @Inject constructor(
-    private val repository: StorageDataRepository
+    private val repository: StorageDataRepository, savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val initialTargetDate: Long? = savedStateHandle.toRoute<MediaListRoute>().targetDate
+    private var hasHandledInitialDate = false
+
+    private val _scrollToIndex = MutableStateFlow<Int?>(null)
+    val scrollToIndex: StateFlow<Int?> = _scrollToIndex.asStateFlow()
+
     val currentCourseId: StateFlow<String> = repository.currentCourseId.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = ""
     )
@@ -67,17 +77,23 @@ class MediaListViewModel @Inject constructor(
     val videoFlow = combine(
         currentCourseId, debouncedFilters, _appliedSort, ::VideoQuery
     ).flatMapLatest { query ->
-        repository.videoPagingFlow(query.courseId, query.filters, query.sort)
-            .flowOn(Dispatchers.Default)
-    }.cachedIn(viewModelScope)
+        var initialKey: Int? = null
+
+        if (!hasHandledInitialDate && initialTargetDate != null && query.courseId.isNotBlank()) {
+            hasHandledInitialDate = true
+            val offset = repository.getVideoOffsetForDate(query.courseId, initialTargetDate)
+            initialKey = offset
+            _scrollToIndex.value = offset
+        }
+        repository.videoPagingFlow(query.courseId, query.filters, query.sort, initialKey)
+    }.flowOn(Dispatchers.Default).cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val channelFlow = combine(
         currentCourseId, debouncedFilters, _appliedSort, _channelRanking, ::ChannelQuery
     ).flatMapLatest { query ->
         repository.channelPagingFlow(query.courseId, query.filters, query.sort, query.ranking)
-            .flowOn(Dispatchers.Default)
-    }.cachedIn(viewModelScope)
+    }.flowOn(Dispatchers.Default).cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val videoCountFlow: Flow<Int> = combine(
@@ -277,6 +293,10 @@ class MediaListViewModel @Inject constructor(
 
     fun onSortChange(newSort: SortOptions) {
         _appliedSort.value = newSort
+    }
+
+    fun onScrollConsumed() {
+        _scrollToIndex.value = null
     }
 
     private data class VideoQuery(

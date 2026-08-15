@@ -32,6 +32,7 @@ import com.example.myinputlog.ui.screens.common.composable.ConfettiOverlay
 import com.example.myinputlog.ui.screens.common.composable.SpinningClockIcon
 import com.example.myinputlog.ui.screens.common.composable.StatisticContainer
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogBottomNavBar
+import com.example.myinputlog.ui.screens.common.composable.calendar.CalendarDay
 import com.example.myinputlog.ui.screens.common.composable.calendar.SwipeableCalendar
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
@@ -46,6 +47,7 @@ fun HomeScreen(
     homeViewModel: HomeViewModel,
     onBottomNavClicked: (Any) -> Unit,
     navigateToYouTubeVideoEntry: (String) -> Unit,
+    onDayClicked: (CalendarDay) -> Unit,
 ) {
     val homeUiState by homeViewModel.homeUiState.collectAsStateWithLifecycle()
     val currentCourseId by homeViewModel.currentCourseId.collectAsStateWithLifecycle()
@@ -87,6 +89,7 @@ fun HomeScreen(
                     HomeBody(
                         modifier = modifier.padding(innerPadding),
                         homeUiState = state,
+                        onDayClicked = onDayClicked,
                         getStatsForMonth = homeViewModel::getMonthlyDashboard,
                         doParty = homeViewModel::confetti
                     )
@@ -110,6 +113,7 @@ fun HomeScreen(
 fun HomeBody(
     modifier: Modifier = Modifier,
     homeUiState: HomeUiState.Success,
+    onDayClicked: (CalendarDay) -> Unit,
     getStatsForMonth: (String) -> Flow<MonthlyStatsResult>,
     doParty: () -> Unit
 ) {
@@ -196,7 +200,7 @@ fun HomeBody(
         }
         item {
             SwipeableCalendar(
-                getStatsForMonth = getStatsForMonth
+                onDayClicked = onDayClicked, getStatsForMonth = getStatsForMonth
             )
         }
     }
