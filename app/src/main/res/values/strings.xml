@@ -64,6 +64,8 @@
     <string name="sort_default">Default</string>
     <string name="sort_watch_date_asc">Watched on (ascending)</string>
     <string name="sort_watch_date_desc">Watched on (descending)</string>
+    <string name="sort_length_asc">Length (ascending)</string>
+    <string name="sort_length_desc">Length (descending)</string>
     <string name="sort_title_asc">Title (ascending)</string>
     <string name="sort_title_desc">Title (descending)</string>
     <string name="sort_channel_title_asc">Channel name (ascending)</string>

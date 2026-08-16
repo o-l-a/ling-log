@@ -65,6 +65,8 @@
     <string name="sort_default">Domyślnie</string>
     <string name="sort_watch_date_asc">Data obejrzenia (rosnąco)</string>
     <string name="sort_watch_date_desc">Data obejrzenia (malejąco)</string>
+    <string name="sort_length_asc">Długość (rosnąco)</string>
+    <string name="sort_length_desc">Długość (malejąco)</string>
     <string name="sort_title_asc">Tytuł (rosnąco)</string>
     <string name="sort_title_desc">Tytuł (malejąco)</string>
     <string name="sort_channel_title_asc">Nazwa kanału (rosnąco)</string>
