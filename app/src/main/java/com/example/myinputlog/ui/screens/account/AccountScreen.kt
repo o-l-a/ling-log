@@ -63,7 +63,7 @@ fun AccountScreen(
     navigateWithPopUp: () -> Unit
 ) {
     val accountUiState by accountViewModel.accountUiState.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 

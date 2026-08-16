@@ -44,7 +44,7 @@ fun ProfileScreen(
     navigateToYouTubeVideoEntry: (String) -> Unit,
     navigationItems: Map<SettingsScreen, () -> Unit>,
 ) {
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val profileUiState by profileViewModel.profileUiState.collectAsStateWithLifecycle()
     val currentCourseId by profileViewModel.currentCourseId.collectAsStateWithLifecycle()
 

@@ -64,7 +64,7 @@ fun ChannelScreen(
     modifier: Modifier = Modifier, channelViewModel: ChannelViewModel, onNavigateUp: () -> Unit,
 ) {
     val channelUiState by channelViewModel.channelUiState.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 

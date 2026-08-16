@@ -94,7 +94,7 @@ fun VideoScreen(
     onNavigateUp: () -> Unit
 ) {
     val videoUiState by videoViewModel.videoUiState.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val datePickerState = rememberDatePickerState()
     val coroutineScope = rememberCoroutineScope()
     val clipboardManager = LocalClipboard.current

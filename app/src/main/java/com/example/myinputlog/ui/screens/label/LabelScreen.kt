@@ -55,7 +55,7 @@ fun LabelScreen(
     modifier: Modifier = Modifier, labelViewModel: LabelViewModel, onNavigateUp: () -> Unit
 ) {
     val labelUiState by labelViewModel.labelUiState.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     LaunchedEffect(Unit) {
         labelViewModel.uiEvent.collect { event ->

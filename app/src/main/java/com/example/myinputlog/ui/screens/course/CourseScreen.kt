@@ -45,7 +45,7 @@ fun CourseScreen(
     modifier: Modifier = Modifier, courseViewModel: CourseViewModel, onNavigateUp: () -> Unit
 ) {
     val courseUiState by courseViewModel.courseUiState.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     LaunchedEffect(Unit) {
         courseViewModel.uiEvent.collect { event ->

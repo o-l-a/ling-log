@@ -75,7 +75,7 @@ fun UiSettingsScreen(
     onNavigateUp: () -> Unit
 ) {
     val uiSettingsUiState by uiSettingsViewModel.uiSettingsUiState.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         MyInputLogTopAppBar(
