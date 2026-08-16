@@ -71,6 +71,7 @@ fun TrendsScreen(
                         scrollBehavior = scrollBehavior,
                         periodOptions = TrendsTimePeriod.entries,
                         selectedPeriod = currentUiState.selectedPeriod,
+                        customMonth = currentUiState.customYearMonth,
                         onPeriodChange = trendsViewModel::setTimePeriod
                     )
                 }

@@ -14,9 +14,9 @@ val TopSpacedRangeProvider = object : CartesianLayerRangeProvider {
     override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
         val amplitude = maxY - minY
 
-        if (amplitude < 0.1) {
+        if (amplitude < 2) {
             val midPoint = (minY + maxY) / 2.0
-            return max(midPoint - 0.1, 0.0)
+            return max(midPoint - 1, 0.0)
         }
         return minY
     }
@@ -24,9 +24,9 @@ val TopSpacedRangeProvider = object : CartesianLayerRangeProvider {
     override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
         val amplitude = maxY - minY
 
-        if (amplitude < 0.1) {
+        if (amplitude < 2) {
             val midPoint = (minY + maxY) / 2.0
-            return midPoint + 0.1 + (amplitude * 0.1)
+            return midPoint + 1 + (0.15)
         }
         return maxY + (amplitude * 0.1)
     }

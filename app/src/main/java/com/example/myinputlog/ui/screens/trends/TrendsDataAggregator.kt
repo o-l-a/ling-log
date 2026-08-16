@@ -4,6 +4,7 @@ import com.example.myinputlog.data.local.model.DailyWatchWrapper
 import com.example.myinputlog.ui.models.TrendsTimePeriod
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 
 data class PeriodSummary(
@@ -36,7 +37,7 @@ object TrendsDataAggregator {
         if (goal > 0) (this.toFloat() / goal.toFloat()) * 100f else 0f
 
     fun aggregate(
-        period: TrendsTimePeriod, timeStats: TimeStats
+        period: TrendsTimePeriod, timeStats: TimeStats, customMonth: YearMonth?
     ): AggregatedProgress {
         val finalRunningTotal =
             timeStats.baseline + timeStats.currentDaily.dailyStats.sumOf { it.totalSeconds }
@@ -71,7 +72,7 @@ object TrendsDataAggregator {
             previousEnd = currentEnd
             previousTotal = 0L
         } else {
-            val (currentRange, previousRange) = period.getTimeRanges()
+            val (currentRange, previousRange) = period.getTimeRanges(customMonth)
 
             currentStart = currentRange.start.toLocalDate()
             currentEnd = currentRange.end.toLocalDate()

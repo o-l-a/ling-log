@@ -16,6 +16,10 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -25,7 +29,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.example.myinputlog.ui.models.TrendsTimePeriod
+import com.example.myinputlog.ui.screens.common.composable.input.YearMonthPicker
 import com.example.myinputlog.ui.theme.spacing
+import java.time.Month
+import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,9 +44,19 @@ fun TrendsScreenTopAppBar(
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
     periodOptions: List<TrendsTimePeriod>,
     selectedPeriod: TrendsTimePeriod,
-    onPeriodChange: (period: TrendsTimePeriod) -> Unit
+    customMonth: YearMonth?,
+    onPeriodChange: (period: TrendsTimePeriod, yearMonth: YearMonth) -> Unit
 ) {
     val dividerColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    val baseYearMonth = remember { YearMonth.now() }
+    var isPickerOpen by remember { mutableStateOf(false) }
+    val localizedMonthNames = remember {
+        val defaultLocale = Locale.getDefault()
+        Month.entries.associateWith { month ->
+            month.getDisplayName(TextStyle.FULL_STANDALONE, defaultLocale)
+                .replaceFirstChar { it.uppercase() }
+        }
+    }
 
     TopAppBar(scrollBehavior = scrollBehavior, modifier = modifier.drawWithContent {
         drawContent()
@@ -73,13 +92,48 @@ fun TrendsScreenTopAppBar(
                 val isSelected = selectedPeriod == option
 
                 FilterChip(
-                    selected = isSelected,
-                    onClick = { onPeriodChange(option) },
-                    label = { Text(text = stringResource(option.labelRes)) },
-                    leadingIcon = if (isSelected) {
-                        { Icon(imageVector = Icons.Default.Check, contentDescription = null) }
-                    } else null)
+                    selected = isSelected, onClick = {
+                    when (option) {
+                        TrendsTimePeriod.CUSTOM_MONTH -> {
+                            isPickerOpen = true
+                        }
+
+                        else -> {
+                            onPeriodChange(option, customMonth ?: baseYearMonth)
+                        }
+                    }
+                }, label = {
+                    when (option) {
+                        TrendsTimePeriod.CUSTOM_MONTH -> {
+                            if (customMonth != null) {
+                                Text("${localizedMonthNames[customMonth.month].orEmpty()} ${customMonth.year}")
+                            } else {
+                                Text(text = stringResource(option.labelRes))
+                            }
+                        }
+
+                        else -> {
+                            Text(text = stringResource(option.labelRes))
+                        }
+                    }
+                }, leadingIcon = if (isSelected) {
+                    { Icon(imageVector = Icons.Default.Check, contentDescription = null) }
+                } else null)
             }
         }
     })
+
+    if (isPickerOpen) {
+        YearMonthPicker(
+            initialYearMonth = customMonth ?: baseYearMonth,
+            onYearMonthSelected = { yearMonth ->
+                onPeriodChange(
+                    TrendsTimePeriod.CUSTOM_MONTH, yearMonth
+                )
+                isPickerOpen = false
+            },
+            onDismissRequest = {
+                isPickerOpen = false
+            })
+    }
 }

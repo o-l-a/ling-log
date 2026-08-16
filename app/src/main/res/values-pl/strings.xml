@@ -180,10 +180,7 @@
     <string name="period_last_6_months">6 miesięcy</string>
     <string name="period_last_year">1 rok</string>
     <string name="period_all_time">Cały zakres</string>
-    <string name="period_last_7_days_short">7D</string>
-    <string name="period_last_4_weeks_short">4T</string>
-    <string name="period_last_6_months_short">6M</string>
-    <string name="period_last_year_short">1R</string>
+    <string name="period_custom_month">Wybrany miesiąc</string>
     <string name="period_all_time_short">Cały zakres</string>
     <string name="trends_progress_chart_title">Łączny postęp</string>
 

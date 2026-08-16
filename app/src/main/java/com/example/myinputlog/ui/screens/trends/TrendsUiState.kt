@@ -7,6 +7,7 @@ import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.models.RankingCategory
 import com.example.myinputlog.ui.models.RankingLimit
 import com.example.myinputlog.ui.models.TrendsTimePeriod
+import java.time.YearMonth
 
 sealed interface TrendsUiState {
     data object Loading : TrendsUiState
@@ -14,18 +15,21 @@ sealed interface TrendsUiState {
 
     sealed interface Content : TrendsUiState {
         val selectedPeriod: TrendsTimePeriod
+        val customYearMonth: YearMonth?
         val selectedRankingCategory: RankingCategory
         val selectedRankingLimit: RankingLimit
     }
 
     data class Empty(
         override val selectedPeriod: TrendsTimePeriod = TrendsTimePeriod.LAST_4_WEEKS,
+        override val customYearMonth: YearMonth? = null,
         override val selectedRankingCategory: RankingCategory = RankingCategory.LABEL,
         override val selectedRankingLimit: RankingLimit = RankingLimit.TOP_3
     ) : Content
 
     data class Success(
         override val selectedPeriod: TrendsTimePeriod = TrendsTimePeriod.LAST_4_WEEKS,
+        override val customYearMonth: YearMonth? = null,
         override val selectedRankingCategory: RankingCategory = RankingCategory.LABEL,
         override val selectedRankingLimit: RankingLimit = RankingLimit.TOP_3,
 

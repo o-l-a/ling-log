@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.YearMonth
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,18 +41,23 @@ class TrendsViewModel @Inject constructor(
     )
 
     private val _timePeriod = MutableStateFlow(TrendsTimePeriod.LAST_4_WEEKS)
+    private val _customMonth = MutableStateFlow<YearMonth?>(null)
     private val _rankingCategory = MutableStateFlow(RankingCategory.LABEL)
     private val _rankingLimit = MutableStateFlow(RankingLimit.TOP_3)
 
     private val configFlow = combine(
-        currentCourseId.filter { it.isNotEmpty() }, _timePeriod, _rankingCategory, _rankingLimit
-    ) { courseId, period, rankingCategory, rankingLimit ->
-        Config(courseId, period, rankingCategory, rankingLimit)
+        currentCourseId.filter { it.isNotEmpty() },
+        _timePeriod,
+        _customMonth,
+        _rankingCategory,
+        _rankingLimit
+    ) { courseId, period, customMonth, rankingCategory, rankingLimit ->
+        Config(courseId, period, customMonth, rankingCategory, rankingLimit)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val trendsUiState: StateFlow<TrendsUiState> = configFlow.flatMapLatest { config ->
-        val (currentRange, previousRange) = config.period.getTimeRanges()
+        val (currentRange, previousRange) = config.period.getTimeRanges(config.customMonth)
         combine(
             timeStatsFlow(config, currentRange, previousRange),
             categoryStatsFlow(config, currentRange)
@@ -110,12 +116,13 @@ class TrendsViewModel @Inject constructor(
                 selectedRankingLimit = config.rankingLimit,
             )
         }
-        val aggregatedData = TrendsDataAggregator.aggregate(config.period, timeStats)
+        val aggregatedData = TrendsDataAggregator.aggregate(config.period, timeStats, config.customMonth)
         val totalPoints = timeStats.currentDaily.dailyStats.size
         Log.d(TAG, "Number of points: $totalPoints vs ${aggregatedData.cumulativeProgress.size}")
 
         return TrendsUiState.Success(
             selectedPeriod = config.period,
+            customYearMonth = config.customMonth,
             selectedRankingCategory = config.rankingCategory,
             selectedRankingLimit = config.rankingLimit,
             cumulativeProgress = aggregatedData.cumulativeProgress,
@@ -133,8 +140,9 @@ class TrendsViewModel @Inject constructor(
         )
     }
 
-    fun setTimePeriod(period: TrendsTimePeriod) {
+    fun setTimePeriod(period: TrendsTimePeriod, yearMonth: YearMonth?) {
         _timePeriod.value = period
+        _customMonth.value = yearMonth
     }
 
     fun setRankingCategory(category: RankingCategory) {
@@ -153,6 +161,7 @@ class TrendsViewModel @Inject constructor(
 private data class Config(
     val courseId: String,
     val period: TrendsTimePeriod,
+    val customMonth: YearMonth?,
     val rankingCategory: RankingCategory,
     val rankingLimit: RankingLimit
 )
