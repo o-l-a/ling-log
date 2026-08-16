@@ -39,6 +39,7 @@ import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.common.formatDurationAsText
 import com.example.myinputlog.ui.theme.spacing
 import kotlinx.coroutines.flow.Flow
+import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,6 +49,7 @@ fun HomeScreen(
     onBottomNavClicked: (Any) -> Unit,
     navigateToYouTubeVideoEntry: (String) -> Unit,
     onDayClicked: (CalendarDay) -> Unit,
+    onSummaryClicked: (YearMonth) -> Unit
 ) {
     val homeUiState by homeViewModel.homeUiState.collectAsStateWithLifecycle()
     val currentCourseId by homeViewModel.currentCourseId.collectAsStateWithLifecycle()
@@ -90,6 +92,7 @@ fun HomeScreen(
                         modifier = modifier.padding(innerPadding),
                         homeUiState = state,
                         onDayClicked = onDayClicked,
+                        onSummaryClicked = onSummaryClicked,
                         getStatsForMonth = homeViewModel::getMonthlyDashboard,
                         doParty = homeViewModel::confetti
                     )
@@ -114,6 +117,7 @@ fun HomeBody(
     modifier: Modifier = Modifier,
     homeUiState: HomeUiState.Success,
     onDayClicked: (CalendarDay) -> Unit,
+    onSummaryClicked: (YearMonth) -> Unit,
     getStatsForMonth: (String) -> Flow<MonthlyStatsResult>,
     doParty: () -> Unit
 ) {
@@ -200,7 +204,9 @@ fun HomeBody(
         }
         item {
             SwipeableCalendar(
-                onDayClicked = onDayClicked, getStatsForMonth = getStatsForMonth
+                onDayClicked = onDayClicked,
+                onSummaryClicked = onSummaryClicked,
+                getStatsForMonth = getStatsForMonth
             )
         }
     }

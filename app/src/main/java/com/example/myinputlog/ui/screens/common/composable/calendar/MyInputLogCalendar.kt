@@ -29,12 +29,14 @@ import com.example.myinputlog.ui.screens.common.composable.channel.SmallChannelR
 import com.example.myinputlog.ui.screens.common.composable.label.SmallLabelChipRow
 import com.example.myinputlog.ui.screens.common.ext.conditional
 import com.example.myinputlog.ui.theme.spacing
+import java.time.YearMonth
 
 @Composable
 fun MyInputLogCalendar(
     modifier: Modifier = Modifier,
     calendarUiState: CalendarUiState,
     onDayClicked: (CalendarDay) -> Unit,
+    onSummaryClicked: (YearMonth) -> Unit,
     onBackClicked: () -> Unit,
     onForwardClicked: () -> Unit,
     onHeaderClicked: () -> Unit
@@ -51,20 +53,34 @@ fun MyInputLogCalendar(
         CalendarWeekdays(shortWeekdays = calendarUiState.weekdays)
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraSmall))
         CalendarEntries(calendarUiState.isLoading, calendarUiState.calendarItems, onDayClicked)
-        SmallLabelChipRow(
-            modifier = Modifier
-                .padding(horizontal = MaterialTheme.spacing.extraSmall)
-                .padding(top = MaterialTheme.spacing.smallPlus),
-            labels = calendarUiState.topLabels.items,
-            extraItemCount = calendarUiState.topLabels.extraItemCount.toInt()
-        )
-        SmallChannelRepresentationRow(
-            modifier = Modifier
-                .padding(horizontal = MaterialTheme.spacing.extraSmall)
-                .padding(top = MaterialTheme.spacing.small),
-            channels = calendarUiState.topChannels.items,
-            extraItemCount = calendarUiState.topChannels.extraItemCount.toInt()
-        )
+        if (calendarUiState.topChannels.items.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(MaterialTheme.spacing.small))
+                    .clickable(
+                        enabled = true,
+                        onClick = { onSummaryClicked(calendarUiState.currentMonth) })
+            ) {
+                SmallLabelChipRow(
+                    modifier = Modifier
+                        .padding(horizontal = MaterialTheme.spacing.extraSmall)
+                        .padding(top = MaterialTheme.spacing.smallPlus),
+                    labels = calendarUiState.topLabels.items,
+                    extraItemCount = calendarUiState.topLabels.extraItemCount.toInt()
+                )
+                SmallChannelRepresentationRow(
+                    modifier = Modifier
+                        .padding(horizontal = MaterialTheme.spacing.extraSmall)
+                        .padding(
+                            top = MaterialTheme.spacing.small,
+                            bottom = MaterialTheme.spacing.smallPlus
+                        ),
+                    channels = calendarUiState.topChannels.items,
+                    extraItemCount = calendarUiState.topChannels.extraItemCount.toInt()
+                )
+            }
+        }
     }
 }
 
@@ -91,9 +107,9 @@ fun CalendarHeader(
         ) {
             Text(
                 text = monthName, modifier = Modifier.padding(
-                        horizontal = MaterialTheme.spacing.medium,
-                        vertical = MaterialTheme.spacing.extraExtraSmall
-                    )
+                    horizontal = MaterialTheme.spacing.medium,
+                    vertical = MaterialTheme.spacing.extraExtraSmall
+                )
             )
         }
         IconButton(onClick = onForwardClicked) {

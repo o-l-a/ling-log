@@ -1,6 +1,7 @@
 package com.example.myinputlog.ui.navigation
 
 import kotlinx.serialization.Serializable
+import java.time.YearMonth
 
 @Serializable
 /**
@@ -66,9 +67,11 @@ data class ChannelRoute(val courseId: String, val channelId: String)
 
 @Serializable
 /**
- * To yeet
+ * Trends page
  */
-object TrendsRoute
+data class TrendsRoute(
+    val customMonth: String? = null
+)
 
 @Serializable
 /**

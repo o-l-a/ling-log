@@ -1,8 +1,10 @@
 package com.example.myinputlog.ui.screens.trends
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.models.ChannelUiModel
 import com.example.myinputlog.ui.models.CountryUiModel
@@ -14,6 +16,7 @@ import com.example.myinputlog.ui.models.TrendsTimePeriod
 import com.example.myinputlog.ui.models.toChannelUiModel
 import com.example.myinputlog.ui.models.toCountryUiModel
 import com.example.myinputlog.ui.models.toLabelUiModel
+import com.example.myinputlog.ui.navigation.TrendsRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,8 +36,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TrendsViewModel @Inject constructor(
-    private val repository: StorageDataRepository
+    private val repository: StorageDataRepository, savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val initialCustomMonth: YearMonth? =
+        savedStateHandle.toRoute<TrendsRoute>().customMonth?.let(YearMonth::parse)
+
+    private var hasHandledInitialCustomMonth = false
 
     val currentCourseId: StateFlow<String> = repository.currentCourseId.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = ""
@@ -44,6 +51,14 @@ class TrendsViewModel @Inject constructor(
     private val _customMonth = MutableStateFlow<YearMonth?>(null)
     private val _rankingCategory = MutableStateFlow(RankingCategory.LABEL)
     private val _rankingLimit = MutableStateFlow(RankingLimit.TOP_3)
+
+    init {
+        if (!hasHandledInitialCustomMonth && initialCustomMonth != null) {
+            hasHandledInitialCustomMonth = true
+            _timePeriod.value = TrendsTimePeriod.CUSTOM_MONTH
+            _customMonth.value = initialCustomMonth
+        }
+    }
 
     private val configFlow = combine(
         currentCourseId.filter { it.isNotEmpty() },
@@ -112,11 +127,13 @@ class TrendsViewModel @Inject constructor(
         if (timeStats.currentDaily.dailyStats.isEmpty()) {
             return TrendsUiState.Empty(
                 selectedPeriod = config.period,
+                customYearMonth = config.customMonth,
                 selectedRankingCategory = config.rankingCategory,
                 selectedRankingLimit = config.rankingLimit,
             )
         }
-        val aggregatedData = TrendsDataAggregator.aggregate(config.period, timeStats, config.customMonth)
+        val aggregatedData =
+            TrendsDataAggregator.aggregate(config.period, timeStats, config.customMonth)
         val totalPoints = timeStats.currentDaily.dailyStats.size
         Log.d(TAG, "Number of points: $totalPoints vs ${aggregatedData.cumulativeProgress.size}")
 

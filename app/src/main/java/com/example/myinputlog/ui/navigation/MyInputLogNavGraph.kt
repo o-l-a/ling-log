@@ -61,7 +61,7 @@ sealed class Screen(
 
     object AddVideo : Screen("", null, Icons.Filled.Add)
     object Trends : Screen(
-        TrendsRoute, R.string.trends_bottom_nav_description, Icons.Filled.StackedLineChart
+        TrendsRoute(), R.string.trends_bottom_nav_description, Icons.Filled.StackedLineChart
     )
 
     object Profile :
@@ -128,6 +128,8 @@ fun NavGraphBuilder.homeGraph(navController: NavHostController) {
                 }
             }, navigateToYouTubeVideoEntry = { courseId ->
                 navController.navigate(VideoRoute(courseId, DEFAULT_ID.toString()))
+            }, onSummaryClicked = { customMonth ->
+                navController.navigate(TrendsRoute(customMonth = customMonth.toString()))
             })
         }
     }
@@ -166,7 +168,7 @@ fun NavGraphBuilder.videosGraph(navController: NavHostController) {
 
 fun NavGraphBuilder.trendsGraph(navController: NavHostController) {
     navigation<TrendsGraph>(
-        startDestination = TrendsRoute
+        startDestination = TrendsRoute()
     ) {
         composable<TrendsRoute> {
             val trendsViewModel = hiltViewModel<TrendsViewModel>()

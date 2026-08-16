@@ -88,6 +88,7 @@ object CalendarStateBuilder {
 
         return CalendarUiState(
             monthName = monthName,
+            currentMonth = monthOnDisplay,
             weekdays = daysOfWeek,
             calendarItems = calendarItems,
             loadingCalendarItems = loadingCalendarItems,

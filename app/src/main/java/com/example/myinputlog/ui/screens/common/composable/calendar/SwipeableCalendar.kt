@@ -27,6 +27,7 @@ private const val PAGE_COUNT = 100000
 fun SwipeableCalendar(
     modifier: Modifier = Modifier,
     onDayClicked: (CalendarDay) -> Unit,
+    onSummaryClicked: (YearMonth) -> Unit,
     getStatsForMonth: (String) -> Flow<MonthlyStatsResult>
 ) {
     val pagerState = rememberPagerState(
@@ -59,6 +60,7 @@ fun SwipeableCalendar(
         MyInputLogCalendar(
             calendarUiState = calendarUiState,
             onDayClicked = onDayClicked,
+            onSummaryClicked = onSummaryClicked,
             onBackClicked = {
                 coroutineScope.launch {
                     pagerState.animateScrollToPage(pagerState.currentPage - 1)
