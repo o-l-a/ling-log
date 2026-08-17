@@ -1,7 +1,6 @@
 package com.example.myinputlog.ui.navigation
 
 import kotlinx.serialization.Serializable
-import java.time.YearMonth
 
 @Serializable
 /**

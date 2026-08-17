@@ -7,10 +7,11 @@ import kotlin.math.max
 /**
  * A Range Provider that adds a proportional 5% space to the top of the chart.
  */
-val TopSpacedRangeProvider = object : CartesianLayerRangeProvider {
-
+class TopSpacedRangeProvider(
+    private val explicitMaxX: Double? = null,
+) : CartesianLayerRangeProvider {
     override fun getMinX(minX: Double, maxX: Double, extraStore: ExtraStore): Double = minX
-    override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double = maxX
+    override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double = explicitMaxX ?: maxX
     override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
         val amplitude = maxY - minY
 

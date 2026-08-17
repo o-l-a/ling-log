@@ -58,7 +58,7 @@ fun TrendsScreen(
     val currentCourseId by trendsViewModel.currentCourseId.collectAsStateWithLifecycle()
     val trendsUiState by trendsViewModel.trendsUiState.collectAsStateWithLifecycle()
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
         modifier = Modifier
@@ -141,7 +141,8 @@ fun TrendsBody(
                             .height(MaterialTheme.spacing.horizontalChartHeight)
                             .animateItem(),
                         trendsUiState.selectedPeriod.dayStep < 28,
-                        trendsUiState.totalPoints
+                        trendsUiState.totalPoints,
+                        trendsUiState.selectedPeriod.shouldShowMarker()
                     )
                 }
                 item(key = "progressCard") {

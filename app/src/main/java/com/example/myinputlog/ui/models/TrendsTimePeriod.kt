@@ -59,6 +59,8 @@ enum class TrendsTimePeriod(val dayStep: Int, @get:StringRes val labelRes: Int) 
 
         return currentRange to previousRange
     }
+
+    fun shouldShowMarker(): Boolean = this in listOf(CUSTOM_MONTH, LAST_7_DAYS, LAST_4_WEEKS)
 }
 
 data class TimeRange(val start: Long, val end: Long)

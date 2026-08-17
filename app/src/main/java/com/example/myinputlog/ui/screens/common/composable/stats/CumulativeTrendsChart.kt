@@ -38,8 +38,11 @@ private fun ComposeCumulativeTrendsChart(
     modifier: Modifier = Modifier,
     dayStep: Int = 1,
     showDayOnAxis: Boolean = true,
-    totalDays: Int = 0
+    totalDays: Int = 0,
+    maxX: Double? = null,
+    showMarker: Boolean = true
 ) {
+    val rangeProvider = remember(maxX) { TopSpacedRangeProvider(explicitMaxX = maxX) }
     val baseSpacing = MaterialTheme.spacing.largeTriplePlus
     val lineColor = MaterialTheme.colorScheme.primary
     val marker = rememberMarker()
@@ -70,6 +73,11 @@ private fun ComposeCumulativeTrendsChart(
     val bottomAxisFormatter = remember(showDayOnAxis) {
         BottomAxisValueFormatter(showDay = showDayOnAxis)
     }
+    val dynamicMarker = if (showMarker) {
+        rememberDynamicMarker(bottomAxisValueFormatter = bottomAxisFormatter)
+    } else {
+        null
+    }
 
     CartesianChartHost(
         rememberCartesianChart(
@@ -88,14 +96,14 @@ private fun ComposeCumulativeTrendsChart(
                         ),
                         interpolator = LineCartesianLayer.Interpolator.cubic(),
                     )
-                ), rangeProvider = TopSpacedRangeProvider, pointSpacing = dynamicPointSpacing
+                ), rangeProvider = rangeProvider, pointSpacing = dynamicPointSpacing
             ), startAxis = VerticalAxis.rememberStart(
                 valueFormatter = StartAxisValueFormatter
             ), bottomAxis = HorizontalAxis.rememberBottom(
                 label = rememberAxisLabelComponent(style = MaterialTheme.typography.bodySmall),
                 valueFormatter = bottomAxisFormatter,
                 itemPlacer = dynamicItemPlacer
-            ), persistentMarkers = { _ ->
+            ), marker = dynamicMarker, persistentMarkers = { _ ->
                 years.forEach { x ->
                     marker at x.toFloat()
                 }
@@ -110,17 +118,30 @@ fun CumulativeTrendsChart(
     dayStep: Int,
     modifier: Modifier = Modifier,
     showDayOnAxis: Boolean = true,
-    totalDays: Int = 0
+    totalDays: Int = 0,
+    showMarker: Boolean = true
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
-    LaunchedEffect(progressPoints) {
+    val todayEpoch = remember { java.time.LocalDate.now().toEpochDay() }
+    val fullMaxX = remember(progressPoints) { progressPoints.lastOrNull()?.date?.toDouble() }
+
+    LaunchedEffect(progressPoints, todayEpoch) {
+        val visiblePoints = progressPoints.filter { it.date <= todayEpoch }
         modelProducer.runTransaction {
             lineModel {
-                series(progressPoints.map { it.date }, progressPoints.map { it.percentageOfGoal })
+                series(visiblePoints.map { it.date }, visiblePoints.map { it.percentageOfGoal })
             }
         }
     }
+
     ComposeCumulativeTrendsChart(
-        modelProducer, years, modifier, dayStep, showDayOnAxis, totalDays
+        modelProducer,
+        years,
+        modifier,
+        dayStep,
+        showDayOnAxis,
+        totalDays,
+        maxX = fullMaxX,
+        showMarker = showMarker
     )
 }
