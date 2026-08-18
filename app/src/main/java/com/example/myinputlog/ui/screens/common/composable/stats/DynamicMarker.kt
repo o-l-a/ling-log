@@ -30,16 +30,16 @@ internal fun rememberDynamicMarker(
 ): CartesianMarker {
     val labelBackgroundShape = MarkerCornerBasedShape(RoundedCornerShape(8.dp), 0.dp)
     val labelBackground = rememberShapeComponent(
-        fill = Fill(MaterialTheme.colorScheme.surfaceContainerHigh), shape = labelBackgroundShape
+        fill = Fill(MaterialTheme.colorScheme.surfaceVariant), shape = labelBackgroundShape
     )
 
     val label = rememberTextComponent(
         style = MaterialTheme.typography.labelMedium.copy(
-            color = MaterialTheme.colorScheme.onSurface,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         ),
         padding = Insets(horizontal = 8.dp, vertical = 6.dp),
-        margins = Insets(vertical = 24.dp),
+        margins = Insets(vertical = 16.dp),
         background = labelBackground,
         minWidth = TextComponent.MinWidth.fixed(48.dp),
     )
@@ -77,15 +77,15 @@ internal fun rememberDynamicMarker(
                     front = LayeredComponent(
                         back = ShapeComponent(fill = Fill(color), shape = CircleShape),
                         front = indicatorInnerDot,
-                        padding = Insets(5.dp),
+                        padding = Insets(4.dp),
                     ),
-                    padding = Insets(10.dp),
+                    padding = Insets(6.dp),
                 )
             }
         } else {
             null
         },
-        indicatorSize = 36.dp,
+        indicatorSize = 24.dp,
         guideline = guideline,
     )
 }

@@ -2,6 +2,8 @@ package com.example.myinputlog.ui.screens.common.composable.stats
 
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.compose.common.data.ExtraStore
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.max
 
 /**
@@ -11,24 +13,28 @@ class TopSpacedRangeProvider(
     private val explicitMaxX: Double? = null,
 ) : CartesianLayerRangeProvider {
     override fun getMinX(minX: Double, maxX: Double, extraStore: ExtraStore): Double = minX
-    override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double = explicitMaxX ?: maxX
+    override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double =
+        explicitMaxX ?: maxX
+
     override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
         val amplitude = maxY - minY
 
-        if (amplitude < 2) {
+        return if (amplitude < 2.0) {
             val midPoint = (minY + maxY) / 2.0
-            return max(midPoint - 1, 0.0)
+            max(floor(midPoint - 0.5), 0.0)
+        } else {
+            floor(minY)
         }
-        return minY
     }
 
     override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
         val amplitude = maxY - minY
 
-        if (amplitude < 2) {
+        return if (amplitude < 2.0) {
             val midPoint = (minY + maxY) / 2.0
-            return midPoint + 1 + (0.15)
+            ceil(midPoint + 1.0)
+        } else {
+            ceil(maxY + (amplitude * 0.1))
         }
-        return maxY + (amplitude * 0.1)
     }
 }
