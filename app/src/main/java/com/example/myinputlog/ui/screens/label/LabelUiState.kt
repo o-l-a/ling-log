@@ -16,13 +16,21 @@ sealed interface LabelUiState {
 data class LabelForm(
     val id: String = "",
     val title: String = "",
-    val colorHex: String = "FFFFC0CB",
-    val textColorHex: String = "FF000000",
+    val colorsHex: List<String> = listOf("FFFFC0CB"),
+    val activeColorIndex: Int = 0,
+    val textColorsHex: List<String> = listOf("FF000000"),
+    val activeTextColorIndex: Int = 0,
     val autoCalculateTextColor: Boolean = false
 ) {
-    val previewColor: Long?
-        get() = ColorHelpers.hexToLong(colorHex)
+    val previewColors: List<Long>
+        get() = colorsHex.mapNotNull { ColorHelpers.hexToLong(it) }
 
-    val previewTextColor: Long?
-        get() = ColorHelpers.hexToLong(textColorHex)
+    val previewTextColors: List<Long>
+        get() = textColorsHex.mapNotNull { ColorHelpers.hexToLong(it) }
+
+    val activeColorHex: String
+        get() = colorsHex.getOrElse(activeColorIndex) { colorsHex.firstOrNull() ?: "" }
+
+    val activeTextColorHex: String
+        get() = textColorsHex.getOrElse(activeTextColorIndex) { textColorsHex.firstOrNull() ?: "" }
 }

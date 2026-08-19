@@ -93,7 +93,9 @@ fun LabelEntity.toFirestoreMap(): Map<String, Any?> = mapOf(
     "id" to id,
     "title" to title,
     "color" to color,
+    "secondaryColors" to secondaryColors,
     "textColor" to textColor,
+    "secondaryTextColors" to secondaryTextColors,
     "isDeleted" to isDeleted,
     "lastUpdated" to FieldValue.serverTimestamp(),
 )
@@ -102,7 +104,9 @@ fun LabelDto.toEntity(): LabelEntity = LabelEntity(
     id = id ?: "",
     title = title ?: "",
     color = color ?: 0L,
+    secondaryColors = secondaryColors ?: emptyList(),
     textColor = textColor ?: 0L,
+    secondaryTextColors = secondaryTextColors?: emptyList(),
     isDeleted = isDeleted ?: false,
     lastUpdated = lastUpdated?.toDate()?.time ?: 0L
 )

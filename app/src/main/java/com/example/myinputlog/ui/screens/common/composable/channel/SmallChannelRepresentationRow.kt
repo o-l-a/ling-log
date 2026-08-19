@@ -37,8 +37,8 @@ fun SmallChannelRepresentationRow(
                     SmallLabelChip(
                         modifier = Modifier.height(MaterialTheme.spacing.medium),
                         title = "+$remaining",
-                        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                        textColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        backgroundColors = listOf(MaterialTheme.colorScheme.surfaceVariant),
+                        textColors = listOf(MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
             }) { index ->

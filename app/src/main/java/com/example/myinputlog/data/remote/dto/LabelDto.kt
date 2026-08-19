@@ -7,7 +7,9 @@ data class LabelDto(
     val id: String? = null,
     val title: String? = null,
     val color: Long? = null,
+    val secondaryColors: List<Long>? = null,
     val textColor: Long? = null,
+    val secondaryTextColors: List<Long>? = null,
     @get:PropertyName("isDeleted")
     val isDeleted: Boolean? = null,
     val lastUpdated: Timestamp? = null

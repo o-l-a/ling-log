@@ -443,12 +443,17 @@ fun MediaFilterBottomSheet(
                 key = { it.id }) { label ->
                 FilterItemRow(
                     filter = FilterValueUiModel(
-                        id = label.id, content = FilterContentType.Labeled(
-                            text = label.title,
-                            colorRes = Color(label.color),
-                            textColorRes = Color(label.textColor)
-                        ), selected = filters.selectedLabels.contains(label.id)
-                    ), onCheckedChange = { filterChange ->
+                    id = label.id,
+                    content = FilterContentType.Labeled(
+                        text = label.title,
+                        colorRes = remember(label.gradientColors) {
+                            label.gradientColors.map { Color(it) }
+                        },
+                        textColorRes = remember(label.gradientTextColors) {
+                            label.gradientTextColors.map { Color(it) }
+                        }),
+                    selected = filters.selectedLabels.contains(label.id)),
+                    onCheckedChange = { filterChange ->
                         when (filterChange) {
                             is FilterChange.Selection -> {
                                 val newSet =

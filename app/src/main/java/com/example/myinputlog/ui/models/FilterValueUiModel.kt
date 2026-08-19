@@ -8,7 +8,7 @@ sealed class FilterContentType {
     data class Leaded(val text: String, val leadingText: String) : FilterContentType()
 
     data class Labeled(
-        val text: String, val colorRes: Color, val textColorRes: Color
+        val text: String, val colorRes: List<Color>, val textColorRes: List<Color>
     ) : FilterContentType()
 }
 

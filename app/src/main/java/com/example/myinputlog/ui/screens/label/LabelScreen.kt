@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -26,7 +25,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -40,15 +41,19 @@ import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.common.IME_ACTION_DONE
 import com.example.myinputlog.ui.screens.common.IME_ACTION_NEXT
 import com.example.myinputlog.ui.screens.common.MAX_LABEL_LENGTH
-import com.example.myinputlog.ui.screens.common.composable.ColorSwatch
 import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.ui.screens.common.composable.input.CheckBoxWithLabel
+import com.example.myinputlog.ui.screens.common.composable.input.ColorStopInspector
 import com.example.myinputlog.ui.screens.common.composable.input.ConfirmDeleteDialog
+import com.example.myinputlog.ui.screens.common.composable.input.HctPickerBottomSheet
 import com.example.myinputlog.ui.screens.common.composable.label.ClickableLabelChip
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.screens.label.LabelViewModel.LabelUiEvent
+import com.example.myinputlog.ui.theme.ColorHelpers
 import com.example.myinputlog.ui.theme.spacing
+
+private enum class PickerTarget { BACKGROUND, TEXT }
 
 @Composable
 fun LabelScreen(
@@ -56,6 +61,7 @@ fun LabelScreen(
 ) {
     val labelUiState by labelViewModel.labelUiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    var activePickerTarget by remember { mutableStateOf<PickerTarget?>(null) }
 
     LaunchedEffect(Unit) {
         labelViewModel.uiEvent.collect { event ->
@@ -66,6 +72,7 @@ fun LabelScreen(
             }
         }
     }
+
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
             val successState = labelUiState as? LabelUiState.Success
@@ -98,11 +105,41 @@ fun LabelScreen(
                     modifier = Modifier.padding(innerPadding),
                     label = currentState.label,
                     onTitleChange = labelViewModel::onTitleChange,
-                    onColorChange = labelViewModel::onColorChange,
-                    onTextColorChange = labelViewModel::onTextColorChange,
+                    onActiveColorHexChange = labelViewModel::onActiveColorHexChange,
+                    onSelectActiveColorIndex = labelViewModel::onSelectActiveColorIndex,
+                    onAddBackgroundColor = labelViewModel::onAddBackgroundColor,
+                    onRemoveBackgroundColor = labelViewModel::onRemoveBackgroundColor,
+                    onActiveTextColorHexChange = labelViewModel::onActiveTextColorHexChange,
+                    onSelectActiveTextColorIndex = labelViewModel::onSelectActiveTextColorIndex,
+                    onAddTextColor = labelViewModel::onAddTextColor,
+                    onRemoveTextColor = labelViewModel::onRemoveTextColor,
                     onAutoCalculateChange = labelViewModel::onAutoCalculateChange,
+                    onOpenColorPicker = { target -> activePickerTarget = target },
                     onDone = labelViewModel::saveLabel
                 )
+
+                activePickerTarget?.let { target ->
+                    val initialHex = when (target) {
+                        PickerTarget.BACKGROUND -> currentState.label.colorsHex.getOrElse(
+                            currentState.label.activeColorIndex
+                        ) { "FF000000" }
+
+                        PickerTarget.TEXT -> currentState.label.textColorsHex.getOrElse(currentState.label.activeTextColorIndex) { "FFFFFFFF" }
+                    }
+
+                    HctPickerBottomSheet(initialColorHex = initialHex, onApply = { confirmedHex ->
+                        when (target) {
+                            PickerTarget.BACKGROUND -> labelViewModel.onActiveColorHexChange(
+                                confirmedHex
+                            )
+
+                            PickerTarget.TEXT -> labelViewModel.onActiveTextColorHexChange(
+                                confirmedHex
+                            )
+                        }
+                        activePickerTarget = null
+                    }, onDismiss = { activePickerTarget = null })
+                }
 
                 if (currentState.isDialogVisible) {
                     ConfirmDeleteDialog(entityName = currentState.label.title, text = {
@@ -121,23 +158,33 @@ fun LabelScreen(
 }
 
 @Composable
-fun LabelEditBody(
+private fun LabelEditBody(
     modifier: Modifier = Modifier,
     label: LabelForm,
     onTitleChange: (String) -> Unit,
-    onColorChange: (String) -> Unit,
-    onTextColorChange: (String) -> Unit,
+    onActiveColorHexChange: (String) -> Unit,
+    onSelectActiveColorIndex: (Int) -> Unit,
+    onAddBackgroundColor: () -> Unit,
+    onRemoveBackgroundColor: (Int) -> Unit,
+    onActiveTextColorHexChange: (String) -> Unit,
+    onSelectActiveTextColorIndex: (Int) -> Unit,
+    onAddTextColor: () -> Unit,
+    onRemoveTextColor: (Int) -> Unit,
     onAutoCalculateChange: (Boolean) -> Unit,
+    onOpenColorPicker: (PickerTarget) -> Unit,
     onDone: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
 
-    val previewData by remember(label.previewColor, label.previewTextColor) {
+    val previewData by remember(label.colorsHex, label.textColorsHex) {
         derivedStateOf {
-            val bgColor = label.previewColor
-            val txtColor = label.previewTextColor
-            if (bgColor != null && txtColor != null) {
-                Color(bgColor) to Color(txtColor)
+            val bgColors =
+                label.colorsHex.mapNotNull { ColorHelpers.hexToLong(it)?.let { c -> Color(c) } }
+            val txtColors =
+                label.textColorsHex.mapNotNull { ColorHelpers.hexToLong(it)?.let { c -> Color(c) } }
+
+            if (bgColors.isNotEmpty() && txtColors.isNotEmpty()) {
+                bgColors to txtColors
             } else null
         }
     }
@@ -170,50 +217,36 @@ fun LabelEditBody(
             keyboardActions = KeyboardActions(
                 onNext = { focusManager.moveFocus(FocusDirection.Down) })
         )
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(
-                    start = MaterialTheme.spacing.medium,
-                    end = MaterialTheme.spacing.medium,
-                    top = MaterialTheme.spacing.small,
-                    bottom = MaterialTheme.spacing.small
-                )
-                .fillMaxWidth(),
-            label = { Text(stringResource(R.string.label_color_label)) },
-            value = label.colorHex,
-            onValueChange = onColorChange,
-            singleLine = true,
-            trailingIcon = {
-                ColorSwatch(label.previewColor)
-            },
-            keyboardOptions = IME_ACTION_NEXT,
-            keyboardActions = KeyboardActions(
-                onNext = { focusManager.moveFocus(FocusDirection.Down) })
-        )
-        Spacer(modifier = Modifier.width(MaterialTheme.spacing.small))
+        ColorStopInspector(
+            title = stringResource(R.string.label_color_label),
+            colorsHex = label.colorsHex,
+            activeColorIndex = label.activeColorIndex,
+            enabled = true,
+            onSelectIndex = onSelectActiveColorIndex,
+            onHexChange = onActiveColorHexChange,
+            onAddColor = onAddBackgroundColor,
+            onRemoveColor = onRemoveBackgroundColor,
+            onOpenColorPicker = { onOpenColorPicker(PickerTarget.BACKGROUND) })
+
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.smallPlus))
+
         CheckBoxWithLabel(
             modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium),
             value = label.autoCalculateTextColor,
             onValueChange = onAutoCalculateChange,
             text = stringResource(R.string.label_auto_text_color)
         )
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(
-                    start = MaterialTheme.spacing.medium,
-                    end = MaterialTheme.spacing.medium,
-                    top = MaterialTheme.spacing.small,
-                    bottom = MaterialTheme.spacing.small
-                )
-                .fillMaxWidth(),
-            label = { Text(stringResource(R.string.label_text_color_label)) },
-            value = label.textColorHex,
+
+        ColorStopInspector(
+            title = stringResource(R.string.label_text_color_label),
+            colorsHex = label.textColorsHex,
+            activeColorIndex = label.activeTextColorIndex,
             enabled = !label.autoCalculateTextColor,
-            onValueChange = onTextColorChange,
-            singleLine = true,
-            trailingIcon = {
-                ColorSwatch(label.previewTextColor)
-            },
+            onSelectIndex = onSelectActiveTextColorIndex,
+            onHexChange = onActiveTextColorHexChange,
+            onAddColor = onAddTextColor,
+            onRemoveColor = onRemoveTextColor,
+            onOpenColorPicker = { onOpenColorPicker(PickerTarget.TEXT) },
             keyboardOptions = IME_ACTION_DONE,
             keyboardActions = KeyboardActions(
                 onDone = {
@@ -221,15 +254,14 @@ fun LabelEditBody(
                     focusManager.clearFocus()
                 })
         )
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
-        val isVisible = previewData != null
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
         AnimatedVisibility(
-            visible = isVisible,
+            visible = previewData != null,
             enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
             exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
             label = "LabelPreviewAnimation"
         ) {
-            previewData?.let { (backgroundColor, textColor) ->
+            previewData?.let { (bgColors, txtColors) ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -244,8 +276,8 @@ fun LabelEditBody(
                     ClickableLabelChip(
                         onClick = { },
                         title = label.title,
-                        backgroundColor = backgroundColor,
-                        textColor = textColor
+                        backgroundColors = bgColors,
+                        textColors = txtColors
                     )
                 }
             }

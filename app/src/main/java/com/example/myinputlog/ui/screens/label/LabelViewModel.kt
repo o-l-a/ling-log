@@ -45,15 +45,20 @@ class LabelViewModel @Inject constructor(
         if (loading) {
             LabelUiState.Loading
         } else {
-            val textColor = if (form.autoCalculateTextColor) {
-                form.previewColor?.let { ColorHelpers.longToHex(ColorHelpers.calculateFontColor(it)) }
-                    ?: ""
+            val textColors = if (form.autoCalculateTextColor) {
+                val primaryBg = form.previewColors.firstOrNull() ?: 0xFFFFC0CB
+                val calculatedTextColor =
+                    ColorHelpers.longToHex(ColorHelpers.calculateFontColor(primaryBg))
+                listOf(calculatedTextColor)
             } else {
-                form.textColorHex
+                form.textColorsHex
             }
+
+            val updatedForm = form.copy(textColorsHex = textColors)
+
             LabelUiState.Success(
-                label = form.copy(textColorHex = textColor),
-                isFormValid = validateFields(form),
+                label = updatedForm,
+                isFormValid = validateFields(updatedForm),
                 isDialogVisible = dialogVisible
             )
         }
@@ -98,7 +103,7 @@ class LabelViewModel @Inject constructor(
     }
 
     private fun validateFields(label: LabelForm): Boolean {
-        return label.title.isNotBlank() && label.previewColor != null && label.previewTextColor != null
+        return label.title.isNotBlank() && label.previewColors.size == label.colorsHex.size && label.previewTextColors.size == label.textColorsHex.size
     }
 
     fun toggleDialogVisibility(visible: Boolean) {
@@ -109,16 +114,88 @@ class LabelViewModel @Inject constructor(
         _form.update { it.copy(title = newTitle) }
     }
 
-    fun onColorChange(newColor: String) {
-        _form.update { it.copy(colorHex = newColor) }
-    }
-
-    fun onTextColorChange(newColor: String) {
-        _form.update { it.copy(textColorHex = newColor) }
-    }
-
     fun onAutoCalculateChange(checked: Boolean) {
         _form.update { it.copy(autoCalculateTextColor = checked) }
+    }
+
+    fun onActiveColorHexChange(newHex: String) {
+        _form.update { form ->
+            val updatedList = form.colorsHex.toMutableList().apply {
+                if (form.activeColorIndex in indices) {
+                    this[form.activeColorIndex] = newHex
+                }
+            }
+            form.copy(colorsHex = updatedList)
+        }
+    }
+
+    fun onSelectActiveColorIndex(index: Int) {
+        _form.update { it.copy(activeColorIndex = index.coerceIn(0, it.colorsHex.lastIndex)) }
+    }
+
+    fun onAddBackgroundColor() {
+        _form.update { form ->
+            if (form.colorsHex.size >= 20) return@update form
+            val newColor = form.colorsHex.lastOrNull() ?: "FFFFFFFF"
+            val updatedList = form.colorsHex + newColor
+            form.copy(
+                colorsHex = updatedList, activeColorIndex = updatedList.lastIndex
+            )
+        }
+    }
+
+    fun onRemoveBackgroundColor(index: Int) {
+        _form.update { form ->
+            if (form.colorsHex.size <= 1) return@update form
+            val updatedList = form.colorsHex.toMutableList().apply { removeAt(index) }
+            val newActiveIndex = form.activeColorIndex.coerceAtMost(updatedList.lastIndex)
+            form.copy(
+                colorsHex = updatedList, activeColorIndex = newActiveIndex
+            )
+        }
+    }
+
+    fun onActiveTextColorHexChange(newHex: String) {
+        _form.update { form ->
+            val updatedList = form.textColorsHex.toMutableList().apply {
+                if (form.activeTextColorIndex in indices) {
+                    this[form.activeTextColorIndex] = newHex
+                }
+            }
+            form.copy(textColorsHex = updatedList)
+        }
+    }
+
+    fun onSelectActiveTextColorIndex(index: Int) {
+        _form.update {
+            it.copy(
+                activeTextColorIndex = index.coerceIn(
+                    0, it.textColorsHex.lastIndex
+                )
+            )
+        }
+    }
+
+    fun onAddTextColor() {
+        _form.update { form ->
+            if (form.textColorsHex.size >= 20) return@update form
+            val newColor = form.textColorsHex.lastOrNull() ?: "FF000000"
+            val updatedList = form.textColorsHex + newColor
+            form.copy(
+                textColorsHex = updatedList, activeTextColorIndex = updatedList.lastIndex
+            )
+        }
+    }
+
+    fun onRemoveTextColor(index: Int) {
+        _form.update { form ->
+            if (form.textColorsHex.size <= 1) return@update form
+            val updatedList = form.textColorsHex.toMutableList().apply { removeAt(index) }
+            val newActiveIndex = form.activeTextColorIndex.coerceAtMost(updatedList.lastIndex)
+            form.copy(
+                textColorsHex = updatedList, activeTextColorIndex = newActiveIndex
+            )
+        }
     }
 
     private fun sanitizeInitialLabelId(id: String): String {

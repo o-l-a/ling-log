@@ -110,8 +110,8 @@ fun FilterItemRow(
             is FilterContentType.Labeled -> {
                 ClickableLabelChip(
                     title = content.text,
-                    backgroundColor = content.colorRes,
-                    textColor = content.textColorRes,
+                    backgroundColors = content.colorRes,
+                    textColors = content.textColorRes,
                     onClick = {})
             }
         }

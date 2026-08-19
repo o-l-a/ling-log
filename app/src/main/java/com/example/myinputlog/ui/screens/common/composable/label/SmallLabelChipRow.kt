@@ -10,6 +10,7 @@ import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.example.myinputlog.ui.models.LabelUiModel
@@ -18,9 +19,7 @@ import com.example.myinputlog.ui.theme.spacing
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SmallLabelChipRow(
-    modifier: Modifier = Modifier,
-    labels: List<LabelUiModel>,
-    extraItemCount: Int = 0
+    modifier: Modifier = Modifier, labels: List<LabelUiModel>, extraItemCount: Int = 0
 ) {
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides MaterialTheme.spacing.default) {
         ContextualFlowRow(
@@ -35,8 +34,8 @@ fun SmallLabelChipRow(
                     SmallLabelChip(
                         modifier = Modifier.height(MaterialTheme.spacing.medium),
                         title = "+$remaining",
-                        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                        textColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        backgroundColors = listOf(MaterialTheme.colorScheme.surfaceVariant),
+                        textColors = listOf(MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
             }) { index ->
@@ -45,9 +44,12 @@ fun SmallLabelChipRow(
                 SmallLabelChip(
                     modifier = Modifier.height(MaterialTheme.spacing.medium),
                     title = label.title,
-                    backgroundColor = Color(label.color),
-                    textColor = Color(label.textColor)
-                )
+                    backgroundColors = remember(label.gradientColors) {
+                        label.gradientColors.map { Color(it) }
+                    },
+                    textColors = remember(label.gradientTextColors) {
+                        label.gradientTextColors.map { Color(it) }
+                    })
             }
         }
     }

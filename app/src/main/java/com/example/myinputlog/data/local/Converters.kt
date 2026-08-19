@@ -20,4 +20,15 @@ class Converters {
     fun fromList(list: List<String>?): String {
         return list?.joinToString(separator = ",") ?: ""
     }
+
+    @TypeConverter
+    fun fromLongList(list: List<Long>?): String {
+        return list?.joinToString(separator = ",") ?: ""
+    }
+
+    @TypeConverter
+    fun toLongList(value: String?): List<Long> {
+        if (value.isNullOrBlank()) return emptyList()
+        return value.split(",").mapNotNull { it.trim().toLongOrNull() }
+    }
 }

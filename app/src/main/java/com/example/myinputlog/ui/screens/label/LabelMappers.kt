@@ -5,19 +5,27 @@ import com.example.myinputlog.ui.models.LabelUiModel
 import com.example.myinputlog.ui.theme.ColorHelpers
 import java.util.UUID
 
-fun LabelForm.toLabelEntity(): LabelEntity = LabelEntity(
-    id = id.ifBlank { UUID.randomUUID().toString() },
-    title = title,
-    textColor = previewTextColor ?: 0xFFFFC0CB,
-    color = previewColor ?: 0xFF000000,
-    lastUpdated = System.currentTimeMillis(),
-)
+fun LabelForm.toLabelEntity(): LabelEntity {
+    val bgLongs = previewColors.ifEmpty { listOf(0xFFFFC0CB) }
+    val txtLongs = previewTextColors.ifEmpty { listOf(0xFF000000) }
 
-fun LabelUiModel.toLabelForm(): LabelForm {
-    return LabelForm(
-        id = this.id,
-        title = this.title,
-        colorHex = ColorHelpers.longToHex(this.color),
-        textColorHex = ColorHelpers.longToHex(this.textColor)
+    return LabelEntity(
+        id = id.ifBlank { UUID.randomUUID().toString() },
+        title = title,
+        color = bgLongs.first(),
+        secondaryColors = bgLongs.drop(1),
+        textColor = txtLongs.first(),
+        secondaryTextColors = txtLongs.drop(1),
+        lastUpdated = System.currentTimeMillis()
     )
 }
+
+fun LabelUiModel.toLabelForm(): LabelForm = LabelForm(
+    id = id,
+    title = title,
+    colorsHex = gradientColors.map { ColorHelpers.longToHex(it) },
+    activeColorIndex = 0,
+    textColorsHex = gradientTextColors.map { ColorHelpers.longToHex(it) },
+    activeTextColorIndex = 0,
+    autoCalculateTextColor = false
+)
