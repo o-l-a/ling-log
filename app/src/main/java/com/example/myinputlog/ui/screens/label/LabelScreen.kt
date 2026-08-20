@@ -119,26 +119,40 @@ fun LabelScreen(
                 )
 
                 activePickerTarget?.let { target ->
-                    val initialHex = when (target) {
-                        PickerTarget.BACKGROUND -> currentState.label.colorsHex.getOrElse(
-                            currentState.label.activeColorIndex
-                        ) { "FF000000" }
-
-                        PickerTarget.TEXT -> currentState.label.textColorsHex.getOrElse(currentState.label.activeTextColorIndex) { "FFFFFFFF" }
+                    val isBackground = target == PickerTarget.BACKGROUND
+                    val activeIndex = if (isBackground) {
+                        currentState.label.activeColorIndex
+                    } else {
+                        currentState.label.activeTextColorIndex
+                    }
+                    val initialHex = if (isBackground) {
+                        currentState.label.colorsHex.getOrElse(activeIndex) { "FFFFC0CB" }
+                    } else {
+                        currentState.label.textColorsHex.getOrElse(activeIndex) { "FF000000" }
+                    }
+                    val sheetTitle = if (isBackground) {
+                        "${stringResource(R.string.label_color_label)} #${activeIndex + 1}"
+                    } else {
+                        "${stringResource(R.string.label_text_color_label)} #${activeIndex + 1}"
                     }
 
-                    HctPickerBottomSheet(initialColorHex = initialHex, onApply = { confirmedHex ->
-                        when (target) {
-                            PickerTarget.BACKGROUND -> labelViewModel.onActiveColorHexChange(
-                                confirmedHex
-                            )
-
-                            PickerTarget.TEXT -> labelViewModel.onActiveTextColorHexChange(
-                                confirmedHex
-                            )
-                        }
-                        activePickerTarget = null
-                    }, onDismiss = { activePickerTarget = null })
+                    HctPickerBottomSheet(
+                        title = sheetTitle,
+                        labelTitle = currentState.label.title,
+                        initialColorHex = initialHex,
+                        backgroundColorsHex = currentState.label.colorsHex,
+                        textColorsHex = currentState.label.textColorsHex,
+                        isEditingBackground = isBackground,
+                        activeColorIndex = activeIndex,
+                        onApply = { confirmedHex ->
+                            if (isBackground) {
+                                labelViewModel.onActiveColorHexChange(confirmedHex)
+                            } else {
+                                labelViewModel.onActiveTextColorHexChange(confirmedHex)
+                            }
+                            activePickerTarget = null
+                        },
+                        onDismiss = { activePickerTarget = null })
                 }
 
                 if (currentState.isDialogVisible) {
@@ -217,6 +231,34 @@ private fun LabelEditBody(
             keyboardActions = KeyboardActions(
                 onNext = { focusManager.moveFocus(FocusDirection.Down) })
         )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = MaterialTheme.spacing.medium)
+                .padding(top = MaterialTheme.spacing.small),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Text(
+                stringResource(R.string.preview_text),
+                modifier = Modifier.padding(end = MaterialTheme.spacing.small)
+            )
+            AnimatedVisibility(
+                visible = previewData != null,
+                enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+                exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
+                label = "LabelPreviewAnimation"
+            ) {
+                previewData?.let { (bgColors, txtColors) ->
+                    ClickableLabelChip(
+                        onClick = { },
+                        title = label.title,
+                        backgroundColors = bgColors,
+                        textColors = txtColors
+                    )
+                }
+            }
+        }
         ColorStopInspector(
             title = stringResource(R.string.label_color_label),
             colorsHex = label.colorsHex,
@@ -254,33 +296,5 @@ private fun LabelEditBody(
                     focusManager.clearFocus()
                 })
         )
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
-        AnimatedVisibility(
-            visible = previewData != null,
-            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
-            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
-            label = "LabelPreviewAnimation"
-        ) {
-            previewData?.let { (bgColors, txtColors) ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = MaterialTheme.spacing.medium),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Text(
-                        stringResource(R.string.preview_text),
-                        modifier = Modifier.padding(end = MaterialTheme.spacing.small)
-                    )
-                    ClickableLabelChip(
-                        onClick = { },
-                        title = label.title,
-                        backgroundColors = bgColors,
-                        textColors = txtColors
-                    )
-                }
-            }
-        }
     }
 }

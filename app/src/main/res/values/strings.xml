@@ -153,6 +153,9 @@
     <string name="label_auto_text_color">Auto calculate text color</string>
     <string name="labels_text_field_label">Labels</string>
     <string name="labels_search_placeholder">Start typing to add labels…</string>
+    <string name="label_color_hue">Hue</string>
+    <string name="label_color_chroma">Chroma</string>
+    <string name="label_color_tone">Tone</string>
 
     <!--    video edit    -->
     <string name="video_watched_on_label">Set watch date</string>

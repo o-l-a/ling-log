@@ -106,7 +106,7 @@ fun ColorStopInspector(
                         imageVector = Icons.Default.Add,
                         contentDescription = "add color",
                         tint = if (enabled && colorsHex.size < MAX_COLOR_STOPS) {
-                            MaterialTheme.colorScheme.primary
+                            MaterialTheme.colorScheme.onSurface
                         } else {
                             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                         }

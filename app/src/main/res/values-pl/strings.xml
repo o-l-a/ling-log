@@ -154,6 +154,9 @@
     <string name="label_auto_text_color">Automatycznie oblicz kolor tekstu</string>
     <string name="labels_text_field_label">Tagi</string>
     <string name="labels_search_placeholder">Zacznij pisać, żeby dodać tagi…</string>
+    <string name="label_color_hue">Odcień</string>
+    <string name="label_color_chroma">Chroma</string>
+    <string name="label_color_tone">Ton</string>
 
     <!--    video edit    -->
     <string name="video_watched_on_label">Ustaw datę obejrzenia</string>
