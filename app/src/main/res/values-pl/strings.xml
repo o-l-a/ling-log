@@ -67,8 +67,8 @@
     <string name="sort_watch_date_desc">Data obejrzenia (malejąco)</string>
     <string name="sort_length_asc">Długość (rosnąco)</string>
     <string name="sort_length_desc">Długość (malejąco)</string>
-    <string name="sort_title_asc">Tytuł (rosnąco)</string>
-    <string name="sort_title_desc">Tytuł (malejąco)</string>
+    <string name="sort_recent_asc">Ostatnio oglądane (rosnąco)</string>
+    <string name="sort_recent_desc">Ostatnio oglądane (malejąco)</string>
     <string name="sort_channel_title_asc">Nazwa kanału (rosnąco)</string>
     <string name="sort_channel_title_desc">Nazwa kanału (malejąco)</string>
     <string name="sort_video_count_asc">Liczba filmów (rosnąco)</string>

@@ -5,8 +5,6 @@ import com.example.myinputlog.data.local.query.SortOptions.CHANNEL_TITLE_ASC
 import com.example.myinputlog.data.local.query.SortOptions.CHANNEL_TITLE_DESC
 import com.example.myinputlog.data.local.query.SortOptions.LENGTH_ASC
 import com.example.myinputlog.data.local.query.SortOptions.LENGTH_DESC
-import com.example.myinputlog.data.local.query.SortOptions.TITLE_ASC
-import com.example.myinputlog.data.local.query.SortOptions.TITLE_DESC
 import com.example.myinputlog.data.local.query.SortOptions.WATCH_DATE_ASC
 import com.example.myinputlog.data.local.query.SortOptions.WATCH_DATE_DESC
 import com.example.myinputlog.ui.screens.media_list.MediaFilters
@@ -130,14 +128,6 @@ object VideoQueryBuilder {
 
             LENGTH_ASC -> {
                 sql.orderBy("v.durationInSeconds ASC")
-                sql.orderBy("lower(v.title) ASC")
-            }
-
-            TITLE_DESC -> {
-                sql.orderBy("lower(v.title) DESC")
-            }
-
-            TITLE_ASC -> {
                 sql.orderBy("lower(v.title) ASC")
             }
 

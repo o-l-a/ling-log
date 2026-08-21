@@ -3,6 +3,8 @@ package com.example.myinputlog.data.local.query
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.example.myinputlog.data.local.query.SortOptions.CHANNEL_TITLE_ASC
 import com.example.myinputlog.data.local.query.SortOptions.CHANNEL_TITLE_DESC
+import com.example.myinputlog.data.local.query.SortOptions.RECENTLY_WATCHED_ASC
+import com.example.myinputlog.data.local.query.SortOptions.RECENTLY_WATCHED_DESC
 import com.example.myinputlog.data.local.query.SortOptions.TOTAL_TIME_ASC
 import com.example.myinputlog.data.local.query.SortOptions.TOTAL_TIME_DESC
 import com.example.myinputlog.data.local.query.SortOptions.VIDEO_COUNT_ASC
@@ -133,6 +135,16 @@ object ChannelQueryBuilder {
 
             TOTAL_TIME_ASC -> {
                 sql.orderBy("totalTimeInSeconds ASC")
+                sql.orderBy("lower(c.title) ASC")
+            }
+
+            RECENTLY_WATCHED_DESC -> {
+                sql.orderBy("MAX(v.watchedOn) DESC")
+                sql.orderBy("lower(c.title) ASC")
+            }
+
+            RECENTLY_WATCHED_ASC -> {
+                sql.orderBy("MAX(v.watchedOn) ASC")
                 sql.orderBy("lower(c.title) ASC")
             }
 
