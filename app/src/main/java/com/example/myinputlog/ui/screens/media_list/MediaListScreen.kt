@@ -164,8 +164,10 @@ fun MediaListScreen(
             onSelectUnassignedCountry = mediaListViewModel::onUnassignedCountriesChange,
             onApplyClicked = mediaListViewModel::applyFilters,
             onClearClicked = mediaListViewModel::clearFilters,
-            appliedSort = successState.appliedSort,
-            onSortChanged = mediaListViewModel::onSortChange,
+            appliedChannelSort = successState.appliedChannelSort,
+            appliedVideoSort = successState.appliedVideoSort,
+            onChannelSortChanged = mediaListViewModel::onChannelSortChange,
+            onVideoSortChanged = mediaListViewModel::onVideoSortChange,
             onDismiss = { showFilterSheet = false })
     }
 
@@ -260,7 +262,7 @@ fun MediaListScreen(
                             currentCourseId = currentState.currentCourseId,
                             navigateToYouTubeVideo = navigateToYouTubeVideo,
                             lazyColumnListState = videoLazyListState,
-                            appliedSort = currentState.appliedSort,
+                            appliedSort = currentState.appliedVideoSort,
                             videos = videos
                         )
 
@@ -351,8 +353,10 @@ fun MediaFilterBottomSheet(
     onSelectUnassignedCountry: (FilterChange) -> Unit,
     onApplyClicked: () -> Unit,
     onClearClicked: () -> Unit,
-    appliedSort: SortOptions,
-    onSortChanged: (SortOptions) -> Unit,
+    appliedVideoSort: SortOptions,
+    appliedChannelSort: SortOptions,
+    onVideoSortChanged: (SortOptions) -> Unit,
+    onChannelSortChanged: (SortOptions) -> Unit,
     onDismiss: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -417,8 +421,8 @@ fun MediaFilterBottomSheet(
                 key = { it.name }) { option ->
                 SortItemRow(
                     sort = option,
-                    onClick = onSortChanged,
-                    isSelected = option == appliedSort,
+                    onClick = if (isChannel) onChannelSortChanged else onVideoSortChanged,
+                    isSelected = option == if (isChannel) appliedChannelSort else appliedVideoSort,
                     isEnabled = option in if (isChannel) SortOptions.channelSortOptions()
                         .toList() else SortOptions.videoSortOptions().toList()
                 )
@@ -443,17 +447,17 @@ fun MediaFilterBottomSheet(
                 key = { it.id }) { label ->
                 FilterItemRow(
                     filter = FilterValueUiModel(
-                    id = label.id,
-                    content = FilterContentType.Labeled(
-                        text = label.title,
-                        colorRes = remember(label.gradientColors) {
-                            label.gradientColors.map { Color(it) }
-                        },
-                        textColorRes = remember(label.gradientTextColors) {
-                            label.gradientTextColors.map { Color(it) }
-                        }),
-                    selected = filters.selectedLabels.contains(label.id)),
-                    onCheckedChange = { filterChange ->
+                        id = label.id,
+                        content = FilterContentType.Labeled(
+                            text = label.title,
+                            colorRes = remember(label.gradientColors) {
+                                label.gradientColors.map { Color(it) }
+                            },
+                            textColorRes = remember(label.gradientTextColors) {
+                                label.gradientTextColors.map { Color(it) }
+                            }),
+                        selected = filters.selectedLabels.contains(label.id)
+                    ), onCheckedChange = { filterChange ->
                         when (filterChange) {
                             is FilterChange.Selection -> {
                                 val newSet =

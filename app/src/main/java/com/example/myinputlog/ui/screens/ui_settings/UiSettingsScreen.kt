@@ -51,11 +51,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
 import com.example.myinputlog.R
+import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.ui.screens.common.ConfettiOptions
 import com.example.myinputlog.ui.screens.common.composable.ColorSwatch
 import com.example.myinputlog.ui.screens.common.composable.ConfettiOverlay
+import com.example.myinputlog.ui.screens.common.composable.bars.MyInputLogTopAppBar
+import com.example.myinputlog.ui.screens.common.composable.input.SortOptionsDropdownField
 import com.example.myinputlog.ui.screens.common.composable.state.EmptyCollectionBox
 import com.example.myinputlog.ui.screens.common.composable.state.LoadingBox
 import com.example.myinputlog.ui.theme.AppTheme
@@ -102,7 +104,9 @@ fun UiSettingsScreen(
                     modifier = Modifier.padding(innerPadding),
                     uiSettingsUiState = currentState,
                     onAppThemeChange = uiSettingsViewModel::setTheme,
-                    onConfettiColorsChange = uiSettingsViewModel::setConfetti
+                    onConfettiColorsChange = uiSettingsViewModel::setConfetti,
+                    onVideoSortChange = uiSettingsViewModel::setVideoSort,
+                    onChannelSortChange = uiSettingsViewModel::setChannelSort
                 )
                 if (currentState.isParty) {
                     val confettiIntColors = remember(currentState.selectedConfettiVariant.colors) {
@@ -127,7 +131,10 @@ fun UiSettingsBody(
     modifier: Modifier = Modifier,
     uiSettingsUiState: UiSettingsUiState.Success,
     onAppThemeChange: (AppTheme) -> Unit,
-    onConfettiColorsChange: (ConfettiOptions) -> Unit
+    onConfettiColorsChange: (ConfettiOptions) -> Unit,
+    onChannelSortChange: (SortOptions) -> Unit,
+    onVideoSortChange: (SortOptions) -> Unit
+
 ) {
     val scrollState = rememberLazyListState()
     val isScrollEnabled by remember {
@@ -158,6 +165,15 @@ fun UiSettingsBody(
             ConfettiSection(
                 value = uiSettingsUiState.selectedConfettiVariant,
                 onConfettiColorsChange = onConfettiColorsChange
+            )
+        }
+
+        item {
+            SortOptionsSection(
+                selectedVideoSort = uiSettingsUiState.selectedVideoSort,
+                selectedChannelSort = uiSettingsUiState.selectedChannelSort,
+                onVideoSortChange = onVideoSortChange,
+                onChannelSortChange = onChannelSortChange
             )
         }
     }
@@ -269,18 +285,18 @@ fun ConfettiSection(
                 ConfettiOptions.entries.forEach { selectionOption ->
                     DropdownMenuItem(
                         text = {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(text = stringResource(selectionOption.optionName))
-                                ColorSwatchRow(colors = selectionOption.colors)
-                            }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(text = stringResource(selectionOption.optionName))
+                            ColorSwatchRow(colors = selectionOption.colors)
+                        }
 
-                        }, onClick = {
-                            onConfettiColorsChange(selectionOption)
-                            expanded = false
-                        }, contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    }, onClick = {
+                        onConfettiColorsChange(selectionOption)
+                        expanded = false
+                    }, contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                     )
                 }
             }
@@ -300,5 +316,37 @@ fun ColorSwatchRow(
         colors.forEach { colorInt ->
             ColorSwatch(colorInt)
         }
+    }
+}
+
+@Composable
+fun SortOptionsSection(
+    modifier: Modifier = Modifier,
+    selectedChannelSort: SortOptions,
+    selectedVideoSort: SortOptions,
+    onChannelSortChange: (SortOptions) -> Unit,
+    onVideoSortChange: (SortOptions) -> Unit
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+    ) {
+        Text(
+            text = stringResource(R.string.sort_video_label),
+        )
+        SortOptionsDropdownField(
+            modifier = Modifier.padding(bottom = MaterialTheme.spacing.small),
+            sortOption = selectedVideoSort,
+            onValueChange = onVideoSortChange,
+            options = SortOptions.videoSortOptions().toList()
+        )
+        Text(
+            text = stringResource(R.string.sort_channel_label),
+        )
+        SortOptionsDropdownField(
+            sortOption = selectedChannelSort,
+            onValueChange = onChannelSortChange,
+            options = SortOptions.channelSortOptions().toList()
+        )
     }
 }

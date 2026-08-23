@@ -61,6 +61,8 @@
 
     <!--    sort options    -->
     <string name="sort_header">Sort</string>
+    <string name="sort_channel_label">Default channel sort</string>
+    <string name="sort_video_label">Default video sort</string>
     <string name="sort_default">Default</string>
     <string name="sort_watch_date_asc">Watched on (ascending)</string>
     <string name="sort_watch_date_desc">Watched on (descending)</string>

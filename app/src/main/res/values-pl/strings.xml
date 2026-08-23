@@ -62,6 +62,8 @@
 
     <!--    sort options    -->
     <string name="sort_header">Sortuj</string>
+    <string name="sort_channel_label">Domyślne sortowanie kanałów</string>
+    <string name="sort_video_label">Domyślne sortowanie filmów</string>
     <string name="sort_default">Domyślnie</string>
     <string name="sort_watch_date_asc">Data obejrzenia (rosnąco)</string>
     <string name="sort_watch_date_desc">Data obejrzenia (malejąco)</string>

@@ -119,6 +119,18 @@ class DefaultStorageDataRepository @Inject constructor(
         }
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    override val channelSortDefault: Flow<SortOptions> =
+        currentUser.distinctUntilChanged().flatMapLatest { user ->
+            preferenceStorageService.channelSortDefault(user.id)
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val videoSortDefault: Flow<SortOptions> =
+        currentUser.distinctUntilChanged().flatMapLatest { user ->
+            preferenceStorageService.videoSortDefault(user.id)
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     override val currentCourseId: Flow<String> =
         currentUser.distinctUntilChanged().flatMapLatest { user ->
             preferenceStorageService.currentCourseId(user.id)
@@ -158,9 +170,7 @@ class DefaultStorageDataRepository @Inject constructor(
     ): Flow<PagingData<VideoUiModel>> = scoped {
         Log.d(TAG, "paging flow with user $uid")
         Pager(
-            config = pagingConfig,
-            initialKey = initialKey,
-            pagingSourceFactory = {
+            config = pagingConfig, initialKey = initialKey, pagingSourceFactory = {
                 val query = VideoQueryBuilder.build(courseId, filters, sort)
                 videoDao.getVideosPagingSource(query)
             }).flow.map { pagingData ->
@@ -528,6 +538,16 @@ class DefaultStorageDataRepository @Inject constructor(
     override suspend fun saveConfettiColors(colors: ConfettiOptions) = withContext(Dispatchers.IO) {
         val uid = accountService.currentUserId
         preferenceStorageService.saveConfettiColors(uid, colors)
+    }
+
+    override suspend fun saveChannelSortDefault(sort: SortOptions) = withContext(Dispatchers.IO) {
+        val uid = accountService.currentUserId
+        preferenceStorageService.saveChannelSortDefault(uid, sort)
+    }
+
+    override suspend fun saveVideoSortDefault(sort: SortOptions) = withContext(Dispatchers.IO) {
+        val uid = accountService.currentUserId
+        preferenceStorageService.saveVideoSortDefault(uid, sort)
     }
 
     override suspend fun setCurrentCourse(courseId: String) = withContext(Dispatchers.IO) {

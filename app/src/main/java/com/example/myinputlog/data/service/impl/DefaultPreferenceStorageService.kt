@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.data.service.PreferenceStorageService
 import com.example.myinputlog.ui.screens.common.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
@@ -54,6 +55,24 @@ class DefaultPreferenceStorageService @Inject constructor(
             ConfettiOptions.valueOf(name)
         }
 
+    override fun channelSortDefault(userId: String): Flow<SortOptions> =
+        datastore.data.catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }.map { preferences ->
+            val name =
+                preferences[buildStringKey(CHANNEL_SORT, userId)] ?: SortOptions.DEFAULT.name
+            SortOptions.valueOf(name)
+        }
+
+    override fun videoSortDefault(userId: String): Flow<SortOptions> =
+        datastore.data.catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }.map { preferences ->
+            val name =
+                preferences[buildStringKey(VIDEO_SORT, userId)] ?: SortOptions.DEFAULT.name
+            SortOptions.valueOf(name)
+        }
+
     override suspend fun saveCurrentCourseId(userId: String, courseId: String) {
         datastore.edit { preferences ->
             preferences[buildStringKey(CURRENT_COURSE_ID, userId)] = courseId
@@ -75,6 +94,24 @@ class DefaultPreferenceStorageService @Inject constructor(
     override suspend fun saveConfettiColors(userId: String, colors: ConfettiOptions) {
         datastore.edit { preferences ->
             preferences[buildStringKey(CONFETTI_COLORS, userId)] = colors.name
+        }
+    }
+
+    override suspend fun saveChannelSortDefault(
+        userId: String,
+        sort: SortOptions
+    ) {
+        datastore.edit { preferences ->
+            preferences[buildStringKey(CHANNEL_SORT, userId)] = sort.name
+        }
+    }
+
+    override suspend fun saveVideoSortDefault(
+        userId: String,
+        sort: SortOptions
+    ) {
+        datastore.edit { preferences ->
+            preferences[buildStringKey(VIDEO_SORT, userId)] = sort.name
         }
     }
 
@@ -105,6 +142,8 @@ class DefaultPreferenceStorageService @Inject constructor(
         const val TAG = "PreferencesStorage"
         const val CURRENT_COURSE_ID = "current_course_id"
         const val THEME_MODE = "theme_mode"
+        const val CHANNEL_SORT = "channel_sort"
+        const val VIDEO_SORT = "video_sort"
         const val CONFETTI_COLORS = "confetti_colors"
         const val LAST_PULL = "last_pull_timestamp"
     }

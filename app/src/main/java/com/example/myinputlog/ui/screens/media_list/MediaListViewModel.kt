@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -51,7 +52,8 @@ class MediaListViewModel @Inject constructor(
 
     private val _draftFilters = MutableStateFlow(MediaFilters())
     private val _appliedFilters = MutableStateFlow(MediaFilters())
-    private val _appliedSort = MutableStateFlow(SortOptions.DEFAULT)
+    private val _appliedChannelSort = MutableStateFlow(SortOptions.DEFAULT)
+    private val _appliedVideoSort = MutableStateFlow(SortOptions.DEFAULT)
     private val _channelRanking = MutableStateFlow<Map<String, Int>>(emptyMap())
     private val _allLabels: Flow<List<LabelUiModel>> =
         repository.labels.map { list -> list.map { it.toLabelUiModel() } }.distinctUntilChanged()
@@ -75,7 +77,7 @@ class MediaListViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val videoFlow = combine(
-        currentCourseId, debouncedFilters, _appliedSort, ::VideoQuery
+        currentCourseId, debouncedFilters, _appliedVideoSort, ::VideoQuery
     ).flatMapLatest { query ->
         var initialKey: Int? = null
 
@@ -90,7 +92,7 @@ class MediaListViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val channelFlow = combine(
-        currentCourseId, debouncedFilters, _appliedSort, _channelRanking, ::ChannelQuery
+        currentCourseId, debouncedFilters, _appliedChannelSort, _channelRanking, ::ChannelQuery
     ).flatMapLatest { query ->
         repository.channelPagingFlow(query.courseId, query.filters, query.sort, query.ranking)
     }.flowOn(Dispatchers.Default).cachedIn(viewModelScope)
@@ -117,10 +119,11 @@ class MediaListViewModel @Inject constructor(
 
     private val mediaCountsFlow = combine(videoCountFlow, channelCountFlow, ::Pair)
     private val filterOptionsFlow = combine(_allLabels, _allCountries, ::Pair)
+    private val appliedSortFlow = combine(_appliedChannelSort, _appliedVideoSort, ::Pair)
 
     val mediaListUiState: StateFlow<MediaListUiState> = combine(
-        currentCourseId, _draftFilters, _appliedSort, filterOptionsFlow, mediaCountsFlow
-    ) { id, filters, sort, (labels, countries), (vCount, cCount) ->
+        currentCourseId, _draftFilters, appliedSortFlow, filterOptionsFlow, mediaCountsFlow
+    ) { id, filters, (cSort, vSort), (labels, countries), (vCount, cCount) ->
 
         when {
             id.isBlank() -> MediaListUiState.Empty
@@ -131,7 +134,8 @@ class MediaListViewModel @Inject constructor(
                     filters = filters,
                     allLabels = labels.toSet(),
                     allCountries = countries.toSet(),
-                    appliedSort = sort,
+                    appliedChannelSort = cSort,
+                    appliedVideoSort = vSort,
                     videoCount = vCount,
                     channelCount = cCount
                 )
@@ -146,6 +150,8 @@ class MediaListViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             _channelRanking.value = repository.getChannelGlobalRanking()
+            _appliedChannelSort.value = repository.channelSortDefault.first()
+            _appliedVideoSort.value = repository.videoSortDefault.first()
         }
     }
 
@@ -291,8 +297,12 @@ class MediaListViewModel @Inject constructor(
         _appliedFilters.value = _draftFilters.value
     }
 
-    fun onSortChange(newSort: SortOptions) {
-        _appliedSort.value = newSort
+    fun onChannelSortChange(newSort: SortOptions) {
+        _appliedChannelSort.value = newSort
+    }
+
+    fun onVideoSortChange(newSort: SortOptions) {
+        _appliedVideoSort.value = newSort
     }
 
     fun onScrollConsumed() {

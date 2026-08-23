@@ -31,6 +31,8 @@ interface StorageDataRepository {
     val currentUser: Flow<UserData>
     val themeMode: Flow<AppTheme>
     val confettiColors: Flow<ConfettiOptions>
+    val channelSortDefault: Flow<SortOptions>
+    val videoSortDefault: Flow<SortOptions>
 
     // account
     suspend fun changeUsername(newUsername: String)
@@ -126,4 +128,6 @@ interface StorageDataRepository {
     suspend fun setCurrentCourse(courseId: String)
     suspend fun saveThemeMode(theme: AppTheme)
     suspend fun saveConfettiColors(colors: ConfettiOptions)
+    suspend fun saveChannelSortDefault(sort: SortOptions)
+    suspend fun saveVideoSortDefault(sort: SortOptions)
 }

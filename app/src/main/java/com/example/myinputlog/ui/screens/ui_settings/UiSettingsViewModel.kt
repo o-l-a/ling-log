@@ -2,6 +2,7 @@ package com.example.myinputlog.ui.screens.ui_settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myinputlog.data.local.query.SortOptions
 import com.example.myinputlog.data.repository.StorageDataRepository
 import com.example.myinputlog.ui.screens.common.ConfettiOptions
 import com.example.myinputlog.ui.theme.AppTheme
@@ -16,16 +17,24 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UiSettingsViewModel @Inject constructor(
-    val storageDataRepository: StorageDataRepository
+    val repository: StorageDataRepository
 ) : ViewModel() {
 
     private val isParty = MutableStateFlow(false)
 
     val uiSettingsUiState: StateFlow<UiSettingsUiState> = combine(
-        storageDataRepository.themeMode, storageDataRepository.confettiColors, isParty
-    ) { theme, confetti, party ->
+        repository.themeMode,
+        repository.confettiColors,
+        repository.channelSortDefault,
+        repository.videoSortDefault,
+        isParty
+    ) { theme, confetti, cSort, vSort, party ->
         UiSettingsUiState.Success(
-            selectedMode = theme, selectedConfettiVariant = confetti, isParty = party
+            selectedMode = theme,
+            selectedConfettiVariant = confetti,
+            selectedChannelSort = cSort,
+            selectedVideoSort = vSort,
+            isParty = party
         )
     }.stateIn(
         scope = viewModelScope,
@@ -35,14 +44,26 @@ class UiSettingsViewModel @Inject constructor(
 
     fun setTheme(theme: AppTheme) {
         viewModelScope.launch {
-            storageDataRepository.saveThemeMode(theme)
+            repository.saveThemeMode(theme)
         }
     }
 
     fun setConfetti(confetti: ConfettiOptions) {
         viewModelScope.launch {
-            storageDataRepository.saveConfettiColors(confetti)
+            repository.saveConfettiColors(confetti)
             isParty.value = true
+        }
+    }
+
+    fun setChannelSort(sort: SortOptions) {
+        viewModelScope.launch {
+            repository.saveChannelSortDefault(sort)
+        }
+    }
+
+    fun setVideoSort(sort: SortOptions) {
+        viewModelScope.launch {
+            repository.saveVideoSortDefault(sort)
         }
     }
 
