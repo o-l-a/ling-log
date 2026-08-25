@@ -64,8 +64,8 @@ class VideoViewModel @Inject constructor(
     }
 
     private val videoRoute = savedStateHandle.toRoute<VideoRoute>()
-    private val defaultCourseId: String = videoRoute.courseId
     private val videoId = sanitizeInitialVideoId(videoRoute.videoId)
+    private val videoUrl = videoRoute.videoUrl
 
     private val _videoForm = MutableStateFlow(VideoForm())
     private val _loadingState = MutableStateFlow<VideoLoadState>(VideoLoadState.LoadingFromStorage)
@@ -124,6 +124,7 @@ class VideoViewModel @Inject constructor(
         } else if (loadState is VideoLoadState.StorageError) {
             VideoUiState.Error
         } else {
+            val isFormValid = validateForm(form, loadState)
             VideoUiState.Success(
                 videoForm = form,
                 videoLoadState = loadState,
@@ -131,11 +132,11 @@ class VideoViewModel @Inject constructor(
                 videoUiFlags = flags,
                 suggestions = suggestions.toSet(),
                 allCountries = countries,
-                isFormValid = validateForm(form, loadState),
+                isFormValid = isFormValid,
                 isMetadataVisible = form.videoId.isNotBlank() && loadState is VideoLoadState.Success,
                 isChannelCheckboxVisible = showChannelCheckbox(form, flags),
                 isDeleteEnabled = !isNewVideo(videoId),
-                isSaveEnabled = flags.isEditStarted,
+                isSaveEnabled = isFormValid && (isNewVideo(videoId) || flags.isEditStarted),
                 isCourseEditable = isNewVideo(videoId)
             )
         }
@@ -146,26 +147,47 @@ class VideoViewModel @Inject constructor(
     )
 
     init {
-        loadVideoFromStorage()
+        if (!videoUrl.isNullOrBlank()) {
+            viewModelScope.launch {
+                val selectedCourse = getSelectedCourse()
+                _videoForm.update { it.copy(videoUrl = videoUrl, selectedCourse = selectedCourse) }
+                loadVideoMetadata()
+            }
+        } else {
+            loadVideoFromStorage()
+        }
+        loadCommonMetadata()
+    }
+
+    private suspend fun getSelectedCourse(): CourseUiModel {
+        return storageDataRepository.courses.first().firstOrNull { userCourse ->
+            userCourse.course.id == storageDataRepository.currentCourseId.first()
+        }?.toCourseUiModel(stringProvider) ?: CourseUiModel()
+    }
+
+    private fun loadCommonMetadata() {
+        viewModelScope.launch {
+            val allLabels =
+                storageDataRepository.getAllLabelsAsSet().map { it.toLabelUiModel() }.toSet()
+            _videoForm.update { it.copy(allLabels = allLabels) }
+            _videoForm.update {
+                it.copy(
+                    watchedOnDisplay = formatter.format(
+                        Date().toLocalDate(), false
+                    )
+                )
+            }
+        }
     }
 
     private fun loadVideoFromStorage() {
         viewModelScope.launch {
-            val allLabels =
-                storageDataRepository.getAllLabelsAsSet().map { it.toLabelUiModel() }.toSet()
-            val selectedCourse = storageDataRepository.courses.first().firstOrNull { userCourse ->
-                userCourse.course.id == defaultCourseId
-            }?.toCourseUiModel(stringProvider) ?: CourseUiModel()
-            _videoForm.update { it.copy(allLabels = allLabels) }
+            val selectedCourse = getSelectedCourse()
             if (!isNewVideo(videoId)) {
                 loadExistingVideo(selectedCourse)
             } else {
                 _videoForm.update {
-                    it.copy(
-                        selectedCourse = selectedCourse, watchedOnDisplay = formatter.format(
-                            Date().toLocalDate(), false
-                        )
-                    )
+                    it.copy(selectedCourse = selectedCourse)
                 }
                 _loadingState.value = VideoLoadState.Success
             }

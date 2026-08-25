@@ -14,8 +14,12 @@ import javax.inject.Inject
 class LandingViewModel @Inject constructor(
     private val accountService: Lazy<AccountService>
 ) : ViewModel() {
+    private var hasStarted = false
 
     fun onAppStart(navigateWithPopUp: (Any) -> Unit) {
+        if (hasStarted) return
+        hasStarted = true
+
         viewModelScope.launch {
             val userId = accountService.get().currentUserId
             if (userId.isNotBlank()) {

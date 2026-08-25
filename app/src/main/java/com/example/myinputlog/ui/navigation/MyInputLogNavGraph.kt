@@ -8,14 +8,20 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.StackedLineChart
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navigation
+import com.example.myinputlog.MainViewModel
 import com.example.myinputlog.R
 import com.example.myinputlog.ui.screens.account.AccountScreen
 import com.example.myinputlog.ui.screens.account.AccountViewModel
@@ -88,8 +94,29 @@ val navigationItems = listOf(
 
 @Composable
 fun MyInputLogNavHost(
-    modifier: Modifier = Modifier, navController: NavHostController
+    modifier: Modifier = Modifier, navController: NavHostController, mainViewModel: MainViewModel
 ) {
+    val sharedVideoUrl by mainViewModel.sharedVideoUrl.collectAsStateWithLifecycle()
+
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val isReadyForNavigation = currentBackStackEntry?.destination?.let { dest ->
+        !dest.hasRoute<LandingRoute>() && !dest.hasRoute<LoginRoute>() && !dest.hasRoute<SignUpRoute>()
+    } ?: false
+
+    LaunchedEffect(sharedVideoUrl, isReadyForNavigation) {
+        val url = sharedVideoUrl
+        if (url != null && isReadyForNavigation) {
+            navController.navigate(
+                VideoRoute(
+                    courseId = DEFAULT_ID.toString(),
+                    videoId = DEFAULT_ID.toString(),
+                    videoUrl = url
+                )
+            )
+            mainViewModel.onSharedUrlConsumed()
+        }
+    }
+
     NavHost(
         modifier = modifier, navController = navController, startDestination = LandingRoute
     ) {

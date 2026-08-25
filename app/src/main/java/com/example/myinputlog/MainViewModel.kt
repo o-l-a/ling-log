@@ -8,8 +8,10 @@ import com.example.myinputlog.ui.theme.AppTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -29,4 +31,15 @@ class MainViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = AppTheme.SYSTEM
         )
+
+    private val _sharedVideoUrl = MutableStateFlow<String?>(null)
+    val sharedVideoUrl = _sharedVideoUrl.asStateFlow()
+
+    fun onSharedUrlReceived(url: String) {
+        _sharedVideoUrl.value = url
+    }
+
+    fun onSharedUrlConsumed() {
+        _sharedVideoUrl.value = null
+    }
 }
