@@ -26,7 +26,7 @@ private const val PASS_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{4,}$"
 private val passPatternCompiled = Pattern.compile(PASS_PATTERN)
 
 private const val URL_PATTERN =
-    "http(?:s)?://(?:m\\.)?(?:www\\.)?youtu(?:\\.be/|(?:be-nocookie|be)\\.com/(?:watch|[\\w]+\\?(?:feature=[\\w]+\\.[\\w]+\\&)?v=|v/|e/|embed/|live/|shorts/|user/(?:[\\w#]+/)+))([^&#?\\n]+)"
+    "(?:https?://)?(?:www\\.|m\\.)?youtu(?:\\.be/|(?:be-nocookie|be)\\.com/(?:watch/|embed/|v/|e/|live/|shorts/|(?:watch\\?(?:[^#&\\n]*&)*v=)))([\\w-]{11})"
 private val urlPatternCompiled = Pattern.compile(URL_PATTERN)
 
 

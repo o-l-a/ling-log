@@ -162,4 +162,7 @@ dependencies {
 
     // Colors
     implementation(libs.material.kolor)
+
+    // Tests
+    testImplementation(libs.junit)
 }
