@@ -98,11 +98,17 @@ private fun ComposeCumulativeTrendsChart(
                     )
                 ), rangeProvider = rangeProvider, pointSpacing = dynamicPointSpacing
             ), startAxis = VerticalAxis.rememberStart(
-                valueFormatter = StartAxisValueFormatter
+                label = rememberAxisLabelComponent(
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                ), valueFormatter = StartAxisValueFormatter
             ), bottomAxis = HorizontalAxis.rememberBottom(
-                label = rememberAxisLabelComponent(style = MaterialTheme.typography.bodySmall),
-                valueFormatter = bottomAxisFormatter,
-                itemPlacer = dynamicItemPlacer
+                label = rememberAxisLabelComponent(
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                ), valueFormatter = bottomAxisFormatter, itemPlacer = dynamicItemPlacer
             ), marker = dynamicMarker, persistentMarkers = { _ ->
                 years.forEach { x ->
                     marker at x.toFloat()

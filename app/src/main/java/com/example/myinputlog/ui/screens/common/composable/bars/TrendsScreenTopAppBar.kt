@@ -45,7 +45,7 @@ fun TrendsScreenTopAppBar(
     periodOptions: List<TrendsTimePeriod>,
     selectedPeriod: TrendsTimePeriod,
     customMonth: YearMonth?,
-    onPeriodChange: (period: TrendsTimePeriod, yearMonth: YearMonth) -> Unit
+    onPeriodChange: (period: TrendsTimePeriod, yearMonth: YearMonth?) -> Unit
 ) {
     val dividerColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     val baseYearMonth = remember { YearMonth.now() }
@@ -99,7 +99,7 @@ fun TrendsScreenTopAppBar(
                         }
 
                         else -> {
-                            onPeriodChange(option, customMonth ?: baseYearMonth)
+                            onPeriodChange(option, null)
                         }
                     }
                 }, label = {
