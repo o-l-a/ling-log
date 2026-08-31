@@ -8,7 +8,7 @@ import com.example.myinputlog.data.remote.ChannelItem
 import com.example.myinputlog.data.remote.VideoItem
 import com.example.myinputlog.ui.models.toCountryUiModelOrNull
 import com.example.myinputlog.ui.models.toLabelUiModel
-import com.example.myinputlog.ui.screens.common.ext.stripUrl
+import com.example.myinputlog.ui.screens.common.ext.toYouTubeUrl
 import java.time.Duration
 import java.util.UUID
 
@@ -19,7 +19,7 @@ fun VideoForm.toVideoEntity(): VideoEntity {
         courseId = selectedCourse.id,
         channelId = channelId,
         title = title,
-        videoUrl = videoUrl.stripUrl(),
+        videoUrl = videoId.toYouTubeUrl(),
         watchedOn = watchedOn,
         speakersNationality = speakersNationality?.isoCode,
         durationInSeconds = durationInSeconds,

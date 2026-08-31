@@ -21,7 +21,6 @@ import java.util.regex.Pattern
 
 private const val MIN_PASS_LENGTH = 8
 
-// deleted the "non-white" character constraint
 private const val PASS_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{4,}$"
 private val passPatternCompiled = Pattern.compile(PASS_PATTERN)
 
@@ -43,7 +42,6 @@ fun String.passwordMatches(repeated: String): Boolean {
     return this == repeated
 }
 
-// added a new extension
 fun String.isValidUsername(): Boolean {
     return this.isNotBlank()
 }
@@ -75,4 +73,8 @@ fun String.extractYouTubeVideoId(): String? {
 
 fun String.stripUrl(): String {
     return this.substringBefore('?')
+}
+
+fun String.toYouTubeUrl(): String {
+    return "https://www.youtube.com/watch?v=$this"
 }

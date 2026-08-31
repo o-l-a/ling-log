@@ -390,7 +390,9 @@ class VideoViewModel @Inject constructor(
         viewModelScope.launch {
             viewModelScope.launch {
                 try {
+                    Log.d(TAG, "Form $form")
                     val videoEntity = form.toVideoEntity()
+                    Log.d(TAG, "Saving $videoEntity")
                     val channelEntity = form.toChannelEntity()
                     storageDataRepository.saveVideo(
                         video = videoEntity,
