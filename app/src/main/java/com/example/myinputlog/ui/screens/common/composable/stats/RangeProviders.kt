@@ -18,10 +18,16 @@ class TopSpacedRangeProvider(
 
     override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
         val amplitude = maxY - minY
+        val minYFloor = floor(minY)
 
         return if (amplitude < 2.0) {
             val midPoint = (minY + maxY) / 2.0
-            max(floor(midPoint - 0.5), 0.0)
+            val newMinY = floor(midPoint - 0.5)
+            if (newMinY > minY) {
+                minYFloor
+            } else {
+                max(newMinY, 0.0)
+            }
         } else {
             floor(minY)
         }
