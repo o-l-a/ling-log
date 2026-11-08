@@ -29,6 +29,9 @@ data class ChannelUiModel(
             )
         })"
 
+    fun titleLine(): String =
+        "${title}${if (defaultLanguage != null) " • ${defaultLanguage.flagEmoji}" else ""}"
+
     fun titleLines(): Int = if (defaultLabels.isNotEmpty()) 1 else 2
 }
 

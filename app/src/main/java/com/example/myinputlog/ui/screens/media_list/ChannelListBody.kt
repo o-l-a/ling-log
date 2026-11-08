@@ -152,7 +152,7 @@ fun ChannelContainer(
     ListItem(modifier = modifier.clickable { onChannelClicked(channel.id) }, headlineContent = {
         Column {
             Text(
-                text = channel.title,
+                text = channel.titleLine(),
                 maxLines = channel.titleLines(),
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium
