@@ -31,8 +31,11 @@ class AppDatabaseManager @Inject constructor(
         return instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context, AppDatabase::class.java, "user_db_$userId.db"
-            ).fallbackToDestructiveMigration(true).addMigrations(AppDatabase.MIGRATION_3_4)
-                .addMigrations(AppDatabase.MIGRATION_4_5).build().also { instance = it }
+            ).fallbackToDestructiveMigration(true)
+                .addMigrations(AppDatabase.MIGRATION_3_4)
+                .addMigrations(AppDatabase.MIGRATION_4_5)
+                .addMigrations(AppDatabase.MIGRATION_5_6)
+                .build().also { instance = it }
         }
     }
 }

@@ -206,7 +206,8 @@ fun HomeBody(
             SwipeableCalendar(
                 onDayClicked = onDayClicked,
                 onSummaryClicked = onSummaryClicked,
-                getStatsForMonth = getStatsForMonth
+                getStatsForMonth = getStatsForMonth,
+                dailyGoal = homeUiState.courseHeader.dailyGoal
             )
         }
     }

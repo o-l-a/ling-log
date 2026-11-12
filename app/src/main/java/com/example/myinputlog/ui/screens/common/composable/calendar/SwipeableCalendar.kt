@@ -28,6 +28,7 @@ fun SwipeableCalendar(
     modifier: Modifier = Modifier,
     onDayClicked: (CalendarDay) -> Unit,
     onSummaryClicked: (YearMonth) -> Unit,
+    dailyGoal: Long = 90L,
     getStatsForMonth: (String) -> Flow<MonthlyStatsResult>
 ) {
     val pagerState = rememberPagerState(
@@ -54,7 +55,7 @@ fun SwipeableCalendar(
         }.collectAsStateWithLifecycle(initialValue = MonthlyStatsResult.Loading)
 
         val calendarUiState = remember(pageYearMonth, statsForPage) {
-            buildCalendarState(pageYearMonth, statsForPage)
+            buildCalendarState(pageYearMonth, statsForPage, dailyGoal)
         }
 
         MyInputLogCalendar(

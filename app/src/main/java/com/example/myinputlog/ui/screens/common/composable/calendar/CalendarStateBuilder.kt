@@ -26,19 +26,19 @@ object CalendarStateBuilder {
     }
 
     private fun Map<String, DayAggregation>.getCalendarDay(
-        date: LocalDate, today: Int
+        date: LocalDate, today: Int, dailyGoal: Long
     ): CalendarDay {
         val dayNumber = date.dayOfMonth
         val dayKey = "day_${dayNumber}"
         val totalMinutes = ((this[dayKey]?.totalTimeInSeconds?.toFloat()?.div(60)) ?: 0F).toLong()
         val text = if (totalMinutes > 0L) "${totalMinutes}m" else ""
         val isToday = dayNumber == today
-        val alpha = (totalMinutes.toFloat() / 90).coerceIn(0.2F, 1.0F)
+        val alpha = (totalMinutes.toFloat() / dailyGoal).coerceIn(0.2F, 1.0F)
         return CalendarDay(date, dayNumber.toString(), totalMinutes, text, isToday, alpha)
     }
 
     fun buildCalendarState(
-        monthOnDisplay: YearMonth, monthlyStatsResult: MonthlyStatsResult
+        monthOnDisplay: YearMonth, monthlyStatsResult: MonthlyStatsResult, dailyGoal: Long
     ): CalendarUiState {
         val locale = Locale.getDefault()
         val today = if (monthOnDisplay == YearMonth.now()) LocalDate.now().dayOfMonth else -1
@@ -77,8 +77,8 @@ object CalendarStateBuilder {
         val isLoading = monthlyStatsResult !is MonthlyStatsResult.Success
 
         val calendarItems =
-            (0 until leadingEmptyDays).map { CalendarDay() } + (1..daysOfMonth).map {dayNumber ->
-                monthlyMap.getCalendarDay(monthOnDisplay.atDay(dayNumber), today)
+            (0 until leadingEmptyDays).map { CalendarDay() } + (1..daysOfMonth).map { dayNumber ->
+                monthlyMap.getCalendarDay(monthOnDisplay.atDay(dayNumber), today, dailyGoal)
             } + (0 until trailingEmptyDays).map { CalendarDay() }
 
         val loadingCalendarItems =

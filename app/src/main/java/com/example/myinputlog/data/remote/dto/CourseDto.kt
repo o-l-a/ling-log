@@ -7,6 +7,7 @@ data class CourseDto(
     val id: String? = null,
     val name: String? = null,
     val goalInHours: Long? = null,
+    val dailyGoal: Long? = 30L,
     val otherSourceHours: Long? = null,
     val countryGroupId: String? = null,
     val timestamp: Timestamp? = null,

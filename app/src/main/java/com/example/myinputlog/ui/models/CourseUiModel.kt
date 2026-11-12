@@ -3,12 +3,14 @@ package com.example.myinputlog.ui.models
 import com.example.myinputlog.data.local.model.CourseWithStats
 import com.example.myinputlog.data.utils.StringProvider
 import java.util.Date
+import kotlin.Long
 
 data class CourseUiModel(
     val id: String = "",
     val name: String = "",
     val timestamp: Date = Date(),
     val goalInHours: Long = 0L,
+    val dailyGoal: Long = 30L,
     val otherSourceHours: Long = 0L,
     val countryGroup: CountryGroupUiModel = CountryGroupUiModel(),
     val totalTimeInSeconds: Long = 0L,
@@ -21,6 +23,7 @@ fun CourseWithStats.toCourseUiModel(stringProvider: StringProvider): CourseUiMod
     name = course.name,
     timestamp = course.timestamp,
     goalInHours = course.goalInHours,
+    dailyGoal = course.dailyGoal,
     otherSourceHours = course.otherSourceHours,
     countryGroup = countryGroup?.toUiModel(stringProvider) ?: CountryGroupUiModel(),
     totalTimeInSeconds = totalTimeInSeconds,

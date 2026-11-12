@@ -120,7 +120,7 @@ private fun CourseListBody(
             SettingsCard(headlineContent = { Text(course.name) }, supportingContent = {
                 Text(
                     text = stringResource(
-                        R.string.course_goal_card_text, course.goalInHours
+                        R.string.course_goal_card_text, course.goalInHours, course.dailyGoal
                     ), style = MaterialTheme.typography.bodyMedium
                 )
             }, onClick = { onCourseClicked(course.id) })

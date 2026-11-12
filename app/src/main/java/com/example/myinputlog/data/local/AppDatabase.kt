@@ -21,7 +21,7 @@ import com.example.myinputlog.data.local.entities.VideoLabelCrossRef
 
 @Database(
     entities = [ChannelEntity::class, ChannelLabelCrossRef::class, CountryGroupEntity::class, CourseEntity::class, LabelEntity::class, VideoEntity::class, VideoLabelCrossRef::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -43,6 +43,12 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE labels ADD COLUMN secondaryTextColors TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE courses ADD COLUMN dailyGoal INTEGER NOT NULL DEFAULT 30")
             }
         }
     }

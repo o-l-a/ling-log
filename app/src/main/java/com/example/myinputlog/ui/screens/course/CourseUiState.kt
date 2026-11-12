@@ -18,6 +18,7 @@ sealed interface CourseUiState {
 data class CourseFields(
     val name: String = "",
     val goalInHours: String = "",
+    val dailyGoal: String = "",
     val otherSourceHours: String = "",
     val countryGroup: CountryGroupUiModel? = null
 )
@@ -26,6 +27,7 @@ fun CourseFields.toUserCourse(id: String): CourseUiModel = CourseUiModel(
     id = id,
     name = name,
     goalInHours = goalInHours.toLongOrNull() ?: 0L,
+    dailyGoal = dailyGoal.toLongOrNull() ?: 30L,
     otherSourceHours = otherSourceHours.toLongOrNull() ?: 0L,
     countryGroup = countryGroup!!
 )

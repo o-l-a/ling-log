@@ -71,6 +71,7 @@ class CourseViewModel @Inject constructor(
                     _fields.value = CourseFields(
                         name = course.course.name,
                         goalInHours = course.course.goalInHours.toString(),
+                        dailyGoal = course.course.dailyGoal.toString(),
                         otherSourceHours = course.course.otherSourceHours.toString(),
                         countryGroup = course.countryGroup?.toUiModel(stringProvider)
                     )
@@ -88,6 +89,10 @@ class CourseViewModel @Inject constructor(
         _fields.update { it.copy(goalInHours = goal) }
     }
 
+    fun updateDailyGoal(dailyGoal: String) {
+        _fields.update { it.copy(dailyGoal = dailyGoal) }
+    }
+
     fun updateOtherHours(hours: String) {
         _fields.update { it.copy(otherSourceHours = hours) }
     }
@@ -102,10 +107,13 @@ class CourseViewModel @Inject constructor(
 
     private fun validateFields(fields: CourseFields): Boolean {
         val isNameValid = fields.name.isNotBlank()
-        val isGoalValid = fields.goalInHours.toDoubleOrNull() != null
+        val isGoalValid =
+            fields.goalInHours.toDoubleOrNull() != null && fields.goalInHours.toDouble() > 0
+        val isDailyGoalValid =
+            fields.dailyGoal.toDoubleOrNull() != null && fields.dailyGoal.toDouble() > 0
         val isOtherHoursValid = fields.otherSourceHours.toDoubleOrNull() != null
         val isCountryGroupValid = fields.countryGroup != null
-        return isNameValid && isGoalValid && isOtherHoursValid && isCountryGroupValid
+        return isNameValid && isGoalValid && isDailyGoalValid && isOtherHoursValid && isCountryGroupValid
     }
 
     fun deleteCourse() {

@@ -8,6 +8,7 @@ fun CourseUiModel.toCourseEntity(): CourseEntity = CourseEntity(
     id = id.ifBlank { UUID.randomUUID().toString() },
     name = name,
     goalInHours = goalInHours,
+    dailyGoal = dailyGoal,
     otherSourceHours = otherSourceHours,
     countryGroupId = countryGroup.id,
     timestamp = timestamp,

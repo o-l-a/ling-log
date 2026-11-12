@@ -90,6 +90,7 @@ fun CourseScreen(
                     courseUiState = courseUiState as CourseUiState.Success,
                     onNameChange = courseViewModel::updateName,
                     onGoalChange = courseViewModel::updateGoal,
+                    onDailyGoalChange = courseViewModel::updateDailyGoal,
                     onOtherHoursChange = courseViewModel::updateOtherHours,
                     onDone = courseViewModel::saveCourse,
                     onCountryGroupChange = courseViewModel::updateCountryGroup
@@ -116,6 +117,7 @@ fun CourseEditBody(
     courseUiState: CourseUiState.Success,
     onNameChange: (String) -> Unit,
     onGoalChange: (String) -> Unit,
+    onDailyGoalChange: (String) -> Unit,
     onOtherHoursChange: (String) -> Unit,
     onCountryGroupChange: (CountryGroupUiModel) -> Unit,
     onDone: () -> Unit
@@ -168,6 +170,22 @@ fun CourseEditBody(
                 label = { Text(stringResource(R.string.course_goal_label)) },
                 value = courseUiState.courseFields.goalInHours,
                 onValueChange = onGoalChange,
+                singleLine = true,
+                keyboardOptions = IME_ACTION_NEXT.copy(
+                    keyboardType = KeyboardType.Number
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) })
+            )
+        }
+        item {
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(top = MaterialTheme.spacing.medium)
+                    .fillMaxWidth(),
+                label = { Text(stringResource(R.string.course_daily_goal_label)) },
+                value = courseUiState.courseFields.dailyGoal,
+                onValueChange = onDailyGoalChange,
                 singleLine = true,
                 keyboardOptions = IME_ACTION_NEXT.copy(
                     keyboardType = KeyboardType.Number

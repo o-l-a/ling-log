@@ -10,6 +10,7 @@ data class CourseEntity(
     @PrimaryKey val id: String,
     val name: String,
     val goalInHours: Long,
+    val dailyGoal: Long = 30L,
     val otherSourceHours: Long = 0L,
     val countryGroupId: String = DEFAULT_COUNTRY_GROUP,
     val timestamp: Date,

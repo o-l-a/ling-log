@@ -135,8 +135,9 @@
     <string name="new_course_button">Nowy język</string>
     <string name="course_name_label">Język</string>
     <string name="course_goal_label">Cel (w godzinach)</string>
+    <string name="course_daily_goal_label">Dzienny cel (w minutach)</string>
     <string name="course_other_source_hours_label">Godziny poza platformą</string>
-    <string name="course_goal_card_text">Cel: %dh</string>
+    <string name="course_goal_card_text">Cel: %dh • Cel dzienny: %dm</string>
     <string name="course_other_source_hours_card_text">%dh poza platformą</string>
     <string name="course_active_course">Aktywny kurs</string>
 
